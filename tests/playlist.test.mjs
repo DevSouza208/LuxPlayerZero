@@ -51,7 +51,8 @@ test('playlist de demonstração é um catálogo M3U real com streams HTTPS auto
   const file = readFileSync(new URL('../public/demo/playlist.m3u', import.meta.url), 'utf8');
   const channels = parseM3u(file, 'https://luxplayerzero.pages.dev/demo/playlist.m3u');
   assert.ok(channels.length >= 2);
-  assert.equal(channels.every(c => c.url.startsWith('https://')), true);
+  assert.equal(channels.filter(c => c.url.startsWith('https://')).length >= 2, true);
+  assert.equal(channels.some(c => c.url.startsWith('http://')), true);
   assert.ok(channels.some(c => c.url.endsWith('.m3u8')));
   assert.ok(channels.some(c => c.url.endsWith('.mp4')));
 });
