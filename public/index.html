@@ -3,88 +3,141 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090810">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="no-referrer">
-  <meta name="description" content="Lux Player Zero — um reprodutor de mídia independente, sem listas incluídas.">
-  <title>Lux Player Zero · Laboratório</title>
-  <link rel="stylesheet" href="/style.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
-  <script type="module" src="/app.js"></script>
+  <meta name="description" content="Lux Player Zero. Sua experiência de entretenimento começa aqui.">
+  <title>Entrar · Lux Player Zero</title>
+  <link rel="icon" type="image/png" href="/assets/lux-icon.png">
+  <link rel="apple-touch-icon" href="/assets/lux-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="image" href="/assets/login-scene.png">
+  <link rel="stylesheet" href="/login.css">
+  <script type="module" src="/login.js"></script>
 </head>
 <body>
-<div class="shell">
-  <aside class="sidebar" aria-label="Fontes e configuração">
-    <header class="brand">
-      <div class="brand-mark" aria-hidden="true"><span>◈</span></div>
-      <div><strong>LUX <span>ZERO</span></strong><small>PLAYBACK LAB / 0.1.0</small></div>
-    </header>
-    <div class="line"></div>
-    <div class="sidebar-heading"><span class="eyebrow">01 — CONEXÃO</span><span class="microdot" title="Nenhum cadastro é salvo no servidor"></span></div>
-    <p class="intro">Escolha uma fonte. O player cuida do restante — dentro das capacidades do dispositivo.</p>
-    <form id="source-form" autocomplete="off">
-      <label for="source-type">TIPO DE FONTE</label>
-      <select id="source-type" name="type">
-        <option value="direct">URL de vídeo / rádio</option>
-        <option value="m3u">Playlist M3U</option>
-        <option value="xtream">Xtream Codes</option>
-      </select>
-      <label for="source-url" id="source-url-label">ENDEREÇO DA MÍDIA</label>
-      <input id="source-url" type="url" inputmode="url" placeholder="https://.../stream.m3u8" spellcheck="false">
-      <div id="credentials-fields" hidden>
-        <label for="xc-user">USUÁRIO</label>
-        <input id="xc-user" type="text" spellcheck="false" autocapitalize="off" autocomplete="off">
-        <label for="xc-pass">SENHA</label>
-        <input id="xc-pass" type="password" autocomplete="new-password">
-      </div>
-      <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
-      <div id="file-fields" hidden>
-        <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
-        <label for="m3u-file" class="upload">+ Selecionar arquivo .m3u / .txt</label>
-        <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
-      </div>
-    </form>
-    <div class="privacy"><span class="privacy-dot"></span><p><b>Conexão local</b><br>Fontes e credenciais não são armazenadas pelo Lux Zero. Acesso direto depende de CORS e HTTPS.</p></div>
-    <div class="sidebar-footer">ZERO COMPLEXIDADE DESNECESSÁRIA <span>✳</span></div>
-  </aside>
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4 20c0-4.1 3.3-7 8-7s8 2.9 8 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.2" fill="currentColor"/></symbol>
+    <symbol id="icon-eye" viewBox="0 0 24 24"><path d="M2.5 12s3.6-6 9.5-6 9.5 6 9.5 6-3.6 6-9.5 6S2.5 12 2.5 12Z" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="icon-eye-off" viewBox="0 0 24 24"><path d="M4.1 9.2C3 10.6 2.5 12 2.5 12s3.6 6 9.5 6c1.4 0 2.7-.3 3.8-.9M9.2 6.4c.9-.3 1.8-.4 2.8-.4 5.9 0 9.5 6 9.5 6s-.9 1.6-2.6 3.1M10.1 10.1a2.7 2.7 0 0 0 3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3 3l18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24"><path d="M4 12h16m-7-7 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-arrow-left" viewBox="0 0 24 24"><path d="M20 12H4m7-7-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 2.5 20 6v6.5c0 5-3.4 8.1-8 10-4.6-1.9-8-5-8-10V6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m4 6 8 7 8-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  </svg>
 
-  <main class="main">
-    <header class="topbar">
-      <div class="breadcrumbs">LUX / <strong>PLAYBACK</strong> / LABORATÓRIO</div>
-      <span class="environment"><span class="green-dot"></span> EXPERIMENTAL</span>
-    </header>
-    <section class="hero" aria-label="Introdução">
-      <div>
-        <span class="eyebrow accent">TECNOLOGIA DE REPRODUÇÃO · NOVA GERAÇÃO</span>
-        <h1>Menos camadas.<br><em>Mais reprodução.</em></h1>
-        <p>Um motor independente. Nenhum catálogo imposto. Apenas o conteúdo que você escolher conectar.</p>
-      </div>
-      <div class="hero-shape" aria-hidden="true"><div class="halo halo-one"></div><div class="halo halo-two"></div><div class="halo halo-three"></div><span>0</span></div>
-    </section>
+  <div class="auth-layout">
+    <section class="login-side" aria-label="Acesso ao Lux Player">
+      <header class="brand-row">
+        <a class="brand-lockup" href="/" aria-label="Lux Player — página inicial">
+          <img src="/assets/lux-logo.png" alt="Lux Player">
+          <span class="brand-fallback">LUX <b>PLAYER</b></span>
+        </a>
+        <span class="version-mark"><i aria-hidden="true"></i> ZERO / 0.2</span>
+      </header>
 
-    <div id="message" class="message" role="status" aria-live="polite">Pronto para começar. Conecte uma fonte à esquerda ou experimente o vídeo público de demonstração.</div>
+      <main class="auth-center">
+        <div id="login-view">
+          <div class="intro-eyebrow">ACESSO À EXPERIÊNCIA LUX</div>
+          <h1 class="auth-title">Seu universo.<span>Seu próximo play.</span></h1>
+          <p class="auth-lead">Entre para continuar sua experiência. Simples, fluido e com tudo no lugar certo.</p>
 
-    <section class="workspace">
-      <div class="library">
-        <div class="section-head"><div><span class="eyebrow">02 — BIBLIOTECA</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Limpar a lista atual">Limpar</button></div>
-        <div class="list-tools"><input id="search" type="search" placeholder="Buscar na lista..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">Vídeo</option><option value="radio">Rádio</option></select></div>
-        <div id="channels" class="channels" role="list"><div class="list-empty">Sua biblioteca começa aqui.</div></div>
-        <div class="demo-row"><span>QUER TESTAR O MOTOR?</span><button id="demo" type="button">Carregar stream de demonstração ↗</button></div>
-      </div>
+          <form id="login-form" class="auth-form" method="post" action="#" novalidate autocomplete="on">
+            <div class="field">
+              <label class="field-label" for="login-identity">E-mail ou nome de usuário</label>
+              <div class="input-wrap">
+                <svg class="field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+                <input id="login-identity" type="text" inputmode="email" autocomplete="username" placeholder="Seu e-mail ou usuário" maxlength="254" aria-invalid="false" aria-describedby="identity-error" spellcheck="false" required>
+              </div>
+              <p class="field-error" id="identity-error" hidden></p>
+            </div>
 
-      <div class="player-column">
-        <div class="section-head"><div><span class="eyebrow">03 — REPRODUÇÃO</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
-        <div class="video-wrap">
-          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>O próximo play começa aqui.</p><span>Selecione uma mídia da sua biblioteca.</span></div>
-          <video id="video" controls playsinline preload="none" hidden></video>
-          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
+            <div class="field">
+              <label class="field-label" for="login-password">Sua senha</label>
+              <div class="input-wrap">
+                <svg class="field-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
+                <input id="login-password" type="password" autocomplete="current-password" placeholder="Digite sua senha" aria-invalid="false" aria-describedby="password-error" required>
+                <button id="toggle-password" class="icon-button" type="button" aria-label="Mostrar senha" title="Mostrar senha" aria-pressed="false">
+                  <svg aria-hidden="true"><use id="password-icon" href="#icon-eye"></use></svg>
+                </button>
+              </div>
+              <p class="field-error" id="password-error" hidden></p>
+            </div>
+
+            <div class="form-meta">
+              <label class="coming-soon" title="Disponível com a autenticação real">
+                <input type="checkbox" disabled>
+                Manter conectado <span class="soon">EM BREVE</span>
+              </label>
+              <button id="forgot-password" class="inline-link" type="button">Esqueceu a senha?</button>
+            </div>
+
+            <button class="primary-btn" type="submit">Entrar no Lux Player
+              <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+            </button>
+          </form>
+          <div id="login-feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+
+          <div class="splitter"><span>ou conheça o projeto</span></div>
+          <a class="secondary-btn" href="/player.html">
+            <svg aria-hidden="true"><use href="#icon-play"></use></svg>
+            Explorar demonstração
+          </a>
+          <p class="security-note">
+            <svg aria-hidden="true"><use href="#icon-shield"></use></svg>
+            <span>Prévia de interface: sua senha não é transmitida nem armazenada. O acesso seguro será conectado na próxima etapa.</span>
+          </p>
         </div>
-        <div class="now-playing"><div><span class="eyebrow">REPRODUZINDO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
-        <details class="diagnostics"><summary>Diagnóstico de reprodução <span>↗</span></summary><pre id="diagnostics">Nenhum evento registrado.</pre></details>
-        <div class="disclaimer">O Lux Zero é somente um reprodutor. Não fornece canais, playlists, filmes ou assinaturas.</div>
-      </div>
+
+        <div id="recovery-view" hidden>
+          <button class="recovery-back" id="back-to-login" type="button">
+            <svg aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+            Voltar para o login
+          </button>
+          <div class="intro-eyebrow">RECUPERAÇÃO DE ACESSO</div>
+          <h1 class="auth-title">Vamos recuperar<span>seu acesso.</span></h1>
+          <p class="auth-lead">Informe o e-mail associado à sua conta. Esta etapa ainda é uma prévia e não envia mensagens.</p>
+          <form id="recovery-form" class="auth-form" method="post" action="#" novalidate>
+            <div class="field">
+              <label class="field-label" for="recovery-email">E-mail da sua conta</label>
+              <div class="input-wrap">
+                <svg class="field-icon" aria-hidden="true"><use href="#icon-mail"></use></svg>
+                <input id="recovery-email" type="email" autocomplete="email" placeholder="voce@exemplo.com" aria-invalid="false" aria-describedby="recovery-email-error" required>
+              </div>
+              <p class="field-error" id="recovery-email-error" hidden></p>
+            </div>
+            <button class="primary-btn" type="submit">Solicitar recuperação
+              <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+            </button>
+          </form>
+          <div id="recovery-feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+          <p class="recovery-help">Assim que o sistema de contas estiver integrado, ativaremos a recuperação por link temporário e uso único.</p>
+        </div>
+      </main>
+
+      <footer class="auth-footer">
+        <span>© <span id="current-year">2026</span> <strong>Lux Player.</strong> Feito para evoluir.</span>
+        <span>DESIGN / ZERO</span>
+      </footer>
     </section>
-  </main>
-</div>
+
+    <aside class="experience-panel" aria-label="Uma nova experiência Lux Player">
+      <div class="visual-noise" aria-hidden="true"></div>
+      <div class="visual-top">
+        <span class="visual-tag"><i aria-hidden="true"></i>O FUTURO COMEÇA AQUI</span>
+        <span class="experience-badge"><span aria-hidden="true"></span> NOVA EXPERIÊNCIA</span>
+      </div>
+      <img class="mascot" src="/assets/luxite.png" alt="Luxite, o mascote do Lux Player">
+      <div class="visual-bottom">
+        <div class="eyebrow">O SEU ESPAÇO. O SEU CONTROLE.</div>
+        <h2>Todas as suas histórias.<br><em>Uma só experiência.</em></h2>
+        <p>Um novo começo para o seu player favorito. Sem complicações. Com identidade própria.</p>
+      </div>
+      <div class="visual-footer"><span>IMAGINE · CONECTE · ASSISTA</span><span>LUX / ZERO</span></div>
+    </aside>
+  </div>
 </body>
 </html>
