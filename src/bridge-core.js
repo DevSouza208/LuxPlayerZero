@@ -140,7 +140,11 @@ export async function status(request, env) {
   return apiOk({
     configured: bridgeReady(env),
     connected: await session(request, env),
-    mediaEnabled: mediaReady(env)
+    mediaEnabled: mediaReady(env),
+    snapshotReady: bridgeReady(env) &&
+      typeof env?.DB?.prepare === 'function' &&
+      typeof env?.CATALOG_BUCKET?.put === 'function' &&
+      typeof env?.CATALOG_BUCKET?.get === 'function'
   });
 }
 
