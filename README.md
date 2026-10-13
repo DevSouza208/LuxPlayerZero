@@ -1,6 +1,29 @@
 # Lux Player Zero
 
-**Reprodutor independente, sem catálogo nem assinatura incluídos.** Novo projeto isolado do Lux Original e 2.0.
+**Um novo começo, tela por tela.** Reprodutor de mídia independente, sem catálogo nem assinatura incluídos. O projeto não usa o código quebrado do Lux Original nem do Lux 2.0.
+
+## Estrutura atual
+
+| Rota | Função | Estado |
+| --- | --- | --- |
+| `/` | Login premium usando a identidade visual Lux | **Front funcional; autenticação pendente** |
+| `/player.html` | Laboratório de reprodução da versão 0.1 | Demonstração, sem proteção de sessão |
+| `/api/health` | Verifica funcionamento do Worker | Implementado |
+
+Os arquivos fornecidos pelo criador ficam em `public/assets/`:
+
+- `lux-logo.png` (original: `LUXPLAY.png`)
+- `login-scene.png` (original: `bg_login.png`)
+- `lux-icon.png` (original: `icon-bg-off.png`)
+- `luxite.png` (original: `luxite-full.png`)
+
+Os binários foram **movidos sem alteração de conteúdo**, mantendo os mesmos SHAs Git dos originais.
+
+### Login (tela 01)
+
+O formulário faz validação de identificador/senha, alterna a visibilidade da senha, tem navegação por teclado e interface de recuperação de acesso. **Nenhum pedido de autenticação é enviado; não há sessões fictícias ou armazenamento de senhas.** O botão de demonstração dá acesso explícito ao laboratório, que continua público até que uma autenticação real seja implantada.
+
+Acompanhe as próximas etapas em **[docs/PENDENCIAS.md](docs/PENDENCIAS.md)**. A regra é: primeiro funcionar, depois aprimorar; registrar cada etapa como código, validação, QA visual ou integração.
 
 ## v0.1.0 — laboratório web
 
@@ -36,7 +59,7 @@ npm test
 - No navegador HTTPS, playlists e streams HTTP podem ser bloqueados como conteúdo misto; CORS pode impedir requisições M3U/Xtream. O player não desabilita proteções e não tem proxy aberto.
 - Alguns codecs não são suportados no navegador mesmo com HLS/TS. MPV desktop será avaliado em fase posterior.
 - O acesso Xtream é **direto do navegador ao servidor informado**. Senhas são mantidas apenas na memória da página, não em D1, R2 ou no nosso Worker; entretanto, a própria origem Xtream recebe essas credenciais. Não use contas de terceiros sem autorização.
-- Não há login, catálogo persistente, EPG, filmes/séries ou fallback multi-servidor nesta versão.
+- Não há **autenticação real**, catálogo persistente, EPG, filmes/séries ou fallback multi-servidor nesta versão.
 - Bibliotecas de playback são carregadas por CDN e precisam de conectividade.
 - Código versionado e testes unitários **não equivalem a validação em dispositivo ou teste de streams reais**.
 
