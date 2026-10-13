@@ -189,21 +189,54 @@ async function playItem(item) {
     els.radioTitle.textContent = item.name;
 
     const format = streamType(item.url);
+    let waitForManifest = false;
+    const attemptPlay = async () => {
+      if (generation !== operation) return;
+      try {
+        if (ts) await ts.play();
+        else await media.play();
+      } catch (error) {
+        if (generation !== operation) return;
+        if (error?.name === 'NotAllowedError') {
+          state('Clique para tocar');
+          note('O navegador bloqueou a reprodução automática. Clique em Play no controle da mídia.', 'info');
+        } else fail(errorText(error));
+      }
+    };
     if (format === 'HLS' && !media.canPlayType('application/vnd.apple.mpegurl')) {
       if (!window.Hls?.isSupported()) throw new Error('HLS.js indisponível ou não compatível. Verifique a conexão com a biblioteca de reprodução.');
       hls = new window.Hls({
         enableWorker: true, startLevel: -1, liveSyncDurationCount: 3, maxBufferLength: 30, backBufferLength: 20
       });
+      let networkRetries = 0;
+      let mediaRetries = 0;
+      hls.on(window.Hls.Events.FRAG_LOADED, () => { networkRetries = 0; mediaRetries = 0; });
+      hls.on(window.Hls.Events.MANIFEST_PARSED, () => { void attemptPlay(); });
       hls.on(window.Hls.Events.ERROR, (_event, data) => {
         if (generation !== operation || !data?.fatal) return;
         if (data.type === window.Hls.ErrorTypes.NETWORK_ERROR) {
-          fail('Falha de rede HLS. Confira CORS, conexão e acesso aos segmentos.');
+          if (networkRetries++ < 2) {
+            state('Recuperando');
+            const attempt = networkRetries;
+            setTimeout(() => {
+              if (generation === operation && hls) {
+                log('Nova tentativa HLS', 'rede / ' + attempt);
+                hls.startLoad();
+              }
+            }, attempt * 900);
+            return;
+          }
+          fail('Falha de rede HLS após 2 novas tentativas. Confira CORS e segmentos.');
         } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
-          try { hls.recoverMediaError(); state('Recuperando'); } catch { fail('Não foi possível decodificar a mídia HLS.'); }
+          if (mediaRetries++ < 2) {
+            try { hls.recoverMediaError(); state('Recuperando'); return; } catch {}
+          }
+          fail('Não foi possível decodificar a mídia HLS após 2 tentativas.');
         } else {
           fail('Não foi possível reproduzir este stream HLS.');
         }
       });
+      waitForManifest = true;
       hls.loadSource(item.url);
       hls.attachMedia(media);
     } else if (format === 'MPEG-TS' && !media.canPlayType('video/mp2t')) {
@@ -225,19 +258,7 @@ async function playItem(item) {
     watchdog = setTimeout(() => {
       if (generation === operation && media.readyState < 2) fail('Sem dados de mídia após 20 segundos. Verifique a origem, o formato e a rede.');
     }, 20000);
-    try {
-      if (ts) await ts.play();
-      else await media.play();
-      if (generation !== operation) return;
-    } catch (error) {
-      if (generation !== operation) return;
-      if (error?.name === 'NotAllowedError') {
-        state('Clique para tocar');
-        note('O navegador bloqueou a reprodução automática. Clique em Play no controle da mídia.', 'info');
-      } else {
-        fail(errorText(error));
-      }
-    }
+    if (!waitForManifest) await attemptPlay();
   } catch (error) {
     if (generation === operation) fail(errorText(error));
   }
