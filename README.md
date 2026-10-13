@@ -19,6 +19,12 @@ Os arquivos fornecidos pelo criador ficam em `public/assets/`:
 
 Os binários foram **movidos sem alteração de conteúdo**, mantendo os mesmos SHAs Git dos originais.
 
+### Catálogo e sincronização (planejamento)
+
+O projeto contempla um futuro Worker agendado a cada 4h para importar catálogos Xtream/M3U, guardar snapshots em R2 **privado**, indexar no D1 e servir os metadados ao player. O navegador Pages HTTPS continuará sujeito às restrições para streams HTTP; snapshot da lista não transforma vídeo HTTP em HTTPS.
+
+Documento técnico: **[docs/SINCRONIZACAO-CATALOGO.md](docs/SINCRONIZACAO-CATALOGO.md)**.
+
 ### Login (tela 01)
 
 O formulário faz validação de identificador/senha, alterna a visibilidade da senha, tem navegação por teclado e interface de recuperação de acesso. **Nenhum pedido de autenticação é enviado; não há sessões fictícias ou armazenamento de senhas.** O botão de demonstração dá acesso explícito ao laboratório, que continua público até que uma autenticação real seja implantada.
