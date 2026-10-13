@@ -45,7 +45,7 @@ export function permittedUrl(value, env) {
   const allowed = env.BRIDGE_ALLOWED_HOSTS.split(/[,\s]+/).map(s => s.toLowerCase().trim()).filter(Boolean);
   // Somente host exato ou host:porta explícito (nunca wildcard ou sufixo).
   const hostnamePort = parsed.host.toLowerCase().replace(/\.$/, '');
-  if (!allowed.includes(hostname) && !allowed.includes(hostnamePort)) {
+  if (!allowed.includes(hostnamePort)) {
     throw new Error('Host não liberado pelo administrador do gateway.');
   }
   return parsed;

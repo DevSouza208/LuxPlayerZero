@@ -131,5 +131,6 @@ test('tokens lacrados expiram e não expõem URL com credenciais', async () => {
   const token = await seal({ scope:'bridge-media', url:'http://playlist.example.org/get.php?username=abc&password=secret', exp:Date.now()+60000 }, env);
   assert.doesNotMatch(token, /secret|password|username/);
   assert.equal((await unseal(token, env)).scope, 'bridge-media');
-  await assert.rejects(() => unseal(await seal({ exp:Date.now()-1 }, env), env), /expirada/);
+  const expired = await seal({ exp: Date.now() - 1 }, env);
+  await assert.rejects(() => unseal(expired, env), /expirada/);
 });
