@@ -65,8 +65,12 @@ A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implemen
 | ⬜ | Baixar e validar catálogo | M3U/Xtream autorizados, timeout, limites e fallback para última versão válida |
 | ⬜ | Snapshot privado em R2 | Guardar versão e nunca publicar credenciais em bucket público |
 | ⬜ | Indexação D1 | Categorias, canais e busca, atualizações incrementais |
-| ⬜ | Catálogo HTTPS ao navegador | API autenticada sem expor segredos da fonte |
-| 🔴 | Streams HTTP no Pages HTTPS | Snapshot HTTPS não converte os vídeos internos; requer fonte HTTPS legítima ou solução de playback específica e autorizada |
+| 🟡 | Catálogo HTTPS ao navegador | Gateway Pages com cookie HttpOnly e host allowlist publicado; falta Secrets de produção e teste autorizado |
+| ✅ | Documentar configuração do Gateway | Instruções em [GATEWAY-HTTPS.md](GATEWAY-HTTPS.md), incluindo limites, riscos e ativação |
+| 🟡 | Gateway de catálogo HTTP → HTTPS | Pages Function publicada e verificada; falta configurar BRIDGE_ACCESS_KEY e BRIDGE_ALLOWED_HOSTS no Pages |
+| 🟡 | Fluxo privado de vídeo HTTPS | Adaptador HLS e MPEG-TS com token criptografado implementado; desligado por padrão, depende de direitos/termos e QA real |
+| 🔴 | Origem HTTP no Pages HTTPS | Exige gateway autorizado configurado ou URL HTTPS oficial; somente R2/playlist HTTPS não transforma o vídeo |
+| ⬜ | Proteção operacional para gateway | Rate limiting no Cloudflare WAF, restrição de tráfego, auditoria de quotas e teste de streams autorizados |
 | ⬜ | Testes e monitoramento | Fixtures, reconciliação de versões, erros, desempenho e custos |
 
 ## Regras para próximas telas

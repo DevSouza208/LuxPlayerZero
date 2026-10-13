@@ -31,9 +31,17 @@ O formulário faz validação de identificador/senha, alterna a visibilidade da 
 
 Acompanhe as próximas etapas em **[docs/PENDENCIAS.md](docs/PENDENCIAS.md)**. A regra é: primeiro funcionar, depois aprimorar; registrar cada etapa como código, validação, QA visual ou integração.
 
+## Ponte HTTPS para fontes HTTP
+
+O Lux Zero agora possui **Cloudflare Pages Functions** em `functions/api/bridge/` e `public/_routes.json`, que permitem importar catálogos HTTP por uma sessão privada. O adaptador opcional de mídia contém tratamento de manifestos HLS e segmentos, mas inicia **desativado** para evitar expor um proxy ou retransmitir streams sem permissão.
+
+**A publicação da rota não ativa o gateway:** faltam `BRIDGE_ACCESS_KEY` (segredo forte) e `BRIDGE_ALLOWED_HOSTS` (domínios autorizados) no Cloudflare Pages. O status pode ser visto em `/api/bridge/status`. O recurso de vídeo exige revisão dos direitos e dos termos de hospedagem antes de ativar `BRIDGE_MEDIA_ENABLED`. Não há garantias de suporte a todo codec e provedor.
+
+Configuração e segurança: **[docs/GATEWAY-HTTPS.md](docs/GATEWAY-HTTPS.md)**.
+
 ## Cloudflare Pages — front-end (2026-10-13)
 
-O **front-end do Lux Zero** pode ser publicado diretamente no Cloudflare Pages, sem `wrangler deploy` e sem precisar conectar D1 ou R2 nesta fase.
+O **Lux Zero** publica arquivos estáticos em `public` e funções server-side em `functions` pelo Cloudflare Pages conectado ao GitHub, sem `wrangler deploy` e sem depender de D1/R2 neste momento.
 
 Na configuração do projeto Pages:
 
@@ -48,7 +56,7 @@ Na configuração do projeto Pages:
 
 O arquivo `public/index.html` é o login. `public/player.html` contém o laboratório antigo, sem autenticação. Assets ficam em `public/assets/`.
 
-**Importante:** Pages publica arquivos estáticos. O `src/worker.js` e o endpoint `/api/health` **não** são publicados no Pages apenas por estarem no mesmo repositório. A API, D1 e R2 entrarão depois com um Worker separado ou integração adequada. Não configure um deploy Worker com `npx wrangler deploy` dentro desse projeto Pages estático.
+**Importante:** a pasta `src/worker.js` continua exclusiva do Worker separado, então `/api/health` não é exposto pelo Pages. Mas as novas Pages Functions em `functions/api/bridge/` são publicadas automaticamente com o Pages. O futuro D1/R2 pode usar um Worker separado.
 
 No login aparece o marcador **ZERO / PAGES 01** para identificar visualmente este commit depois da publicação.
 
