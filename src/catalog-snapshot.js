@@ -20,14 +20,14 @@ export function snapshotReady(env) {
     typeof env?.CATALOG_BUCKET?.get === 'function';
 }
 
-const SQL_SCHEMA = \`CREATE TABLE IF NOT EXISTS catalog_sources (
+const SQL_SCHEMA = `CREATE TABLE IF NOT EXISTS catalog_sources (
   source_hash TEXT PRIMARY KEY,
   catalog_id TEXT NOT NULL UNIQUE,
   r2_key TEXT NOT NULL,
   synced_at TEXT NOT NULL,
   item_count INTEGER NOT NULL,
   size_bytes INTEGER NOT NULL
-)\`;
+)`;
 
 async function ensureSchema(env) {
   await env.DB.prepare(SQL_SCHEMA).run();
@@ -152,13 +152,13 @@ export async function syncCatalog(request, env, fetcher = fetch) {
 
   try {
     await env.DB.prepare(
-      \`INSERT INTO catalog_sources (source_hash, catalog_id, r2_key, synced_at, item_count, size_bytes)
+      `INSERT INTO catalog_sources (source_hash, catalog_id, r2_key, synced_at, item_count, size_bytes)
        VALUES (?, ?, ?, ?, ?, ?)
        ON CONFLICT(source_hash) DO UPDATE SET
          r2_key=excluded.r2_key,
          synced_at=excluded.synced_at,
          item_count=excluded.item_count,
-         size_bytes=excluded.size_bytes\`
+         size_bytes=excluded.size_bytes`
     ).bind(
       sourceId, row.catalog_id, row.r2_key,
       row.synced_at, row.item_count, row.size_bytes
