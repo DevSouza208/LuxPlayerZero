@@ -1,1 +1,45 @@
-# LuxPlayerZero
+# Lux Player Zero
+
+**Reprodutor independente, sem catálogo nem assinatura incluídos.** Novo projeto isolado do Lux Original e 2.0.
+
+## v0.1.0 — laboratório web
+
+- Interface responsiva e instalação simples: Cloudflare Worker + Static Assets.
+- Fontes por URL de vídeo/rádio, playlist M3U (.m3u, .txt ou URL) e Xtream Codes.
+- Reprodução HTML5 (MP4, áudio), HLS via `hls.js` e MPEG-TS via `mpegts.js` — conforme capacidades do navegador, servidor e CORS.
+- Catálogo com busca e filtro vídeo/rádio; proteção contra troca de sessões atrasadas e diagnóstico sem registrar URLs.
+- Demonstração HLS pública acessível pelo botão na biblioteca.
+- `GET /api/health` retorna status e presença dos bindings de D1/R2.
+- Testes em `node --test` e GitHub Actions.
+
+### Como publicar no Cloudflare
+
+O Worker foi pensado para o repositório conectado `DevSouza208/LuxPlayerZero`, branch `main`.
+
+1. Confirme **o nome real do Worker** que você conectou. O campo `name` de `wrangler.jsonc` começa como `lux-player-zero`; mude-o se o Worker existente tiver nome diferente.
+2. No painel Cloudflare em Worker > Settings > Build, selecione a raiz do repositório (`/`); deixe o **Build command vazio** e o **Deploy command** como `npx wrangler deploy`.
+3. A instalação das dependências de desenvolvimento (Wrangler) é feita pelo ambiente de build; o app não precisa de um build estático.
+4. Verifique `https://SEU-WORKER.workers.dev/api/health` e a página inicial.
+
+**D1 e R2:** já podem existir na sua conta, mas este commit não tenta adivinhar ID/bucket. A configuração de bindings está em [docs/cloudflare.md](docs/cloudflare.md). Para o primeiro deploy eles não são necessários.
+
+### Desenvolvimento local
+
+```bash
+npm install
+npm run dev
+npm test
+```
+
+## Limitações conhecidas, explícitas
+
+- No navegador HTTPS, playlists e streams HTTP podem ser bloqueados como conteúdo misto; CORS pode impedir requisições M3U/Xtream. O player não desabilita proteções e não tem proxy aberto.
+- Alguns codecs não são suportados no navegador mesmo com HLS/TS. MPV desktop será avaliado em fase posterior.
+- O acesso Xtream é **direto do navegador ao servidor informado**. Senhas são mantidas apenas na memória da página, não em D1, R2 ou no nosso Worker; entretanto, a própria origem Xtream recebe essas credenciais. Não use contas de terceiros sem autorização.
+- Não há login, catálogo persistente, EPG, filmes/séries ou fallback multi-servidor nesta versão.
+- Bibliotecas de playback são carregadas por CDN e precisam de conectividade.
+- Código versionado e testes unitários **não equivalem a validação em dispositivo ou teste de streams reais**.
+
+## Princípios
+
+Uma fonte, um catálogo, um player. O reprodutor não fornece canais nem conteúdos. Priorizar simplicidade, diagnósticos úteis, proteção de credenciais, não retransmitir conteúdo em R2 e testes reproduzíveis antes de cada integração.
