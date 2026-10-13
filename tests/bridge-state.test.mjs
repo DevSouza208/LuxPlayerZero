@@ -34,3 +34,12 @@ test('status em leitura não finge conexão com o servidor', () => {
   assert.equal(view.kind, 'checking');
   assert.equal(view.showKey, false);
 });
+
+test('player exibe status real do Pages em vez de consultar a API de outro Worker', async () => {
+  const { readFileSync } = await import('node:fs');
+  const markup = readFileSync(new URL('../public/player.html', import.meta.url), 'utf8');
+  const script = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
+  assert.match(markup, /id="bridge-availability"/);
+  assert.match(script, /api\/bridge\/status/);
+  assert.doesNotMatch(script, /fetch\('\/api\/health'/);
+});
