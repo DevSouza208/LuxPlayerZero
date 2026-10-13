@@ -20,10 +20,15 @@ Atualização: 2026-10-13.
 | 🟡 | Layout desktop e mobile | Breakpoints implementados e CSS revisado; falta QA visual com imagens reais |
 | ✅ | Campos e validação | Identificador e senha obrigatórios; mensagens acessíveis |
 | ✅ | Mostrar/ocultar senha | Alternância acessível e segura, sem gravar senha |
+| ✅ | Lux ID (usuário/e-mail) | Interface e validação básica do formulário |
+| 🟡 | Login com Google | Botão visual e aviso de indisponibilidade; falta OAuth seguro |
+| 🟡 | Login com Discord | Botão visual e aviso de indisponibilidade; falta OAuth seguro |
+| ✅ | Remoção dos textos de contexto | Login mais objetivo com layout compacto |
 | ✅ | Recuperação — interface | Tela e validação de e-mail disponíveis sem envio falso |
 | ✅ | Entrada no laboratório de demonstração | Link explícito para /player.html |
-| 🟡 | QA visual com imagens reais em produção | Revisão manual em computador, celular e telas pequenas; confirmar deploy estático Pages |
-| ⬜ | Autenticação de verdade | Endpoint seguro, credenciais protegidas, sessão estabelecida pelo servidor |
+| 🟡 | QA visual com imagens reais em produção | Site Pages acessível; validar o novo tamanho do Luxite e login em desktop/mobile |
+| ⬜ | Autenticação de verdade | Lux ID por usuário ou e-mail, endpoint seguro, credenciais protegidas, sessão estabelecida pelo servidor |
+| ⬜ | OAuth Google e Discord | Fluxos server-side com state/PKCE, callback validado, vínculo seguro à conta Lux ID |
 | ⬜ | Persistência de sessão / lembrar dispositivo | Controle explícito, expiração e revogação |
 | ⬜ | Esqueci senha — backend | Token de uso único, prazo, limitação de tentativas e e-mail transacional |
 | ⬜ | Recuperação e validação de conta | Confirmação de e-mail, redefinição segura |
@@ -44,7 +49,24 @@ Atualização: 2026-10-13.
 | 🟡 | HLS e MPEG-TS | Testar em navegadores reais e registrar falhas |
 | ⬜ | Integrar navegação visual com novo design | Planejar após validar login |
 | ⬜ | Motor desktop / Electron | Escolher e testar MPV ou outro motor adequado |
-| ⬜ | D1 e R2 | Vincular recursos reais e definir se são necessários; não usar R2 como retransmissor obrigatório |
+| ⬜ | D1 e R2 | Vincular os recursos reais após testes de integração; não usar R2 como retransmissor obrigatório |
+| ✅ | Identidade roxa | Paleta do laboratório alinhada ao Lux Player |
+
+
+## Arquitetura — Catálogo R2 + D1 (planejado)
+
+A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implementada sem precisar retransmitir vídeos. Ver [SINCRONIZACAO-CATALOGO.md](SINCRONIZACAO-CATALOGO.md).
+
+| Estado | Item | Critério de aceite |
+| --- | --- | --- |
+| ✅ | Estudar arquitetura da sincronização | Separação de dados de catálogo, snapshot R2, índice D1 e reprodução |
+| ⬜ | Vincular Worker agendado | Cron a cada 4h com recursos reais e Secrets |
+| ⬜ | Baixar e validar catálogo | M3U/Xtream autorizados, timeout, limites e fallback para última versão válida |
+| ⬜ | Snapshot privado em R2 | Guardar versão e nunca publicar credenciais em bucket público |
+| ⬜ | Indexação D1 | Categorias, canais e busca, atualizações incrementais |
+| ⬜ | Catálogo HTTPS ao navegador | API autenticada sem expor segredos da fonte |
+| 🔴 | Streams HTTP no Pages HTTPS | Snapshot HTTPS não converte os vídeos internos; requer fonte HTTPS legítima ou solução de playback específica e autorizada |
+| ⬜ | Testes e monitoramento | Fixtures, reconciliação de versões, erros, desempenho e custos |
 
 ## Regras para próximas telas
 
