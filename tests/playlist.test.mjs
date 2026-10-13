@@ -45,3 +45,20 @@ test('classifica URLs de rádio sem afetar vídeos', () => {
   assert.equal(inferKind('Canal de TV', 'https://example.org/live.m3u8'), 'tv');
   assert.equal(isHttpUrl('data:text/html,test'), false);
 });
+
+test('playlist de demonstração é um catálogo M3U real com streams HTTPS autorizados', async () => {
+  const { readFileSync } = await import('node:fs');
+  const file = readFileSync(new URL('../public/demo/playlist.m3u', import.meta.url), 'utf8');
+  const channels = parseM3u(file, 'https://luxplayerzero.pages.dev/demo/playlist.m3u');
+  assert.ok(channels.length >= 2);
+  assert.equal(channels.every(c => c.url.startsWith('https://')), true);
+  assert.ok(channels.some(c => c.url.endsWith('.m3u8')));
+  assert.ok(channels.some(c => c.url.endsWith('.mp4')));
+});
+
+test('botão de demonstração usa importação M3U do servidor, não injeta uma lista no estado', async () => {
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
+  assert.ok(source.includes("new URL('/demo/playlist.m3u', location.href)"));
+  assert.ok(source.includes('parseM3u(text, url)'));
+});

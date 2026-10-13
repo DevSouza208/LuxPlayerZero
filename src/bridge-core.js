@@ -45,7 +45,11 @@ export function permittedUrl(value, env) {
   const allowed = env.BRIDGE_ALLOWED_HOSTS.split(/[,\s]+/).map(s => s.toLowerCase().trim()).filter(Boolean);
   // Somente host exato ou host:porta explícito (nunca wildcard ou sufixo).
   const hostnamePort = parsed.host.toLowerCase().replace(/\.$/, '');
-  if (!allowed.includes(hostnamePort)) {
+  // URL normaliza :80 em http:// e :443 em https://, embora ambos sejam
+  // equivalentes quando declarados explicitamente na allowlist.
+  const effectivePort = parsed.port || (parsed.protocol === 'http:' ? '80' : '443');
+  const explicitPort = hostname + ':' + effectivePort;
+  if (!allowed.includes(hostnamePort) && !allowed.includes(explicitPort)) {
     throw new Error('Host não liberado pelo administrador do gateway.');
   }
   return parsed;

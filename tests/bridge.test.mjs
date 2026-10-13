@@ -134,3 +134,14 @@ test('tokens lacrados expiram e não expõem URL com credenciais', async () => {
   const expired = await seal({ exp: Date.now() - 1 }, env);
   await assert.rejects(() => unseal(expired, env), /expirada/);
 });
+
+test('allowlist de porta padrão explícita aceita 80/443 sem liberar outra porta ou protocolo', () => {
+  const httpOnly = { ...env, BRIDGE_ALLOWED_HOSTS: 'stream.example.org:80' };
+  const httpsOnly = { ...env, BRIDGE_ALLOWED_HOSTS: 'stream.example.org:443' };
+  assert.equal(permittedUrl('http://stream.example.org:80/live.m3u8', httpOnly).hostname, 'stream.example.org');
+  assert.equal(permittedUrl('http://stream.example.org/live.m3u8', httpOnly).protocol, 'http:');
+  assert.equal(permittedUrl('https://stream.example.org:443/live.m3u8', httpsOnly).protocol, 'https:');
+  assert.throws(() => permittedUrl('https://stream.example.org/live.m3u8', httpOnly), /não liberado/);
+  assert.throws(() => permittedUrl('http://stream.example.org/live.m3u8', httpsOnly), /não liberado/);
+  assert.throws(() => permittedUrl('http://stream.example.org:8080/live.m3u8', httpOnly), /não liberado/);
+});

@@ -31,6 +31,10 @@ O formulário faz validação de identificador/senha, alterna a visibilidade da 
 
 Acompanhe as próximas etapas em **[docs/PENDENCIAS.md](docs/PENDENCIAS.md)**. A regra é: primeiro funcionar, depois aprimorar; registrar cada etapa como código, validação, QA visual ou integração.
 
+### Teste de reprodução sem credenciais
+
+No Pages, abra `/player` e clique em **Importar playlist M3U de demonstração**. O aplicativo baixa `public/demo/playlist.m3u` via HTTPS, passa pelo mesmo `parseM3u` de fontes externas e mostra HLS de teste e MP4 de demonstração. Foi verificado em navegador com imagem e status `REPRODUZINDO` no HLS. Não é teste de Xtream privado, MPEG-TS HTTP ou retransmissão.
+
 ## Ponte HTTPS para fontes HTTP
 
 O Lux Zero agora possui **Cloudflare Pages Functions** em `functions/api/bridge/` e `public/_routes.json`, que permitem importar catálogos HTTP por uma sessão privada. O adaptador opcional de mídia contém tratamento de manifestos HLS e segmentos, mas inicia **desativado** para evitar expor um proxy ou retransmitir streams sem permissão.

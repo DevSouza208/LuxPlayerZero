@@ -1,5 +1,6 @@
 import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
 import { createBridge, isBridgeRequired } from './gateway.js';
+import { describeBridge } from './bridge-state.js';
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -10,7 +11,8 @@ const els = {
   video: $('video'), audio: $('audio'), radio: $('audio-stage'), radioTitle: $('radio-title'),
   idle: $('idle-stage'), title: $('playing-title'), state: $('playback-state'), format: $('format'),
   diagnostics: $('diagnostics'), demo: $('demo'),
-  bridgePanel: $('bridge-settings'), bridgeKey: $('bridge-key')
+  bridgePanel: $('bridge-settings'), bridgeKey: $('bridge-key'),
+  bridgeAvailability: $('bridge-availability'), bridgeKeyWrapper: $('bridge-key-wrap')
 };
 
 let channels = [];
@@ -22,17 +24,42 @@ let operation = 0;
 let sourceLoad = 0;
 let watchdog = null;
 let history = [];
+let bridgeStatus = null;
 const bridge = createBridge({
   getKey: () => els.bridgeKey.value.trim(),
   onStatus: message => {
     log('Ponte HTTPS', message);
     if (els.bridgeKey.value) els.bridgeKey.value = '';
+    void refreshBridgeStatus();
   }
 });
 function updateBridgePanel() {
   const sourceIsHttp = isBridgeRequired(els.url.value);
   const catalogueHasHttp = channels.some(item => isBridgeRequired(item.url));
   els.bridgePanel.hidden = !(sourceIsHttp || catalogueHasHttp);
+  const presentation = describeBridge(bridgeStatus, catalogueHasHttp);
+  els.bridgeAvailability.textContent = presentation.message;
+  els.bridgeAvailability.dataset.kind = presentation.kind;
+  els.bridgeKeyWrapper.hidden = !presentation.showKey;
+}
+
+async function refreshBridgeStatus() {
+  try {
+    const response = await fetch('/api/bridge/status', {
+      credentials: 'same-origin', cache: 'no-store', referrerPolicy: 'no-referrer'
+    });
+    if (!response.ok) throw new Error('Gateway indisponível.');
+    const data = await response.json();
+    if (typeof data.configured !== 'boolean' || typeof data.connected !== 'boolean') {
+      throw new Error('Resposta de status inválida.');
+    }
+    bridgeStatus = data;
+    log('Pages Functions', data.configured ? 'Gateway instalado' : 'Gateway sem configuração privada');
+  } catch {
+    bridgeStatus = { configured: false, connected: false, mediaEnabled: false };
+    log('Pages Functions', 'Gateway indisponível');
+  }
+  updateBridgePanel();
 }
 els.url.addEventListener('input', updateBridgePanel);
 
@@ -200,6 +227,9 @@ async function playItem(item) {
   log('Abrindo mídia', item.kind + ' / ' + streamType(item.url));
   try {
     checkProtocol(item.url);
+    if (isBridgeRequired(item.url) && bridgeStatus?.mediaEnabled === false) {
+      throw new Error('Catálogo recebido, mas o vídeo HTTP não está habilitado nesta ponte. Use HTTPS oficial ou player nativo. O streaming pelo servidor exige autorização.');
+    }
     const sourceUrl = isBridgeRequired(item.url) ? await bridge.media(item.url) : item.url;
     if (generation !== operation) return;
     const media = item.kind === 'radio' ? els.audio : els.video;
@@ -365,12 +395,21 @@ els.file.addEventListener('change', async () => {
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
 els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
-els.demo.addEventListener('click', () => setChannels([{
-  name: 'Vídeo HLS de demonstração', group: 'Stream público de teste',
-  kind: 'tv', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
-}], 'demonstração'));
+els.demo.addEventListener('click', async () => {
+  const generation = ++sourceLoad;
+  const url = new URL('/demo/playlist.m3u', location.href).href;
+  els.demo.disabled = true;
+  note('Importando playlist de demonstração...', 'info');
+  try {
+    const text = await request(url);
+    const entries = parseM3u(text, url);
+    if (!entries.length) throw new Error('A playlist de demonstração não possui fontes válidas.');
+    if (generation === sourceLoad) setChannels(entries, 'playlist M3U de demonstração');
+  } catch (error) {
+    if (generation === sourceLoad) fail(errorText(error));
+  } finally {
+    els.demo.disabled = false;
+  }
+});
 updateForm();
-fetch('/api/health', { cache: 'no-store' })
-  .then(response => response.ok ? response.json() : null)
-  .then(data => { if (data?.ok) log('Worker conectado', data.version); })
-  .catch(() => log('Sem API Worker (pré-visualização local)'));
+void refreshBridgeStatus();
