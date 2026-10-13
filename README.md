@@ -33,13 +33,13 @@ Acompanhe as próximas etapas em **[docs/PENDENCIAS.md](docs/PENDENCIAS.md)**. A
 
 ### Teste de reprodução sem credenciais
 
-No Pages, abra `/player` e clique em **Importar playlist M3U de demonstração**. O aplicativo baixa `public/demo/playlist.m3u` via HTTPS, passa pelo mesmo `parseM3u` de fontes externas e mostra HLS de teste e MP4 de demonstração. Foi verificado em navegador com imagem e status `REPRODUZINDO` no HLS. Não é teste de Xtream privado, MPEG-TS HTTP ou retransmissão.
+No Pages, abra `/player` e clique em **Importar playlist M3U de demonstração**. O aplicativo baixa `public/demo/playlist.m3u` via HTTPS e passa pelo mesmo `parseM3u` de fontes externas. A lista contém HLS HTTPS, MP4 e um HLS escrito originalmente como HTTP. **O terceiro foi reproduzido com imagem e estado `REPRODUZINDO` após tentar HTTPS direto**, sem gateway. Não é teste de Xtream privado ou MPEG-TS.
 
 ## Ponte HTTPS para fontes HTTP
 
 O Lux Zero agora possui **Cloudflare Pages Functions** em `functions/api/bridge/` e `public/_routes.json`, que permitem importar catálogos HTTP por uma sessão privada. O adaptador opcional de mídia contém tratamento de manifestos HLS e segmentos, mas inicia **desativado** para evitar expor um proxy ou retransmitir streams sem permissão.
 
-**A publicação da rota não ativa o gateway:** faltam `BRIDGE_ACCESS_KEY` (segredo forte) e `BRIDGE_ALLOWED_HOSTS` (domínios autorizados) no Cloudflare Pages. O status pode ser visto em `/api/bridge/status`. O recurso de vídeo exige revisão dos direitos e dos termos de hospedagem antes de ativar `BRIDGE_MEDIA_ENABLED`. Não há garantias de suporte a todo codec e provedor.
+**Primeiro tentamos HTTPS direto**, inclusive para URLs HTTP recebidas na M3U, sem alterar o catálogo original. Isso já reproduziu um HLS público em navegador real. A ponte de catálogo só entra quando HTTPS direto não atende: sem `BRIDGE_ACCESS_KEY` e `BRIDGE_ALLOWED_HOSTS`, essa alternativa fica indisponível. O status aparece em `/api/bridge/status`. Um servidor sem HTTPS compatível continua sendo uma limitação do navegador. O adaptador de vídeo do gateway permanece desligado.
 
 Configuração e segurança: **[docs/GATEWAY-HTTPS.md](docs/GATEWAY-HTTPS.md)**.
 
@@ -95,7 +95,7 @@ npm test
 
 ## Limitações conhecidas, explícitas
 
-- No navegador HTTPS, playlists e streams HTTP podem ser bloqueados como conteúdo misto; CORS pode impedir requisições M3U/Xtream. O player não desabilita proteções e não tem proxy aberto.
+- O navegador HTTPS testa HTTPS direto primeiro para URLs HTTP, preservando os dados originais da M3U. Funciona quando a origem também oferece HTTPS compatível. Se não oferecer, o navegador pode bloquear HTTP e CORS pode impedir requisições. A ponte de catálogo existe só como alternativa configurada.
 - Alguns codecs não são suportados no navegador mesmo com HLS/TS. MPV desktop será avaliado em fase posterior.
 - O acesso Xtream é **direto do navegador ao servidor informado**. Senhas são mantidas apenas na memória da página, não em D1, R2 ou no nosso Worker; entretanto, a própria origem Xtream recebe essas credenciais. Não use contas de terceiros sem autorização.
 - Não há **autenticação real**, catálogo persistente, EPG, filmes/séries ou fallback multi-servidor nesta versão.

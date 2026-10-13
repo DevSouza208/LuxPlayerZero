@@ -46,6 +46,7 @@ Atualização: 2026-10-13.
 - ✅ Prioridade: tentar HTTPS diretamente para catálogo e reprodução, mesmo que a M3U guarde URLs HTTP; **sem reescrever o catálogo**.
 - ✅ Xtream: obter primeiro a M3U original via `get.php`; usar a API somente se a M3U falhar.
 - ✅ Manter as URLs originais dos canais; trocar somente o protocolo da tentativa de reprodução, sem reconstruir identificadores.
+- ✅ Teste navegador: M3U com HTTP preservado → HTTPS direto → HLS reproduzido com imagem, sem ponte configurada.
 - 🟡 Alternativa de catálogo HTTP: só usar a ponte se HTTPS não atender; requer configuração do operador. A tela não mostra configurações avançadas antes da falha.
 - 🟡 Testes com fontes de terceiros: comprovar servidores que realmente atendem em HTTPS, CORS e codecs; não considerar funcional por hipótese.
 - ⬜ Organização dinâmica por categorias da M3U na interface — após a reprodução básica.
@@ -58,7 +59,7 @@ Atualização: 2026-10-13.
 | ✅ | Importação M3U em navegador | Catálogo M3U HTTPS local de 2 mídias testado em Pages com resultado positivo |
 | 🟡 | Xtream / fontes externas | API funcional em testes sintéticos; testar provedores autorizados com HTTPS/CORS ou bridge configurada |
 | ✅ | HLS HTTPS | Vídeo aberto, imagem renderizada e status REPRODUZINDO em teste de navegador no Pages |
-| 🟡 | MPEG-TS e HLS HTTP | Adapters implementados; testar com fonte e hospedagem autorizadas; exige gateway configurado |
+| 🟡 | MPEG-TS e HLS HTTP | HLS de origem HTTP reproduzido por HTTPS direto na demonstração; MPEG-TS e outras origens ainda precisam de testes |
 | ⬜ | Integrar navegação visual com novo design | Planejar após validar login |
 | ⬜ | Motor desktop / Electron | Escolher e testar MPV ou outro motor adequado |
 | ⬜ | D1 e R2 | Vincular os recursos reais após testes de integração; não usar R2 como retransmissor obrigatório |
@@ -80,7 +81,7 @@ A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implemen
 | ✅ | Documentar configuração do Gateway | Instruções em [GATEWAY-HTTPS.md](GATEWAY-HTTPS.md), incluindo limites, riscos e ativação |
 | 🟡 | Gateway de catálogo HTTP → HTTPS | Pages Function pública verificada; corrigida allowlist da porta :80; Secrets de produção ainda não configurados |
 | 🟡 | Fluxo privado de vídeo HTTPS | Adaptador HLS e MPEG-TS com token criptografado implementado; desligado por padrão, depende de direitos/termos e QA real |
-| 🔴 | Origem HTTP no Pages HTTPS | Exige gateway autorizado configurado ou URL HTTPS oficial; somente R2/playlist HTTPS não transforma o vídeo |
+| 🟡 | Origem HTTP no Pages HTTPS | Tenta HTTPS direto primeiro e já reproduziu HLS em teste; quando servidor não oferece TLS compatível, requer alternativa |
 | ⬜ | Proteção operacional para gateway | Rate limiting no Cloudflare WAF, restrição de tráfego, auditoria de quotas e teste de streams autorizados |
 | 🟡 | Testes e monitoramento | Fixture de M3U e HLS validada no navegador; integração HTTP privada, desempenho/custos e reconciliação ainda pendentes |
 
@@ -88,7 +89,8 @@ A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implemen
 
 - ✅ GitHub Actions em `main`: suíte completa de `npm test` aprovada após ciclo RED → GREEN, merge `8914be0`.
 - ✅ Cloudflare Pages produção: `https://luxplayerzero.pages.dev/player`, importação da playlist local → 2 entradas → HLS abriu imagem e estado REPRODUZINDO (verificação em navegador real).
-- ✅ GET `/api/bridge/status`: rota responde no Pages. Falta configurar Secrets; sem isso nenhuma fonte HTTP privada conecta.
+- ✅ GET `/api/bridge/status`: rota responde no Pages. A ponte segue sem configuração, mas fontes HTTP que também funcionam em HTTPS não precisam dela.
+- ✅ Teste público de URL originalmente HTTP: `test-streams.mux.dev` reproduziu como HTTPS, com imagem e estado REPRODUZINDO, sem ponte.
 - ⬜ Testes reais de provedores: **não realizados**, não assumir que P2PLAY ou qualquer origem HTTP funciona por conta desses testes.
 - ⬜ Vídeo por gateway HTTP → HTTPS: adapter desativado em produção; requer autorização e compatibilidade com termos do serviço.
 - ✅ Workers Builds em `main`: build concluído com sucesso no merge `8914be0`; os builds de prévia de PR podem ter status diferente do deploy de produção.
