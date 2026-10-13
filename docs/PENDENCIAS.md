@@ -17,7 +17,7 @@ Atualização: 2026-10-13.
 | --- | --- | --- |
 | ✅ | Reorganizar imagens em public/assets | Assets originais preservados byte a byte, servidos pelo Worker |
 | ✅ | Login como página inicial | / abre a tela de login; /player.html mantém o laboratório antigo |
-| ✅ | Layout desktop e mobile | Breakpoints e suporte a teclado / movimento reduzido |
+| 🟡 | Layout desktop e mobile | Breakpoints implementados e CSS revisado; falta QA visual com imagens reais |
 | ✅ | Campos e validação | Identificador e senha obrigatórios; mensagens acessíveis |
 | ✅ | Mostrar/ocultar senha | Alternância acessível e segura, sem gravar senha |
 | ✅ | Recuperação — interface | Tela e validação de e-mail disponíveis sem envio falso |
