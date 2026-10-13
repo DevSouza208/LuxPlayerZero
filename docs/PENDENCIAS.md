@@ -23,10 +23,11 @@ Atualização: 2026-10-13.
 | ✅ | Lux ID (usuário/e-mail) | Interface e validação básica do formulário |
 | 🟡 | Login com Google | Botão visual e aviso de indisponibilidade; falta OAuth seguro |
 | 🟡 | Login com Discord | Botão visual e aviso de indisponibilidade; falta OAuth seguro |
-| ✅ | Remoção dos textos de contexto | Login mais objetivo com layout compacto |
+| ✅ | Textos de identidade restaurados | «Seu universo. Seu próximo play.» e subtítulo curto no login |
+| ✅ | Painel Luxite com degradê | «Todas as suas histórias. Uma só experiência.» com fundo roxo translúcido |
 | ✅ | Recuperação — interface | Tela e validação de e-mail disponíveis sem envio falso |
 | ✅ | Entrada no laboratório de demonstração | Link explícito para /player.html |
-| 🟡 | QA visual com imagens reais em produção | Site Pages acessível; validar o novo tamanho do Luxite e login em desktop/mobile |
+| 🟡 | QA visual com imagens reais em produção | Verificar contraste, legibilidade e sobreposição do degradê com Luxite no desktop/mobile após deploy |
 | ⬜ | Autenticação de verdade | Lux ID por usuário ou e-mail, endpoint seguro, credenciais protegidas, sessão estabelecida pelo servidor |
 | ⬜ | OAuth Google e Discord | Fluxos server-side com state/PKCE, callback validado, vínculo seguro à conta Lux ID |
 | ⬜ | Persistência de sessão / lembrar dispositivo | Controle explícito, expiração e revogação |

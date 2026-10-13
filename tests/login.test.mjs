@@ -53,3 +53,16 @@ test('laboratório usa identidade roxa, sem o antigo verde fluorescente', () => 
   assert.ok(css.includes('--accent:#b493ff'));
   assert.equal(css.includes('#a7f976'), false);
 });
+
+
+test('textos editoriais e degradê do Luxite aparecem sem alterar o login', () => {
+  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../public/login.css', import.meta.url), 'utf8');
+  for (const snippet of ['Seu universo.', 'Seu próximo play.', 'Entre para continuar sua experiência.',
+    'Todas as suas histórias.', 'Uma só experiência.', 'O SEU ESPAÇO. O SEU CONTROLE.']) {
+    assert.ok(html.includes(snippet), 'Texto ausente: ' + snippet);
+  }
+  assert.ok(css.includes('.visual-bottom::before'));
+  assert.ok(css.includes('backdrop-filter:blur(11px)'));
+  assert.ok(html.includes('id="login-google"') && html.includes('id="login-discord"'));
+});

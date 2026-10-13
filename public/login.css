@@ -162,10 +162,27 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   filter:drop-shadow(0 28px 58px rgba(20,4,42,.48));
   z-index:1;pointer-events:none;animation:mascot-float 7s ease-in-out infinite;
 }
-.visual-bottom{position:absolute;bottom:70px;left:clamp(32px,5.2vw,88px);right:clamp(32px,5vw,88px);max-width:635px;z-index:4}
+.visual-bottom{
+  position:absolute;bottom:66px;
+  left:clamp(32px,4.6vw,78px);
+  right:clamp(32px,4.6vw,78px);
+  max-width:570px;z-index:4;
+  isolation:isolate;padding:21px 24px;
+}
+.visual-bottom::before{
+  content:"";position:absolute;z-index:-1;
+  inset:-12px -16px -13px -18px;border-radius:28px;
+  background:
+    radial-gradient(ellipse at 20% 42%,rgba(131,71,213,.27),transparent 65%),
+    linear-gradient(95deg,rgba(10,6,22,.91) 3%,rgba(17,9,34,.81) 52%,rgba(14,7,28,.13) 100%);
+  -webkit-backdrop-filter:blur(11px);backdrop-filter:blur(11px);
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,#000 58%,transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0%,#000 58%,transparent 100%);
+  pointer-events:none;
+}
 .visual-bottom .eyebrow{display:flex;align-items:center;gap:10px;color:#e7c6f7;font-weight:700;letter-spacing:2.3px;font-size:10px;text-shadow:0 1px 18px #171021}
 .visual-bottom .eyebrow:before{content:'';width:6px;height:6px;border-radius:50%;background:#f7a7d9;box-shadow:0 0 18px #f3a4d4}
-.visual-bottom h2{font:600 clamp(32px,3.25vw,49px)/1.1 'Outfit',system-ui,sans-serif;letter-spacing:-1.6px;color:#fff;margin:16px 0 11px;text-shadow:0 5px 35px rgba(0,0,0,.3)}
+.visual-bottom h2{font:600 clamp(30px,3.05vw,46px)/1.1 'Outfit',system-ui,sans-serif;letter-spacing:-1.6px;color:#fff;margin:15px 0 10px;text-shadow:0 5px 35px rgba(0,0,0,.3)}
 .visual-bottom h2 em{font-style:normal;background:linear-gradient(100deg,#fff,#d9b6ff 65%,#f6b0db);-webkit-background-clip:text;background-clip:text;color:transparent}
 .visual-bottom p{max-width:370px;margin:0;font-size:12px;line-height:1.7;color:#d7cede;text-shadow:0 2px 12px rgba(0,0,0,.42)}
 .visual-footer{position:absolute;bottom:27px;left:clamp(32px,5.2vw,88px);right:clamp(32px,4.2vw,72px);z-index:4;
@@ -186,7 +203,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   .login-side{padding:25px 28px}
   .visual-tag{font-size:9px}
   .visual-top{top:25px;left:26px;right:25px}
-  .visual-bottom{left:28px;right:24px;bottom:71px}
+  .visual-bottom{left:28px;right:24px;bottom:65px;padding:18px 21px}
   .mascot{width:95%;right:-14%;bottom:30%;opacity:.9}
   .experience-badge{padding:9px}
 }
@@ -198,7 +215,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   .visual-tag{font-size:9px}
   .experience-badge{padding:8px 11px;font-size:9px}
   .mascot{width:min(44%,260px);max-height:100%;right:4%;bottom:-12px;opacity:.96}
-  .visual-bottom{bottom:26px;left:28px;right:135px;max-width:390px}
+  .visual-bottom{bottom:15px;left:18px;right:132px;max-width:390px;padding:10px 12px}
   .visual-bottom .eyebrow{font-size:9px;letter-spacing:1.5px}
   .visual-bottom h2{font-size:clamp(24px,5vw,34px);letter-spacing:-1.25px;margin:12px 0 0}
   .visual-bottom p,.visual-footer{display:none}
@@ -214,9 +231,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   .visual-tag i{width:11px;margin-right:6px}
   .experience-badge{font-size:8px;letter-spacing:.5px}
   .mascot{width:45%;right:-1%;bottom:-14px}
-  .visual-bottom{left:23px;right:135px;bottom:22px}
+  .visual-bottom{left:12px;right:123px;bottom:14px;padding:8px 10px}
   .visual-bottom h2{font-size:clamp(21px,6vw,27px)}
-  .visual-bottom .eyebrow{font-size:8px;letter-spacing:.7px}
+  .visual-bottom .eyebrow{font-size:8px;letter-spacing:.4px}
   .login-side{min-height:calc(100svh - 205px);padding:20px 24px 21px}
   .brand-lockup img{max-height:45px}
   .version-mark{font-size:8px;padding:7px 9px}
@@ -234,9 +251,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
-/* Login compacto: três métodos de acesso, sem textos de contexto. */
+/* Login compacto: Lux ID, Google e Discord com copy editorial. */
 .auth-center { padding-block: 28px; }
-.auth-title { margin-bottom: 26px; }
+.auth-title { margin-bottom: 12px; }
 .form-meta { justify-content: flex-end; }
 .social-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .social-button {
@@ -257,7 +274,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .demo-link:hover {color:#e6d8ff}
 .demo-link span {color:#cbb4ff}
 @media(max-width:460px) {
-  .auth-title { margin-bottom:20px; }
+  .auth-title { margin-bottom:11px; }
   .auth-center {padding-block:26px 32px}
   .social-button {min-height:48px}
 }
