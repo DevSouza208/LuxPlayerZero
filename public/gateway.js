@@ -1,5 +1,5 @@
 /**
- * Bridge API client — HTTPS (Pages Functions).
+ * Acesso privado a catálogos HTTPS (Pages Functions).
  * Chave jamais vai para URL ou storage. Sessão HttpOnly em /api/bridge.
  */
 export function isBridgeRequired(url) {
@@ -44,7 +44,7 @@ export function createBridge({ getKey, onStatus = () => {} } = {}) {
     } catch {}
     const key = getKey?.();
     if (!key) {
-      throw new Error('Para fontes HTTP, configure a ponte no Cloudflare Pages e informe a chave do Gateway HTTPS no painel esquerdo.');
+      throw new Error('Informe a chave de acesso para sincronizar a lista HTTP no R2 e D1.');
     }
     await post('connect', { key });
     connected = true;
@@ -52,6 +52,23 @@ export function createBridge({ getKey, onStatus = () => {} } = {}) {
   }
 
   return {
+    // A M3U original é guardada no R2 e registrada no D1.
+    // O navegador recebe o arquivo pela rota HTTPS privada.
+    async snapshot(url) {
+      await ensureConnected();
+      const meta = await post('sync', { url });
+      if (typeof meta.url !== 'string' || !meta.url.startsWith('/api/bridge/playlist?id=')) {
+        throw new Error('A sincronização não retornou um endereço HTTPS válido.');
+      }
+      const response = await fetch(meta.url, {
+        credentials: 'same-origin', cache: 'no-store', referrerPolicy: 'no-referrer'
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Não foi possível ler a lista no R2.');
+      }
+      return { ...meta, content: await response.text() };
+    },
     async catalog(url) {
       await ensureConnected();
       const result = await post('catalog', { url });

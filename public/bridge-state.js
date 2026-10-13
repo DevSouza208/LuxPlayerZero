@@ -8,9 +8,13 @@ export function describeBridge(status, needsMedia = false) {
     kind: 'unconfigured', showKey: false,
     message: 'Ponte HTTPS indisponível. Configure BRIDGE_ACCESS_KEY e BRIDGE_ALLOWED_HOSTS no Cloudflare Pages; somente depois conecte fontes HTTP.'
   };
+  if (status.snapshotReady === false) return {
+    kind: 'unconfigured', showKey: false,
+    message: 'Conecte R2 (CATALOG_BUCKET) e D1 (DB) no Cloudflare Pages para guardar as listas HTTP.'
+  };
   if (!status.connected) return {
     kind: 'needs-key', showKey: true,
-    message: 'Ponte disponível. Informe a chave privada do gateway para carregar a lista HTTP.'
+    message: 'Armazenamento disponível. Informe a chave para baixar a M3U no R2 e registrá-la no D1.'
   };
   if (needsMedia && !status.mediaEnabled) return {
     kind: 'catalog-only', showKey: false,
