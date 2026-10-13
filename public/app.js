@@ -395,9 +395,21 @@ els.file.addEventListener('change', async () => {
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
 els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
-els.demo.addEventListener('click', () => setChannels([{
-  name: 'Vídeo HLS de demonstração', group: 'Stream público de teste',
-  kind: 'tv', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
-}], 'demonstração'));
+els.demo.addEventListener('click', async () => {
+  const generation = ++sourceLoad;
+  const url = new URL('/demo/playlist.m3u', location.href).href;
+  els.demo.disabled = true;
+  note('Importando playlist de demonstração...', 'info');
+  try {
+    const text = await request(url);
+    const entries = parseM3u(text, url);
+    if (!entries.length) throw new Error('A playlist de demonstração não possui fontes válidas.');
+    if (generation === sourceLoad) setChannels(entries, 'playlist M3U de demonstração');
+  } catch (error) {
+    if (generation === sourceLoad) fail(errorText(error));
+  } finally {
+    els.demo.disabled = false;
+  }
+});
 updateForm();
 void refreshBridgeStatus();
