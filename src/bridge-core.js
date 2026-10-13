@@ -248,8 +248,17 @@ export async function media(request, env, fetcher = fetch) {
   const range = request.headers.get('range');
   if (range && !/^bytes=\d*-\d*$/.test(range)) return apiError(416, 'Intervalo de bytes inválido.');
   try {
-    const { response, url: effective } = await fetchAllowed(url, env,
-      { signal: AbortSignal.timeout(25000), range }, fetcher);
+    // Timeout apenas até receber cabeçalhos. Manter AbortSignal.timeout ativo
+    // cortaria um MPEG-TS ao vivo mesmo enquanto o vídeo estivesse fluindo.
+    const controller = new AbortController();
+    const connectionTimer = setTimeout(() => controller.abort(), 20000);
+    let upstream;
+    try {
+      upstream = await fetchAllowed(url, env, { signal: controller.signal, range }, fetcher);
+    } finally {
+      clearTimeout(connectionTimer);
+    }
+    const { response, url: effective } = upstream;
     if (!response.ok) return apiError(502, 'A origem recusou a mídia (HTTP ' + response.status + ').');
     const contentType = response.headers.get('content-type') || 'application/octet-stream';
     const isHls = /\.m3u8?(?:$)/i.test(effective.pathname) ||
