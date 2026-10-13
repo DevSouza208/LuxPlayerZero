@@ -143,7 +143,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   background:#181224 url('/assets/login-scene.png') center center /cover no-repeat;
 }
 .experience-panel:before{
-  content:'';position:absolute;z-index:-1;inset:0;
+  content:'';position:absolute;z-index:0;inset:0;
   background:
     linear-gradient(90deg,rgba(9,7,17,.42),rgba(9,7,17,.05) 52%,rgba(8,6,16,.20)),
     linear-gradient(0deg,rgba(8,6,17,.93) 0%,rgba(10,7,18,.54) 26%,transparent 63%,rgba(7,6,13,.42) 100%);
