@@ -36,27 +36,26 @@
           <img src="/assets/lux-logo.png" alt="Lux Player">
           <span class="brand-fallback">LUX <b>PLAYER</b></span>
         </a>
-        <span class="version-mark"><i aria-hidden="true"></i> ZERO / PAGES 01</span>
+        <span class="version-mark"><i aria-hidden="true"></i> ZERO / 0.2</span>
       </header>
 
       <main class="auth-center">
         <div id="login-view">
-          <div class="intro-eyebrow">ACESSO À EXPERIÊNCIA LUX</div>
-          <h1 class="auth-title">Seu universo.<span>Seu próximo play.</span></h1>
-          <p class="auth-lead">Entre para continuar sua experiência. Simples, fluido e com tudo no lugar certo.</p>
+          <div class="intro-eyebrow">LUX ID</div>
+          <h1 class="auth-title">Bem-vindo <span>de volta.</span></h1>
 
           <form id="login-form" class="auth-form" method="post" action="#" novalidate autocomplete="on">
             <div class="field">
-              <label class="field-label" for="login-identity">E-mail ou nome de usuário</label>
+              <label class="field-label" for="login-identity">Lux ID <small>Usuário ou e-mail</small></label>
               <div class="input-wrap">
                 <svg class="field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>
-                <input id="login-identity" type="text" inputmode="email" autocomplete="username" placeholder="Seu e-mail ou usuário" maxlength="254" aria-invalid="false" aria-describedby="identity-error" spellcheck="false" required>
+                <input id="login-identity" type="text" inputmode="email" autocomplete="username" placeholder="Usuário ou e-mail" maxlength="254" aria-invalid="false" aria-describedby="identity-error" spellcheck="false" required>
               </div>
               <p class="field-error" id="identity-error" hidden></p>
             </div>
 
             <div class="field">
-              <label class="field-label" for="login-password">Sua senha</label>
+              <label class="field-label" for="login-password">Senha</label>
               <div class="input-wrap">
                 <svg class="field-icon" aria-hidden="true"><use href="#icon-lock"></use></svg>
                 <input id="login-password" type="password" autocomplete="current-password" placeholder="Digite sua senha" aria-invalid="false" aria-describedby="password-error" required>
@@ -68,28 +67,34 @@
             </div>
 
             <div class="form-meta">
-              <label class="coming-soon" title="Disponível com a autenticação real">
-                <input type="checkbox" disabled>
-                Manter conectado <span class="soon">EM BREVE</span>
-              </label>
               <button id="forgot-password" class="inline-link" type="button">Esqueceu a senha?</button>
             </div>
 
-            <button class="primary-btn" type="submit">Entrar no Lux Player
+            <button class="primary-btn" type="submit">Entrar com Lux ID
               <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
             </button>
           </form>
           <div id="login-feedback" class="feedback" role="status" aria-live="polite" hidden></div>
 
-          <div class="splitter"><span>ou conheça o projeto</span></div>
-          <a class="secondary-btn" href="/player.html">
-            <svg aria-hidden="true"><use href="#icon-play"></use></svg>
-            Explorar demonstração
-          </a>
-          <p class="security-note">
-            <svg aria-hidden="true"><use href="#icon-shield"></use></svg>
-            <span>Prévia de interface: sua senha não é transmitida nem armazenada. O acesso seguro será conectado na próxima etapa.</span>
-          </p>
+          <div class="splitter"><span>ou entre com</span></div>
+          <div class="social-actions" role="group" aria-label="Outras formas de entrar">
+            <button id="login-google" class="social-button" type="button" aria-label="Entrar com Google">
+              <svg class="provider-icon" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.73 7.18l7.73 6C44.45 38.03 46.98 31.89 46.98 24.55z"/>
+                <path fill="#FBBC05" d="M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.97-6.2a24 24 0 0 0 0 21.58l7.97-6.2z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.92-2.13 15.89-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.2C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              <span>Google</span>
+            </button>
+            <button id="login-discord" class="social-button discord-button" type="button" aria-label="Entrar com Discord">
+              <svg class="provider-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M19.73 5.33a17.75 17.75 0 0 0-4.38-1.36l-.54 1.1a16.39 16.39 0 0 0-5.62 0l-.54-1.1a17.75 17.75 0 0 0-4.38 1.36C1.5 9.47.74 13.51 1.11 17.5a17.8 17.8 0 0 0 5.37 2.72l1.15-1.88c-.64-.24-1.26-.54-1.85-.88l.45-.36a12.6 12.6 0 0 0 11.54 0l.45.36c-.59.34-1.21.64-1.85.88l1.15 1.88a17.8 17.8 0 0 0 5.37-2.72c.44-4.64-.75-8.66-3.16-12.17ZM8.53 15.15c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.1 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Zm6.94 0c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.09 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Z"/>
+              </svg>
+              <span>Discord</span>
+            </button>
+          </div>
+          <a class="demo-link" href="/player.html">Explorar demonstração <span aria-hidden="true">↗</span></a>
         </div>
 
         <div id="recovery-view" hidden>
@@ -99,7 +104,7 @@
           </button>
           <div class="intro-eyebrow">RECUPERAÇÃO DE ACESSO</div>
           <h1 class="auth-title">Vamos recuperar<span>seu acesso.</span></h1>
-          <p class="auth-lead">Informe o e-mail associado à sua conta. Esta etapa ainda é uma prévia e não envia mensagens.</p>
+          <p class="auth-lead">Informe o e-mail associado ao seu Lux ID.</p>
           <form id="recovery-form" class="auth-form" method="post" action="#" novalidate>
             <div class="field">
               <label class="field-label" for="recovery-email">E-mail da sua conta</label>
@@ -114,29 +119,21 @@
             </button>
           </form>
           <div id="recovery-feedback" class="feedback" role="status" aria-live="polite" hidden></div>
-          <p class="recovery-help">Assim que o sistema de contas estiver integrado, ativaremos a recuperação por link temporário e uso único.</p>
+          
         </div>
       </main>
 
       <footer class="auth-footer">
-        <span>© <span id="current-year">2026</span> <strong>Lux Player.</strong> Feito para evoluir.</span>
-        <span>DESIGN / ZERO</span>
+        <span>© <span id="current-year">2026</span> <strong>Lux Player</strong></span>
+        <span>LUX ZERO</span>
       </footer>
     </section>
 
     <aside class="experience-panel" aria-label="Uma nova experiência Lux Player">
       <div class="visual-noise" aria-hidden="true"></div>
-      <div class="visual-top">
-        <span class="visual-tag"><i aria-hidden="true"></i>O FUTURO COMEÇA AQUI</span>
-        <span class="experience-badge"><span aria-hidden="true"></span> NOVA EXPERIÊNCIA</span>
-      </div>
+      
       <img class="mascot" src="/assets/luxite.png" alt="Luxite, o mascote do Lux Player">
-      <div class="visual-bottom">
-        <div class="eyebrow">O SEU ESPAÇO. O SEU CONTROLE.</div>
-        <h2>Todas as suas histórias.<br><em>Uma só experiência.</em></h2>
-        <p>Um novo começo para o seu player favorito. Sem complicações. Com identidade própria.</p>
-      </div>
-      <div class="visual-footer"><span>IMAGINE · CONECTE · ASSISTA</span><span>LUX / ZERO</span></div>
+      
     </aside>
   </div>
 </body>
