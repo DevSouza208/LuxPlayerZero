@@ -32,9 +32,12 @@
       <label for="source-url" id="source-url-label">ENDEREÇO DA MÍDIA</label>
       <input id="source-url" type="url" inputmode="url" placeholder="https://.../stream.m3u8" spellcheck="false">
       <div id="bridge-settings" class="bridge-settings" hidden>
-        <label for="bridge-key">PONTE HTTPS PRIVADA <span class="bridge-pill">HTTP → HTTPS</span></label>
-        <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave do gateway Cloudflare">
-        <p>Para importar fontes HTTP, configure o gateway protegido no Pages. A transmissão de vídeo exige autorização e ativação separada.</p>
+        <div class="bridge-settings-head"><span>PONTE HTTPS PRIVADA</span><span class="bridge-pill">HTTP → HTTPS</span></div>
+        <p id="bridge-availability" role="status" aria-live="polite">Verificando ponte HTTPS...</p>
+        <div id="bridge-key-wrap">
+          <label for="bridge-key">CHAVE DE ACESSO</label>
+          <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave privada do Gateway Cloudflare">
+        </div>
       </div>
       <div id="credentials-fields" hidden>
         <label for="xc-user">USUÁRIO</label>
