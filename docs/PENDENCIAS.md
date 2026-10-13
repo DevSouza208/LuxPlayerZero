@@ -41,6 +41,15 @@ Atualização: 2026-10-13.
 
 **Nota:** o botão Entrar valida o formulário, mas avisa que a autenticação ainda não está conectada. Não concede uma sessão falsa. A prévia do player é propositalmente pública nesta fase.
 
+## Reaproveitamento do Lux Original (13/10/2026)
+
+- ✅ Prioridade: tentar HTTPS diretamente para catálogo e reprodução, mesmo que a M3U guarde URLs HTTP; **sem reescrever o catálogo**.
+- ✅ Xtream: obter primeiro a M3U original via `get.php`; usar a API somente se a M3U falhar.
+- ✅ Manter as URLs originais dos canais; trocar somente o protocolo da tentativa de reprodução, sem reconstruir identificadores.
+- 🟡 Alternativa de catálogo HTTP: só usar a ponte se HTTPS não atender; requer configuração do operador. A tela não mostra configurações avançadas antes da falha.
+- 🟡 Testes com fontes de terceiros: comprovar servidores que realmente atendem em HTTPS, CORS e codecs; não considerar funcional por hipótese.
+- ⬜ Organização dinâmica por categorias da M3U na interface — após a reprodução básica.
+
 ## Tela 02 — Player laboratório (legado inicial)
 
 | Estado | Item | Critério de aceite |
