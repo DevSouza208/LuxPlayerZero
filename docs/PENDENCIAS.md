@@ -17,7 +17,7 @@ Atualização: 2026-10-13.
 | --- | --- | --- |
 | ✅ | Reorganizar imagens em public/assets | Assets originais preservados byte a byte, servidos pelo Worker |
 | ✅ | Login como página inicial | / abre a tela de login; /player.html mantém o laboratório antigo |
-| 🟡 | Layout desktop e mobile | Breakpoints implementados e CSS revisado; falta QA visual com imagens reais |
+| 🟡 | Login em uma tela desktop e mobile | Dimensionamento por viewport, faixa do Luxite compacta no celular; QA real pendente |
 | ✅ | Campos e validação | Identificador e senha obrigatórios; mensagens acessíveis |
 | ✅ | Mostrar/ocultar senha | Alternância acessível e segura, sem gravar senha |
 | ✅ | Lux ID (usuário/e-mail) | Interface e validação básica do formulário |
@@ -27,7 +27,7 @@ Atualização: 2026-10-13.
 | ✅ | Painel Luxite com degradê | «Todas as suas histórias. Uma só experiência.» com fundo roxo translúcido |
 | ✅ | Recuperação — interface | Tela e validação de e-mail disponíveis sem envio falso |
 | ✅ | Entrada no laboratório de demonstração | Link explícito para /player.html |
-| 🟡 | QA visual com imagens reais em produção | Verificar contraste, legibilidade e sobreposição do degradê com Luxite no desktop/mobile após deploy |
+| 🟡 | QA visual com imagens reais em produção | Validar 1366×768, 1920×1080, 390×844, 360×740, 320×568, teclado aberto e mensagens de erro |
 | ⬜ | Autenticação de verdade | Lux ID por usuário ou e-mail, endpoint seguro, credenciais protegidas, sessão estabelecida pelo servidor |
 | ⬜ | OAuth Google e Discord | Fluxos server-side com state/PKCE, callback validado, vínculo seguro à conta Lux ID |
 | ⬜ | Persistência de sessão / lembrar dispositivo | Controle explícito, expiração e revogação |

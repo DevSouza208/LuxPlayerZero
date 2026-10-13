@@ -66,3 +66,15 @@ test('textos editoriais e degradê do Luxite aparecem sem alterar o login', () =
   assert.ok(css.includes('backdrop-filter:blur(11px)'));
   assert.ok(html.includes('id="login-google"') && html.includes('id="login-discord"'));
 });
+
+
+test('login inclui folha de layout responsivo com regras de altura e teclado', () => {
+  const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../public/login-responsive.css', import.meta.url), 'utf8');
+  assert.ok(html.includes('href="/login-responsive.css"'));
+  assert.ok(css.includes('height:100svh'));
+  assert.ok(css.includes('overflow-y:auto'));
+  assert.ok(css.includes('max-height:720px'));
+  assert.ok(css.includes('orientation:landscape'));
+  assert.ok(css.includes('font-size:16px'));
+});
