@@ -8,6 +8,8 @@ const username = $('login-identity');
 const password = $('login-password');
 const feedback = $('login-feedback');
 const togglePassword = $('toggle-password');
+const google = $('login-google');
+const discord = $('login-discord');
 const forgot = $('forgot-password');
 const back = $('back-to-login');
 const recoveryForm = $('recovery-form');
@@ -53,7 +55,7 @@ form.addEventListener('submit', event => {
   // Intencional: não há POST, autenticação simulada ou armazenamento da senha.
   announce(
     feedback,
-    'Visual concluído! A autenticação real será conectada na próxima etapa. Nenhuma credencial foi enviada.',
+    'A conexão do Lux ID ainda está sendo preparada. Nenhuma credencial foi enviada.',
     'info'
   );
 });
@@ -75,6 +77,14 @@ togglePassword.addEventListener('click', () => {
   password.focus({ preventScroll: true });
 });
 
+// A interface está pronta, mas NÃO inicia OAuth antes do backend validar state/PKCE.
+google.addEventListener('click', () => {
+  announce(feedback, 'Login com Google ainda não está conectado. Nenhuma conta foi acessada.', 'info');
+});
+discord.addEventListener('click', () => {
+  announce(feedback, 'Login com Discord ainda não está conectado. Nenhuma conta foi acessada.', 'info');
+});
+
 forgot.addEventListener('click', () => updateMode('recovery'));
 back.addEventListener('click', () => updateMode('login'));
 
@@ -89,7 +99,7 @@ recoveryForm.addEventListener('submit', event => {
   }
   announce(
     recoveryFeedback,
-    'O envio de e-mails ainda não foi conectado. Não enviamos nenhuma mensagem. A recuperação segura está na lista de pendências.',
+    'Recuperação de senha indisponível por enquanto. Nenhum e-mail foi enviado.',
     'info'
   );
 });
