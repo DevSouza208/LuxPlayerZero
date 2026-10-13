@@ -77,12 +77,12 @@ A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implemen
 
 ## Testes reproduzíveis (13/10/2026)
 
-- ✅ GitHub Actions (branch de validação): suíte completa de testes de `npm test` aprovada após ciclo RED → GREEN.
-- ✅ Cloudflare Pages preview da PR: `https://c8764ae1.luxplayerzero.pages.dev/player`, importação da playlist local de demonstração → 2 entradas → HLS abriu imagem e estado REPRODUZINDO.
+- ✅ GitHub Actions em `main`: suíte completa de `npm test` aprovada após ciclo RED → GREEN, merge `8914be0`.
+- ✅ Cloudflare Pages produção: `https://luxplayerzero.pages.dev/player`, importação da playlist local → 2 entradas → HLS abriu imagem e estado REPRODUZINDO (verificação em navegador real).
 - ✅ GET `/api/bridge/status`: rota responde no Pages. Falta configurar Secrets; sem isso nenhuma fonte HTTP privada conecta.
 - ⬜ Testes reais de provedores: **não realizados**, não assumir que P2PLAY ou qualquer origem HTTP funciona por conta desses testes.
 - ⬜ Vídeo por gateway HTTP → HTTPS: adapter desativado em produção; requer autorização e compatibilidade com termos do serviço.
-- 🟡 Worker Builds em branch de PR: falha de build separado; Pages e GitHub Actions passam. Investigar sem confundir com o site estático.
+- ✅ Workers Builds em `main`: build concluído com sucesso no merge `8914be0`; os builds de prévia de PR podem ter status diferente do deploy de produção.
 
 ## Regras para próximas telas
 

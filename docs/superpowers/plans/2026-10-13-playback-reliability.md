@@ -65,7 +65,7 @@
 - [x] Consultar `GET /api/bridge/status` após publicação.
 - [x] Conferir que gateway privado permanece bloqueado sem secrets e não virou proxy aberto.
 - [x] Registrar claramente: implementado ≠ testado com P2PLAY. Sem configuração Cloudflare e autorização de vídeo, HTTP privado não será reproduzido.
-- [ ] Integrar PR na `main` após revisão e CI verde da branch.
+- [x] Integrar PR na `main` após revisão e CI verde da branch.
 
 ## Revisão de risco
 
@@ -85,3 +85,6 @@
 - GREEN importação demo: Actions 38371486112 passou.
 - Teste navegador, preview `c8764ae1.luxplayerzero.pages.dev/player`: playlist importada (2 entradas) e HLS reproduzido com imagem e estado `REPRODUZINDO`.
 - Gate de HTTP privado: `/api/bridge/status` ainda não configurado em produção (não testar com fontes reais até configurar Secrets e confirmar permissões).
+
+- Merge PR #1 → `8914be0`; produção `luxplayerzero.pages.dev/player` verificada com M3U de 2 mídias e HLS em REPRODUZINDO.
+- Todas as verificações do commit de merge passaram (GitHub Actions, Cloudflare Pages e Worker Build). Não foi realizada autenticação de provedor privado nem retransmissão de vídeo HTTP.
