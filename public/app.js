@@ -1,6 +1,7 @@
 import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
+import { preferHttps, xtreamM3uUrl } from './direct-source.js';
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -25,6 +26,7 @@ let sourceLoad = 0;
 let watchdog = null;
 let history = [];
 let bridgeStatus = null;
+let bridgeNeeded = false;
 const bridge = createBridge({
   getKey: () => els.bridgeKey.value.trim(),
   onStatus: message => {
@@ -36,7 +38,7 @@ const bridge = createBridge({
 function updateBridgePanel() {
   const sourceIsHttp = isBridgeRequired(els.url.value);
   const catalogueHasHttp = channels.some(item => isBridgeRequired(item.url));
-  els.bridgePanel.hidden = !(sourceIsHttp || catalogueHasHttp);
+  els.bridgePanel.hidden = !(bridgeNeeded && (sourceIsHttp || catalogueHasHttp));
   const presentation = describeBridge(bridgeStatus, catalogueHasHttp);
   els.bridgeAvailability.textContent = presentation.message;
   els.bridgeAvailability.dataset.kind = presentation.kind;
@@ -105,18 +107,30 @@ async function request(url, as = 'text') {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
-    if (isBridgeRequired(url)) {
+    // Como no Original: primeiro tentar a própria fonte por HTTPS,
+    // mesmo quando o endereço recebido na lista começa com http://.
+    try {
+      const response = await fetch(preferHttps(url), {
+        signal: controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
+      });
+      if (!response.ok) throw new Error('Servidor respondeu HTTP ' + response.status + '.');
+      const length = Number(response.headers.get('content-length')) || 0;
+      if (length > 20 * 1024 * 1024) throw new Error('Catálogo maior que 20 MB.');
+      const text = await response.text();
+      if (text.length > 20 * 1024 * 1024) throw new Error('Catálogo maior que 20 MB.');
+      return as === 'json' ? JSON.parse(text) : text;
+    } catch (error) {
+      if (!isBridgeRequired(url)) throw error;
+      // Só precisa do serviço de leitura HTTP se o HTTPS direto falhar.
+      bridgeNeeded = true;
+      updateBridgePanel();
+      log('Catálogo', 'HTTPS direto indisponível; buscando alternativa configurada');
+      if (!bridgeStatus?.configured) {
+        throw new Error('A origem não entregou o catálogo por HTTPS. Teste outro endereço HTTPS ou configure a leitura de catálogo HTTP.');
+      }
       const text = await bridge.catalog(url);
       return as === 'json' ? JSON.parse(text) : text;
     }
-    const response = await fetch(url, { signal: controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
-    if (!response.ok) throw new Error('Servidor retornou HTTP ' + response.status + '.');
-    const length = Number(response.headers.get('content-length')) || 0;
-    if (length > 20 * 1024 * 1024) throw new Error('Resposta maior que o limite de 20 MB.');
-    if (as === 'json') return response.json();
-    const text = await response.text();
-    if (text.length > 20 * 1024 * 1024) throw new Error('Playlist excede o limite de 20 MB.');
-    return text;
   } catch (error) {
     if (controller.signal.aborted) throw new Error('Tempo de conexão esgotado (15 segundos).');
     throw error;
@@ -227,10 +241,10 @@ async function playItem(item) {
   log('Abrindo mídia', item.kind + ' / ' + streamType(item.url));
   try {
     checkProtocol(item.url);
-    if (isBridgeRequired(item.url) && bridgeStatus?.mediaEnabled === false) {
-      throw new Error('Catálogo recebido, mas o vídeo HTTP não está habilitado nesta ponte. Use HTTPS oficial ou player nativo. O streaming pelo servidor exige autorização.');
-    }
-    const sourceUrl = isBridgeRequired(item.url) ? await bridge.media(item.url) : item.url;
+    // O catálogo preserva a URL original. Ao tocar, tentamos HTTPS direto.
+    // A reprodução não depende do gateway, R2 ou de endereços reconstruídos.
+    const sourceUrl = preferHttps(item.url);
+    if (sourceUrl !== item.url) log('Reprodução', 'Tentando conexão HTTPS direta');
     if (generation !== operation) return;
     const media = item.kind === 'radio' ? els.audio : els.video;
     player = media;
@@ -355,18 +369,30 @@ async function importSource(event) {
       const user = els.user.value.trim();
       const pass = els.pass.value;
       if (!user || !pass) throw new Error('Informe usuário e senha Xtream.');
-      const authUrl = base + '/player_api.php?username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass);
-      const auth = await request(authUrl, 'json');
-      if (!auth?.user_info || Number(auth.user_info.auth) !== 1) throw new Error('Credenciais Xtream recusadas pelo servidor.');
-      const extension = Array.isArray(auth.user_info.allowed_output_formats) &&
-        (auth.user_info.allowed_output_formats.includes('m3u8') || auth.user_info.allowed_output_formats.includes('hls')) ? 'm3u8' : 'ts';
-      const streams = await request(authUrl + '&action=get_live_streams', 'json');
-      if (!Array.isArray(streams)) throw new Error('API Xtream não retornou uma lista de canais válida.');
-      const entries = streams.slice(0, 20000).filter(stream => /^\d+$/.test(String(stream.stream_id))).map(stream => ({
-        name: String(stream.name || 'Canal sem nome'), group: 'Categoria ' + String(stream.category_id ?? 'geral'),
-        kind: inferKind(String(stream.name || ''), '', stream.stream_type === 'radio'),
-        url: buildXtreamLiveUrl(base, user, pass, stream.stream_id, extension)
-      }));
+      // Primeiro a lista original, exatamente como o Lux antigo fazia.
+      const m3uUrl = xtreamM3uUrl(base, user, pass);
+      let entries;
+      try {
+        const playlistText = await request(m3uUrl);
+        entries = parseM3u(playlistText, m3uUrl);
+        if (!entries.length) throw new Error('M3U vazia.');
+        log('Xtream', 'M3U original importada; links preservados');
+      } catch (m3uError) {
+        // Alternativa para fornecedores sem get.php disponível.
+        log('Xtream', 'M3U indisponível; tentando catálogo da API');
+        const authUrl = base + '/player_api.php?username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass);
+        const auth = await request(authUrl, 'json');
+        if (!auth?.user_info || Number(auth.user_info.auth) !== 1) throw new Error('Credenciais Xtream recusadas pelo servidor.');
+        const extension = Array.isArray(auth.user_info.allowed_output_formats) &&
+          (auth.user_info.allowed_output_formats.includes('m3u8') || auth.user_info.allowed_output_formats.includes('hls')) ? 'm3u8' : 'ts';
+        const streams = await request(authUrl + '&action=get_live_streams', 'json');
+        if (!Array.isArray(streams)) throw new Error('API Xtream não retornou canais válidos.');
+        entries = streams.slice(0, 20000).filter(stream => /^\d+$/.test(String(stream.stream_id))).map(stream => ({
+          name: String(stream.name || 'Canal sem nome'), group: 'Categoria ' + String(stream.category_id ?? 'geral'),
+          kind: inferKind(String(stream.name || ''), '', stream.stream_type === 'radio'),
+          url: buildXtreamLiveUrl(base, user, pass, stream.stream_id, extension)
+        }));
+      }
       if (generation === sourceLoad) setChannels(entries, 'Xtream');
     }
   } catch (error) {
