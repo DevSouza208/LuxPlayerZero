@@ -18,3 +18,14 @@ form{display:flex;flex-direction:column;gap:9px}form label{color:#9d9da8;font-si
 @media(max-width:1250px){.shell{grid-template-columns:280px minmax(0,1fr)}.workspace{grid-template-columns:1fr}.channels{height:230px}.hero{padding-top:43px;padding-bottom:40px}.hero-shape{width:24%;min-width:160px}.hero-shape span{font-size:70px}}
 @media(max-width:800px){.shell{display:flex;flex-direction:column}.sidebar{min-height:auto;order:0;border-right:0;border-bottom:1px solid var(--stroke)}.main{order:1}.topbar{height:60px;padding:0 22px}.hero{padding:32px 22px}.hero h1{font-size:39px;letter-spacing:-1.9px}.hero-shape{display:none}.message{margin:20px 22px 0}.workspace{padding:22px 22px 40px;gap:22px}.channels{height:220px}.sidebar-footer{padding-top:28px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Ponte HTTPS: interface compacta e identificável sem expor credenciais. */
+.bridge-settings{display:flex;flex-direction:column;gap:9px;margin-top:12px;padding:13px;
+  background:linear-gradient(135deg,rgba(106,72,169,.18),rgba(49,27,78,.18));
+  border:1px solid rgba(165,122,244,.30);border-radius:11px}
+.bridge-settings label{display:flex;justify-content:space-between;align-items:center;gap:6px;
+  margin:0;color:#dbc7ff;font-size:10px;font-weight:800;letter-spacing:1px}
+.bridge-settings input{width:100%;min-height:43px;margin:0}
+.bridge-pill{font-size:9px;font-weight:700;letter-spacing:0;
+  border:1px solid rgba(193,157,255,.25);border-radius:7px;padding:5px 6px;color:#c8a9ff;white-space:nowrap}
+.bridge-settings p{margin:0;color:#aea0c5;font-size:10px;line-height:1.65}

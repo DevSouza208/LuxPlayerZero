@@ -1,4 +1,5 @@
 import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
+import { createBridge, isBridgeRequired } from './gateway.js';
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -8,7 +9,8 @@ const els = {
   search: $('search'), filter: $('kind-filter'), channels: $('channels'), count: $('channel-count'),
   video: $('video'), audio: $('audio'), radio: $('audio-stage'), radioTitle: $('radio-title'),
   idle: $('idle-stage'), title: $('playing-title'), state: $('playback-state'), format: $('format'),
-  diagnostics: $('diagnostics'), demo: $('demo')
+  diagnostics: $('diagnostics'), demo: $('demo'),
+  bridgePanel: $('bridge-settings'), bridgeKey: $('bridge-key')
 };
 
 let channels = [];
@@ -20,6 +22,19 @@ let operation = 0;
 let sourceLoad = 0;
 let watchdog = null;
 let history = [];
+const bridge = createBridge({
+  getKey: () => els.bridgeKey.value.trim(),
+  onStatus: message => {
+    log('Ponte HTTPS', message);
+    if (els.bridgeKey.value) els.bridgeKey.value = '';
+  }
+});
+function updateBridgePanel() {
+  const sourceIsHttp = isBridgeRequired(els.url.value);
+  const catalogueHasHttp = channels.some(item => isBridgeRequired(item.url));
+  els.bridgePanel.hidden = !(sourceIsHttp || catalogueHasHttp);
+}
+els.url.addEventListener('input', updateBridgePanel);
 
 function note(message, tone = '') {
   els.message.textContent = message;
@@ -48,9 +63,7 @@ function protocolBlocked(url) {
 }
 function checkProtocol(url) {
   if (!isHttpUrl(url)) throw new Error('Informe uma URL HTTP ou HTTPS válida.');
-  if (protocolBlocked(url)) {
-    throw new Error('Esta fonte usa HTTP. O navegador bloqueia conteúdo HTTP dentro do Lux HTTPS. Teste uma origem HTTPS autorizada; a versão nativa terá tratamento separado.');
-  }
+  // HTTPS frontend acessa fontes HTTP pelo gateway autenticado, nunca diretamente.
 }
 function updateForm() {
   const mode = els.type.value;
@@ -58,12 +71,17 @@ function updateForm() {
   els.files.hidden = mode !== 'm3u';
   els.urlLabel.textContent = mode === 'direct' ? 'ENDEREÇO DA MÍDIA' : mode === 'm3u' ? 'URL DA PLAYLIST' : 'SERVIDOR XTREAM';
   els.url.placeholder = mode === 'direct' ? 'https://.../stream.m3u8' : mode === 'm3u' ? 'https://.../lista.m3u' : 'https://servidor.exemplo:8080';
+  updateBridgePanel();
 }
 async function request(url, as = 'text') {
   checkProtocol(url);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
+    if (isBridgeRequired(url)) {
+      const text = await bridge.catalog(url);
+      return as === 'json' ? JSON.parse(text) : text;
+    }
     const response = await fetch(url, { signal: controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' });
     if (!response.ok) throw new Error('Servidor retornou HTTP ' + response.status + '.');
     const length = Number(response.headers.get('content-length')) || 0;
@@ -85,6 +103,7 @@ function setChannels(items, caption) {
   els.filter.value = 'all';
   els.count.textContent = String(channels.length).padStart(2, '0');
   render();
+  updateBridgePanel();
   note(channels.length + ' item(ns) disponíveis em ' + caption + '. Selecione um para reproduzir.');
   log('Catálogo importado', String(channels.length) + ' entradas');
 }
@@ -181,6 +200,8 @@ async function playItem(item) {
   log('Abrindo mídia', item.kind + ' / ' + streamType(item.url));
   try {
     checkProtocol(item.url);
+    const sourceUrl = isBridgeRequired(item.url) ? await bridge.media(item.url) : item.url;
+    if (generation !== operation) return;
     const media = item.kind === 'radio' ? els.audio : els.video;
     player = media;
     els.idle.hidden = true;
@@ -237,11 +258,11 @@ async function playItem(item) {
         }
       });
       waitForManifest = true;
-      hls.loadSource(item.url);
+      hls.loadSource(sourceUrl);
       hls.attachMedia(media);
     } else if (format === 'MPEG-TS' && !media.canPlayType('video/mp2t')) {
       if (!window.mpegts?.isSupported()) throw new Error('MPEG-TS não é compatível com este navegador. Teste HLS ou um player nativo.');
-      ts = window.mpegts.createPlayer({ type: 'mpegts', isLive: true, url: item.url, cors: true }, {
+      ts = window.mpegts.createPlayer({ type: 'mpegts', isLive: true, url: sourceUrl, cors: true }, {
         enableWorker: true, enableStashBuffer: false, lazyLoad: false, liveBufferLatencyChasing: true
       });
       ts.attachMediaElement(media);
@@ -252,7 +273,7 @@ async function playItem(item) {
     } else if (format === 'DASH') {
       throw new Error('DASH estará disponível na próxima integração. Por enquanto, use HLS, MP4 ou áudio.');
     } else {
-      media.src = item.url;
+      media.src = sourceUrl;
       media.load();
     }
     watchdog = setTimeout(() => {
@@ -285,6 +306,7 @@ async function importSource(event) {
   const mode = els.type.value;
   const input = els.url.value.trim();
   if (!input) { note('Informe o endereço da fonte.', 'error'); return; }
+  updateBridgePanel();
   els.connect.disabled = true;
   els.connect.textContent = 'Conectando...';
   note('Carregando fonte...', 'info');
@@ -336,12 +358,13 @@ els.file.addEventListener('change', async () => {
     const entries = parseM3u(await file.text());
     if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
     setChannels(entries, file.name);
+    updateBridgePanel();
   } catch (error) { fail(errorText(error)); }
   finally { els.file.value = ''; }
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
 els.demo.addEventListener('click', () => setChannels([{
   name: 'Vídeo HLS de demonstração', group: 'Stream público de teste',
   kind: 'tv', url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'
