@@ -32,11 +32,11 @@
       <label for="source-url" id="source-url-label">ENDEREÇO DA MÍDIA</label>
       <input id="source-url" type="url" inputmode="url" placeholder="https://.../stream.m3u8" spellcheck="false">
       <div id="bridge-settings" class="bridge-settings" hidden>
-        <div class="bridge-settings-head"><span>PONTE HTTPS PRIVADA</span><span class="bridge-pill">HTTP → HTTPS</span></div>
-        <p id="bridge-availability" role="status" aria-live="polite">Verificando ponte HTTPS...</p>
+        <div class="bridge-settings-head"><span>CATÁLOGO NO R2 E D1</span><span class="bridge-pill">M3U HTTP → HTTPS</span></div>
+        <p id="bridge-availability" role="status" aria-live="polite">Verificando armazenamento do catálogo...</p>
         <div id="bridge-key-wrap">
           <label for="bridge-key">CHAVE DE ACESSO</label>
-          <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave privada do Gateway Cloudflare">
+          <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave de acesso ao catálogo">
         </div>
       </div>
       <div id="credentials-fields" hidden>
@@ -52,7 +52,7 @@
         <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
       </div>
     </form>
-    <div class="privacy"><span class="privacy-dot"></span><p><b>Fontes sob seu controle</b><br>No HTTPS, a conexão é direta quando possível. Para catálogos HTTP, a ponte privada consulta a origem sem armazenar credenciais.</p></div>
+    <div class="privacy"><span class="privacy-dot"></span><p><b>Fontes sob seu controle</b><br>No HTTPS, a conexão é direta quando possível. Para listas HTTP, o Cloudflare pode guardar a M3U no R2 privado, com referência no D1. Os vídeos continuam na origem.</p></div>
     <div class="sidebar-footer">ZERO COMPLEXIDADE DESNECESSÁRIA <span>✳</span></div>
   </aside>
 

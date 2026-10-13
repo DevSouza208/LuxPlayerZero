@@ -36,9 +36,10 @@ const bridge = createBridge({
   }
 });
 function updateBridgePanel() {
-  const sourceIsHttp = isBridgeRequired(els.url.value);
+  const sourceIsHttp = isBridgeRequired(els.url.value) && els.type.value !== 'direct';
   const catalogueHasHttp = channels.some(item => isBridgeRequired(item.url));
-  els.bridgePanel.hidden = !(bridgeNeeded && (sourceIsHttp || catalogueHasHttp));
+  // Não pedir uma chave para reproduzir vídeo: ela é somente para salvar a lista.
+  els.bridgePanel.hidden = !(bridgeNeeded || (sourceIsHttp && bridgeStatus?.snapshotReady));
   const presentation = describeBridge(bridgeStatus, catalogueHasHttp);
   els.bridgeAvailability.textContent = presentation.message;
   els.bridgeAvailability.dataset.kind = presentation.kind;
@@ -58,7 +59,7 @@ async function refreshBridgeStatus() {
     bridgeStatus = data;
     log('Pages Functions', data.configured ? 'Gateway instalado' : 'Gateway sem configuração privada');
   } catch {
-    bridgeStatus = { configured: false, connected: false, mediaEnabled: false };
+    bridgeStatus = { configured: false, connected: false, mediaEnabled: false, snapshotReady: false };
     log('Pages Functions', 'Gateway indisponível');
   }
   updateBridgePanel();
@@ -104,32 +105,50 @@ function updateForm() {
 }
 async function request(url, as = 'text') {
   checkProtocol(url);
+  const isHttpCatalog = isBridgeRequired(url) && as === 'text';
+
+  // Na presença do R2 e D1, buscamos HTTP pelo servidor e consumimos a M3U
+  // servida por HTTPS; nunca reconstruímos os endereços dos canais.
+  if (isHttpCatalog && bridgeStatus?.snapshotReady &&
+      (bridge.isConnected() || bridgeStatus.connected || els.bridgeKey.value.trim())) {
+    const result = await bridge.snapshot(url);
+    log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
+      'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');
+    return result.content;
+  }
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
-    // Como no Original: primeiro tentar a própria fonte por HTTPS,
-    // mesmo quando o endereço recebido na lista começa com http://.
+    // Na ausência de armazenamento configurado, manter HTTPS direto do Original.
     try {
       const response = await fetch(preferHttps(url), {
         signal: controller.signal, cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer'
       });
       if (!response.ok) throw new Error('Servidor respondeu HTTP ' + response.status + '.');
-      const length = Number(response.headers.get('content-length')) || 0;
+      const length = Number(response.headers.get('content-length') || 0);
       if (length > 20 * 1024 * 1024) throw new Error('Catálogo maior que 20 MB.');
       const text = await response.text();
       if (text.length > 20 * 1024 * 1024) throw new Error('Catálogo maior que 20 MB.');
       return as === 'json' ? JSON.parse(text) : text;
     } catch (error) {
       if (!isBridgeRequired(url)) throw error;
-      // Só precisa do serviço de leitura HTTP se o HTTPS direto falhar.
       bridgeNeeded = true;
       updateBridgePanel();
-      log('Catálogo', 'HTTPS direto indisponível; buscando alternativa configurada');
-      if (!bridgeStatus?.configured) {
-        throw new Error('A origem não entregou o catálogo por HTTPS. Teste outro endereço HTTPS ou configure a leitura de catálogo HTTP.');
+
+      if (isHttpCatalog && bridgeStatus?.snapshotReady) {
+        const result = await bridge.snapshot(url);
+        log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
+          'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');
+        return result.content;
       }
-      const text = await bridge.catalog(url);
-      return as === 'json' ? JSON.parse(text) : text;
+
+      // Somente a consulta de metadados Xtream usa a API como última opção.
+      if (as === 'json' && bridgeStatus?.configured) {
+        const text = await bridge.catalog(url);
+        return JSON.parse(text);
+      }
+      throw new Error('A fonte não entregou a lista por HTTPS. Para receber HTTP, conecte R2, D1 e chave da fonte na Cloudflare.');
     }
   } catch (error) {
     if (controller.signal.aborted) throw new Error('Tempo de conexão esgotado (15 segundos).');
