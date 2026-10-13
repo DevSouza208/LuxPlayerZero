@@ -28,6 +28,7 @@ test('tela inicial aponta para ativos e mantém laboratório de demonstração',
   }
   for (const name of ['lux-logo.png','lux-icon.png','login-scene.png','luxite.png']) {
     assert.ok(html.includes('/assets/' + name), 'Asset não referenciado: ' + name);
+    assert.equal(existsSync(new URL('../public/assets/' + name, import.meta.url)), true, 'Asset inexistente: ' + name);
   }
   assert.equal(existsSync(new URL('../public/player.html', import.meta.url)), true);
 });
