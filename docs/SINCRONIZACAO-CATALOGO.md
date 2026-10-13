@@ -1,6 +1,6 @@
-# Lux Zero — Catálogo sincronizado a cada 4 horas (proposta)
+# Lux Zero — Catálogo sincronizado a cada 4 horas (etapa futura)
 
-**Estado: arquitetura aprovada para estudo; nenhum job de sincronização foi publicado.**
+**Estado: a sincronização manual HTTP → R2 → D1 → HTTPS já existe em Pages Functions; o cron de quatro horas e a indexação individual descritos abaixo ainda são propostas.** A implementação simples atual está em [CATALOGO-R2-D1.md](CATALOGO-R2-D1.md).
 
 Objetivo: o usuário fornece uma fonte legítima Xtream/M3U; o catálogo (canais, categorias, logos, EPG e metadados) pode ser processado fora do navegador; o reprodutor recebe uma lista normalizada sem repetir o download pesado a cada abertura. Nunca incorporar listas, senhas ou acesso a conteúdos no código do aplicativo.
 
@@ -85,4 +85,4 @@ A origem/credencial privada **não deve** ser entregue na consulta do catálogo.
 - Criar testes com respostas Xtream/M3U **fictícias** (sem credenciais reais), incluindo timeout, catálogo vazio, mudanças de versão e falhas.
 - Medir tamanho/tempo de parsing e custos estimados antes de tentar sincronizar dezenas de milhares de mídias.
 
-**Prioridade do projeto neste momento:** finalizar e aprovar a tela de login do front. A sincronização fica documentada para ser implementada em etapas.
+**Prioridade atual:** ativar os bindings R2/D1 no Pages e comprovar o primeiro catálogo HTTP completo. Só depois considerar cron, normalização e indexação complexa.

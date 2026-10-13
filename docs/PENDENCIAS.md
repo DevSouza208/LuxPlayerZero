@@ -62,28 +62,38 @@ Atualização: 2026-10-13.
 | 🟡 | MPEG-TS e HLS HTTP | HLS de origem HTTP reproduzido por HTTPS direto na demonstração; MPEG-TS e outras origens ainda precisam de testes |
 | ⬜ | Integrar navegação visual com novo design | Planejar após validar login |
 | ⬜ | Motor desktop / Electron | Escolher e testar MPV ou outro motor adequado |
-| ⬜ | D1 e R2 | Vincular os recursos reais após testes de integração; não usar R2 como retransmissor obrigatório |
+| 🟡 | D1 e R2 | Código e testes de armazenamento aprovados; falta vincular DB e CATALOG_BUCKET no Pages e testar gravação real |
 | ✅ | Identidade roxa | Paleta do laboratório alinhada ao Lux Player |
 
 
-## Arquitetura — Catálogo R2 + D1 (planejado)
+## Arquitetura — Catálogo HTTP → R2 → D1 (implementação inicial)
 
-A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implementada sem precisar retransmitir vídeos. Ver [SINCRONIZACAO-CATALOGO.md](SINCRONIZACAO-CATALOGO.md).
+Foi implementada a sincronização **manual ao conectar fonte**: baixar a M3U original, salvar no R2 privado, registrar referência no D1 e servir a cópia por HTTPS autenticado. Ainda faltam bindings de produção. Configuração: [CATALOGO-R2-D1.md](CATALOGO-R2-D1.md).
+
+A rotina automática de quatro horas e a indexação individual de canais no D1 continuam como etapas posteriores: [SINCRONIZACAO-CATALOGO.md](SINCRONIZACAO-CATALOGO.md).
 
 | Estado | Item | Critério de aceite |
 | --- | --- | --- |
 | ✅ | Estudar arquitetura da sincronização | Separação de dados de catálogo, snapshot R2, índice D1 e reprodução |
 | ⬜ | Vincular Worker agendado | Cron a cada 4h com recursos reais e Secrets |
-| ⬜ | Baixar e validar catálogo | M3U/Xtream autorizados, timeout, limites e fallback para última versão válida |
-| ⬜ | Snapshot privado em R2 | Guardar versão e nunca publicar credenciais em bucket público |
-| ⬜ | Indexação D1 | Categorias, canais e busca, atualizações incrementais |
-| 🟡 | Catálogo HTTPS ao navegador | Gateway Pages com cookie HttpOnly e host allowlist publicado; falta Secrets de produção e teste autorizado |
+| ✅ | Baixar e validar catálogo | Fonte HTTP validada, limite de 20 MiB, salvamento e retorno da última cópia nos testes |
+| 🟡 | Snapshot privado em R2 | Código/testes de upload e limpeza de versão antiga concluídos; falta bucket real vinculado e privado |
+| 🟡 | Referência no D1 | Registro de identificador, objeto R2, data e quantidade implementado; índice individual de canais é futuro |
+| 🟡 | Catálogo HTTPS ao navegador | Rotas POST sync e GET playlist implementadas; testes aprovados, faltam bindings e chave de produção |
 | ✅ | Documentar configuração do Gateway | Instruções em [GATEWAY-HTTPS.md](GATEWAY-HTTPS.md), incluindo limites, riscos e ativação |
-| 🟡 | Gateway de catálogo HTTP → HTTPS | Pages Function pública verificada; corrigida allowlist da porta :80; Secrets de produção ainda não configurados |
+| 🟡 | M3U HTTP → R2 → D1 → HTTPS | Implementado nas Pages Functions e integrado ao formulário; falta teste com R2/D1 reais |
 | 🟡 | Fluxo privado de vídeo HTTPS | Adaptador HLS e MPEG-TS com token criptografado implementado; desligado por padrão, depende de direitos/termos e QA real |
 | 🟡 | Origem HTTP no Pages HTTPS | Tenta HTTPS direto primeiro e já reproduziu HLS em teste; quando servidor não oferece TLS compatível, requer alternativa |
 | ⬜ | Proteção operacional para gateway | Rate limiting no Cloudflare WAF, restrição de tráfego, auditoria de quotas e teste de streams autorizados |
 | 🟡 | Testes e monitoramento | Fixture de M3U e HLS validada no navegador; integração HTTP privada, desempenho/custos e reconciliação ainda pendentes |
+
+## Implementação R2/D1 — checagens na branch
+
+- ✅ Testes da API com R2/D1 simulados: copiar M3U sem alterar, guardar no R2, indexar no D1, servir com sessão e HTTPS.
+- ✅ Falhas cobertas: acesso anônimo, redirecionamento de host, resposta HTML, erro de D1, atualização e cópia anterior.
+- ✅ Pages preview publicou as rotas, respondendo `snapshotReady:false` enquanto bindings/secrets estiverem ausentes.
+- ⬜ Vincular DB, CATALOG_BUCKET e variáveis privadas no Pages, testar gravação com fonte HTTP real sem publicar credenciais.
+- ⬜ Isolamento por Lux ID, agendamento a cada 4h e indexação das categorias no D1.
 
 ## Testes reproduzíveis (13/10/2026)
 

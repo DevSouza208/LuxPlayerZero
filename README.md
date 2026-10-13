@@ -19,11 +19,13 @@ Os arquivos fornecidos pelo criador ficam em `public/assets/`:
 
 Os binários foram **movidos sem alteração de conteúdo**, mantendo os mesmos SHAs Git dos originais.
 
-### Catálogo e sincronização (planejamento)
+### Catálogo HTTP → R2 → D1 → HTTPS
 
-O projeto contempla um futuro Worker agendado a cada 4h para importar catálogos Xtream/M3U, guardar snapshots em R2 **privado**, indexar no D1 e servir os metadados ao player. O navegador Pages HTTPS continuará sujeito às restrições para streams HTTP; snapshot da lista não transforma vídeo HTTP em HTTPS.
+**Implementado no código:** a função Pages baixa a M3U HTTP pelo servidor, guarda a cópia original no R2 privado, registra no D1 e devolve a playlist ao Lux por HTTPS. Não copiamos vídeos. Se a fonte tiver `get.php`, o Lux aproveita a própria M3U do fornecedor como no Original.
 
-Documento técnico: **[docs/SINCRONIZACAO-CATALOGO.md](docs/SINCRONIZACAO-CATALOGO.md)**.
+**Falta para ativar na sua conta:** vincular o bucket R2 (`CATALOG_BUCKET`) e o banco D1 (`DB`) ao projeto **Pages**, configurar `BRIDGE_ACCESS_KEY` e `BRIDGE_ALLOWED_HOSTS` e publicar novamente. O painel não recebe valores secretos por GitHub.
+
+Configuração rápida: **[docs/CATALOGO-R2-D1.md](docs/CATALOGO-R2-D1.md)**. Atualização automática de 4 horas e índice de cada canal ficam para depois: [plano de sincronização](docs/SINCRONIZACAO-CATALOGO.md).
 
 ### Login (tela 01)
 
@@ -39,13 +41,13 @@ No Pages, abra `/player` e clique em **Importar playlist M3U de demonstração**
 
 O Lux Zero agora possui **Cloudflare Pages Functions** em `functions/api/bridge/` e `public/_routes.json`, que permitem importar catálogos HTTP por uma sessão privada. O adaptador opcional de mídia contém tratamento de manifestos HLS e segmentos, mas inicia **desativado** para evitar expor um proxy ou retransmitir streams sem permissão.
 
-**Primeiro tentamos HTTPS direto**, inclusive para URLs HTTP recebidas na M3U, sem alterar o catálogo original. Isso já reproduziu um HLS público em navegador real. A ponte de catálogo só entra quando HTTPS direto não atende: sem `BRIDGE_ACCESS_KEY` e `BRIDGE_ALLOWED_HOSTS`, essa alternativa fica indisponível. O status aparece em `/api/bridge/status`. Um servidor sem HTTPS compatível continua sendo uma limitação do navegador. O adaptador de vídeo do gateway permanece desligado.
+**Para playlists HTTP, com R2/D1 configurados e sessão de catálogo aberta, priorizamos salvar a M3U no R2**, guardar sua referência no D1 e reler por HTTPS. Sem os vínculos ou a chave, o Lux mantém a tentativa de HTTPS direto usada no Original. A rota `/api/bridge/status` informa `snapshotReady`. Nenhuma das duas opções converte os vídeos HTTP. O adaptador antigo de vídeo permanece desligado.
 
 Configuração e segurança: **[docs/GATEWAY-HTTPS.md](docs/GATEWAY-HTTPS.md)**.
 
 ## Cloudflare Pages — front-end (2026-10-13)
 
-O **Lux Zero** publica arquivos estáticos em `public` e funções server-side em `functions` pelo Cloudflare Pages conectado ao GitHub, sem `wrangler deploy` e sem depender de D1/R2 neste momento.
+O **Lux Zero** publica arquivos estáticos em `public` e funções server-side em `functions` pelo Cloudflare Pages conectado ao GitHub. O site e o player demonstrativo funcionam sem D1/R2, mas a **sincronização de playlists HTTP exige os dois bindings no Pages**.
 
 Na configuração do projeto Pages:
 
@@ -60,7 +62,7 @@ Na configuração do projeto Pages:
 
 O arquivo `public/index.html` é o login. `public/player.html` contém o laboratório antigo, sem autenticação. Assets ficam em `public/assets/`.
 
-**Importante:** a pasta `src/worker.js` continua exclusiva do Worker separado, então `/api/health` não é exposto pelo Pages. Mas as novas Pages Functions em `functions/api/bridge/` são publicadas automaticamente com o Pages. O futuro D1/R2 pode usar um Worker separado.
+**Importante:** a pasta `src/worker.js` continua exclusiva do Worker separado, então `/api/health` não é exposto pelo Pages. Mas as Pages Functions em `functions/api/bridge/` são publicadas automaticamente com o Pages, incluindo as rotas de armazenamento R2/D1.
 
 No login aparece o marcador **ZERO / PAGES 01** para identificar visualmente este commit depois da publicação.
 
@@ -97,8 +99,8 @@ npm test
 
 - O navegador HTTPS testa HTTPS direto primeiro para URLs HTTP, preservando os dados originais da M3U. Funciona quando a origem também oferece HTTPS compatível. Se não oferecer, o navegador pode bloquear HTTP e CORS pode impedir requisições. A ponte de catálogo existe só como alternativa configurada.
 - Alguns codecs não são suportados no navegador mesmo com HLS/TS. MPV desktop será avaliado em fase posterior.
-- O acesso Xtream é **direto do navegador ao servidor informado**. Senhas são mantidas apenas na memória da página, não em D1, R2 ou no nosso Worker; entretanto, a própria origem Xtream recebe essas credenciais. Não use contas de terceiros sem autorização.
-- Não há **autenticação real**, catálogo persistente, EPG, filmes/séries ou fallback multi-servidor nesta versão.
+- O acesso Xtream prioriza a M3U original. Com sincronização ligada, a lista pode conter URLs com credenciais e fica no **R2 privado**; o D1 guarda apenas uma referência, sem senhas em texto claro. Sem o armazenamento, o Lux tenta HTTPS direto.
+- Não há **Lux ID real** ou isolamento entre contas nesta versão. O catálogo R2/D1 já foi implementado mas ainda depende de bindings e configuração na conta Cloudflare. EPG e interface completa ficam para depois.
 - Bibliotecas de playback são carregadas por CDN e precisam de conectividade.
 - Código versionado e testes unitários **não equivalem a validação em dispositivo ou teste de streams reais**.
 
