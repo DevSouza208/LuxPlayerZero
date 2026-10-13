@@ -46,8 +46,10 @@ Atualização: 2026-10-13.
 | Estado | Item | Critério de aceite |
 | --- | --- | --- |
 | ✅ | Preservar o laboratório existente | /player.html acessível e funcional conforme limitações anteriores |
-| 🟡 | Playlist M3U e Xtream | Testar com fornecedores autorizados sob HTTPS/CORS |
-| 🟡 | HLS e MPEG-TS | Testar em navegadores reais e registrar falhas |
+| ✅ | Importação M3U em navegador | Catálogo M3U HTTPS local de 2 mídias testado em Pages com resultado positivo |
+| 🟡 | Xtream / fontes externas | API funcional em testes sintéticos; testar provedores autorizados com HTTPS/CORS ou bridge configurada |
+| ✅ | HLS HTTPS | Vídeo aberto, imagem renderizada e status REPRODUZINDO em teste de navegador no Pages |
+| 🟡 | MPEG-TS e HLS HTTP | Adapters implementados; testar com fonte e hospedagem autorizadas; exige gateway configurado |
 | ⬜ | Integrar navegação visual com novo design | Planejar após validar login |
 | ⬜ | Motor desktop / Electron | Escolher e testar MPV ou outro motor adequado |
 | ⬜ | D1 e R2 | Vincular os recursos reais após testes de integração; não usar R2 como retransmissor obrigatório |
@@ -67,11 +69,20 @@ A ideia original de sincronizar a lista PHP/M3U a cada 4 horas pode ser implemen
 | ⬜ | Indexação D1 | Categorias, canais e busca, atualizações incrementais |
 | 🟡 | Catálogo HTTPS ao navegador | Gateway Pages com cookie HttpOnly e host allowlist publicado; falta Secrets de produção e teste autorizado |
 | ✅ | Documentar configuração do Gateway | Instruções em [GATEWAY-HTTPS.md](GATEWAY-HTTPS.md), incluindo limites, riscos e ativação |
-| 🟡 | Gateway de catálogo HTTP → HTTPS | Pages Function publicada e verificada; falta configurar BRIDGE_ACCESS_KEY e BRIDGE_ALLOWED_HOSTS no Pages |
+| 🟡 | Gateway de catálogo HTTP → HTTPS | Pages Function pública verificada; corrigida allowlist da porta :80; Secrets de produção ainda não configurados |
 | 🟡 | Fluxo privado de vídeo HTTPS | Adaptador HLS e MPEG-TS com token criptografado implementado; desligado por padrão, depende de direitos/termos e QA real |
 | 🔴 | Origem HTTP no Pages HTTPS | Exige gateway autorizado configurado ou URL HTTPS oficial; somente R2/playlist HTTPS não transforma o vídeo |
 | ⬜ | Proteção operacional para gateway | Rate limiting no Cloudflare WAF, restrição de tráfego, auditoria de quotas e teste de streams autorizados |
-| ⬜ | Testes e monitoramento | Fixtures, reconciliação de versões, erros, desempenho e custos |
+| 🟡 | Testes e monitoramento | Fixture de M3U e HLS validada no navegador; integração HTTP privada, desempenho/custos e reconciliação ainda pendentes |
+
+## Testes reproduzíveis (13/10/2026)
+
+- ✅ GitHub Actions (branch de validação): suíte completa de testes de `npm test` aprovada após ciclo RED → GREEN.
+- ✅ Cloudflare Pages preview da PR: `https://c8764ae1.luxplayerzero.pages.dev/player`, importação da playlist local de demonstração → 2 entradas → HLS abriu imagem e estado REPRODUZINDO.
+- ✅ GET `/api/bridge/status`: rota responde no Pages. Falta configurar Secrets; sem isso nenhuma fonte HTTP privada conecta.
+- ⬜ Testes reais de provedores: **não realizados**, não assumir que P2PLAY ou qualquer origem HTTP funciona por conta desses testes.
+- ⬜ Vídeo por gateway HTTP → HTTPS: adapter desativado em produção; requer autorização e compatibilidade com termos do serviço.
+- 🟡 Worker Builds em branch de PR: falha de build separado; Pages e GitHub Actions passam. Investigar sem confundir com o site estático.
 
 ## Regras para próximas telas
 

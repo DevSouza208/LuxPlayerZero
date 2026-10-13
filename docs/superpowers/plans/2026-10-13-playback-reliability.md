@@ -29,43 +29,43 @@
 
 **Arquivos:** `tests/bridge.test.mjs`, `src/bridge-core.js`.
 
-- [ ] Testar que `http://origin.example:80/` é permitido com allowlist `origin.example:80`, e igualmente para HTTPS porta 443.
-- [ ] Testar rejeição de porta não aprovada, host parecido, localhost e redirecionamento para host externo.
-- [ ] Observar o teste falhar pelo motivo correto (RED).
-- [ ] Corrigir comparação para aceitar somente variantes canônicas explícitas que representem o mesmo destino e porta (GREEN).
-- [ ] Reexecutar todos os testes.
+- [x] Testar que `http://origin.example:80/` é permitido com allowlist `origin.example:80`, e igualmente para HTTPS porta 443.
+- [x] Testar rejeição de porta não aprovada, host parecido, localhost e redirecionamento para host externo.
+- [x] Observar o teste falhar pelo motivo correto (RED).
+- [x] Corrigir comparação para aceitar somente variantes canônicas explícitas que representem o mesmo destino e porta (GREEN).
+- [x] Reexecutar todos os testes.
 
 ### Tarefa 2 — diagnóstico claro no player
 
 **Arquivos:** `public/app.js`, `public/gateway.js`, `public/player.html`, `tests/...test.mjs`.
 
-- [ ] Escrever teste exigindo status do backend, estados configurado/conectado/media habilitado e mensagens específicas para ausência de secrets.
-- [ ] Observar RED.
-- [ ] Implementar indicador de status do gateway (verificação simples e explícita).
-- [ ] Não solicitar chave quando bridge não estiver configurada; orientar configuração no Cloudflare sem expor valores.
-- [ ] Substituir consulta enganosa a `/api/health` por `/api/bridge/status` no Pages.
-- [ ] Verificar via teste e navegador anônimo.
+- [x] Escrever teste exigindo status do backend, estados configurado/conectado/media habilitado e mensagens específicas para ausência de secrets.
+- [x] Observar RED.
+- [x] Implementar indicador de status do gateway (verificação simples e explícita).
+- [x] Não solicitar chave quando bridge não estiver configurada; orientar configuração no Cloudflare sem expor valores.
+- [x] Substituir consulta enganosa a `/api/health` por `/api/bridge/status` no Pages.
+- [x] Verificar via teste e navegador anônimo.
 
 ### Tarefa 3 — prova funcional de importação/reprodução sem credenciais
 
 **Arquivos:** `public/demo/playlist.m3u`, `public/app.js`, `tests/playlist.test.mjs`.
 
-- [ ] Escrever teste de playlist M3U local com HTTPS HLS público de demonstração.
-- [ ] Observar RED (arquivo inexistente).
-- [ ] Incluir fixture e botão para importar pelo mesmo `request` + `parseM3u` que o usuário usa.
-- [ ] Integrar um link claro de teste da fonte, sem usar os servidores privados do fornecedor.
-- [ ] Verificar arquivo/GUI pública, HLS quando navegador suportar; anotar limites do teste.
+- [x] Escrever teste de playlist M3U local com HTTPS HLS público de demonstração.
+- [x] Observar RED (arquivo inexistente).
+- [x] Incluir fixture e botão para importar pelo mesmo `request` + `parseM3u` que o usuário usa.
+- [x] Integrar um link claro de teste da fonte, sem usar os servidores privados do fornecedor.
+- [x] Verificar arquivo/GUI pública, HLS quando navegador suportar; anotar limites do teste.
 
-### Tarefa 4 — verificação, documentação e conclusão
+### Tarefa 4 — verificação, documentação e conclusão (parcial)
 
 **Arquivos:** `docs/PENDENCIAS.md`, `docs/GATEWAY-HTTPS.md`, `README.md`.
 
-- [ ] GitHub Actions `npm test` verde, sem falhas.
-- [ ] Cloudflare Pages deploy verde.
-- [ ] Consultar `GET /api/bridge/status` após publicação.
-- [ ] Conferir que gateway privado permanece bloqueado sem secrets e não virou proxy aberto.
-- [ ] Registrar claramente: implementado ≠ testado com P2PLAY. Sem configuração Cloudflare e autorização de vídeo, HTTP privado não será reproduzido.
-- [ ] Integrar PR na `main` após revisão.
+- [x] GitHub Actions `npm test` verde, sem falhas.
+- [x] Cloudflare Pages deploy verde.
+- [x] Consultar `GET /api/bridge/status` após publicação.
+- [x] Conferir que gateway privado permanece bloqueado sem secrets e não virou proxy aberto.
+- [x] Registrar claramente: implementado ≠ testado com P2PLAY. Sem configuração Cloudflare e autorização de vídeo, HTTP privado não será reproduzido.
+- [ ] Integrar PR na `main` após revisão e CI verde da branch.
 
 ## Revisão de risco
 
@@ -74,3 +74,14 @@
 3. Mudança de fonte durante conexão e respostas tardias.
 4. CORS/HTTPS para streams HLS e segmentos.
 5. Falta de secrets e risco de gateway aberto indevidamente.
+
+## Evidência de verificação
+
+- RED porta :80: Actions 38370657502 falhou no teste `permittedUrl`, com `Host não liberado`.
+- GREEN porta :80: Actions 38370746840 passou.
+- RED indicador gateway: Actions 38370982785 falhou com estado `pending` em vez de `unconfigured`.
+- GREEN indicador gateway: Actions 38371207013 passou.
+- RED importação demo: Actions 38371341223 falhou por arquivo M3U inexistente e handler antigo.
+- GREEN importação demo: Actions 38371486112 passou.
+- Teste navegador, preview `c8764ae1.luxplayerzero.pages.dev/player`: playlist importada (2 entradas) e HLS reproduzido com imagem e estado `REPRODUZINDO`.
+- Gate de HTTP privado: `/api/bridge/status` ainda não configurado em produção (não testar com fontes reais até configurar Secrets e confirmar permissões).
