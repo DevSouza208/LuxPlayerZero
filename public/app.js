@@ -286,7 +286,7 @@ async function importSource(event) {
       const auth = await request(authUrl, 'json');
       if (!auth?.user_info || Number(auth.user_info.auth) !== 1) throw new Error('Credenciais Xtream recusadas pelo servidor.');
       const extension = Array.isArray(auth.user_info.allowed_output_formats) &&
-        auth.user_info.allowed_output_formats.includes('hls') ? 'm3u8' : 'ts';
+        (auth.user_info.allowed_output_formats.includes('m3u8') || auth.user_info.allowed_output_formats.includes('hls')) ? 'm3u8' : 'ts';
       const streams = await request(authUrl + '&action=get_live_streams', 'json');
       if (!Array.isArray(streams)) throw new Error('API Xtream não retornou uma lista de canais válida.');
       const entries = streams.slice(0, 20000).filter(stream => /^\d+$/.test(String(stream.stream_id))).map(stream => ({
