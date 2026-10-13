@@ -233,3 +233,31 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
   .form-meta .soon{display:none}
 }
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Login compacto: três métodos de acesso, sem textos de contexto. */
+.auth-center { padding-block: 28px; }
+.auth-title { margin-bottom: 26px; }
+.form-meta { justify-content: flex-end; }
+.social-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.social-button {
+  display:flex;align-items:center;justify-content:center;gap:11px;
+  min-height:49px;width:100%;border:1px solid rgba(182,154,234,.22);
+  border-radius:11px;background:rgba(186,158,238,.055);
+  color:#f5f2ff;font-size:12px;font-weight:700;
+  transition:border-color .2s,background .2s,transform .2s;
+}
+.social-button:hover { background:rgba(167,123,250,.12);border-color:rgba(193,157,255,.54);transform:translateY(-1px); }
+.social-button:active { transform:translateY(0); }
+.social-button .provider-icon {width:20px;height:20px;flex-shrink:0}
+.discord-button .provider-icon {color:#a6aaff}
+.demo-link {
+  display:flex;justify-content:center;gap:7px;align-items:center;
+  font-size:11px;font-weight:600;color:#a89bbf;margin-top:22px;padding:8px;
+}
+.demo-link:hover {color:#e6d8ff}
+.demo-link span {color:#cbb4ff}
+@media(max-width:460px) {
+  .auth-title { margin-bottom:20px; }
+  .auth-center {padding-block:26px 32px}
+  .social-button {min-height:48px}
+}
