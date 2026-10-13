@@ -22,7 +22,7 @@ Atualização: 2026-10-13.
 | ✅ | Mostrar/ocultar senha | Alternância acessível e segura, sem gravar senha |
 | ✅ | Recuperação — interface | Tela e validação de e-mail disponíveis sem envio falso |
 | ✅ | Entrada no laboratório de demonstração | Link explícito para /player.html |
-| 🟡 | QA visual com imagens reais em produção | Revisão manual em computador, celular e telas pequenas |
+| 🟡 | QA visual com imagens reais em produção | Revisão manual em computador, celular e telas pequenas; confirmar deploy estático Pages |
 | ⬜ | Autenticação de verdade | Endpoint seguro, credenciais protegidas, sessão estabelecida pelo servidor |
 | ⬜ | Persistência de sessão / lembrar dispositivo | Controle explícito, expiração e revogação |
 | ⬜ | Esqueci senha — backend | Token de uso único, prazo, limitação de tentativas e e-mail transacional |

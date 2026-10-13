@@ -25,6 +25,27 @@ O formulário faz validação de identificador/senha, alterna a visibilidade da 
 
 Acompanhe as próximas etapas em **[docs/PENDENCIAS.md](docs/PENDENCIAS.md)**. A regra é: primeiro funcionar, depois aprimorar; registrar cada etapa como código, validação, QA visual ou integração.
 
+## Cloudflare Pages — front-end (2026-10-13)
+
+O **front-end do Lux Zero** pode ser publicado diretamente no Cloudflare Pages, sem `wrangler deploy` e sem precisar conectar D1 ou R2 nesta fase.
+
+Na configuração do projeto Pages:
+
+| Campo | Valor |
+| --- | --- |
+| Repositório | `DevSouza208/LuxPlayerZero` |
+| Branch de produção | `main` |
+| Framework preset | `None` |
+| Diretório raiz | `/` |
+| Build command | **vazio** |
+| Build output directory | `public` |
+
+O arquivo `public/index.html` é o login. `public/player.html` contém o laboratório antigo, sem autenticação. Assets ficam em `public/assets/`.
+
+**Importante:** Pages publica arquivos estáticos. O `src/worker.js` e o endpoint `/api/health` **não** são publicados no Pages apenas por estarem no mesmo repositório. A API, D1 e R2 entrarão depois com um Worker separado ou integração adequada. Não configure um deploy Worker com `npx wrangler deploy` dentro desse projeto Pages estático.
+
+No login aparece o marcador **ZERO / PAGES 01** para identificar visualmente este commit depois da publicação.
+
 ## v0.1.0 — laboratório web
 
 - Interface responsiva e instalação simples: Cloudflare Worker + Static Assets.

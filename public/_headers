@@ -1,0 +1,12 @@
+# Cabeçalhos aplicados pelo Cloudflare Pages às respostas estáticas.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/index.html
+  Cache-Control: no-cache
+
+/player.html
+  Cache-Control: no-cache
