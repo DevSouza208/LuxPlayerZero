@@ -216,7 +216,8 @@ export function createHome({ play } = {}) {
     if (!query || tmdbPending.has(keyForQuery(query)) || tmdbResolved.has(keyForQuery(query))) return;
     autoEnriched++;
     void metadataFor(item).then(data => {
-      if (data && items.includes(item)) render();
+      const index = Number(String(item.id || '').slice(1));
+      if (data && items[index] === item) render();
     });
   }
   function itemFromKey(key) { return showcase.matches.get(key); }
