@@ -312,6 +312,12 @@ export function createHome({ play } = {}) {
       lastProgress = Date.now();
       remember(item, position, duration);
     },
+    onEnded(item) {
+      if (!item) return;
+      recent = recent.filter(x => x.key !== itemKey(item));
+      write('recent', recent);
+      render();
+    },
     resumePosition(item) {
       const value = recent.find(x => x.key === itemKey(item));
       return value && shouldResume(value.position, value.duration) ? value.position : 0;
