@@ -129,7 +129,7 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     }
     content = await readLimited(response.body, MAX_CATALOG_BYTES);
     if (!isM3u(content)) {
-      throw new Error(/^\\s*(?:<!doctype html|<html|<\\?xml)/i.test(content)
+      throw new Error(/^\s*(?:<!doctype html|<html|<\?xml)/i.test(content)
         ? 'O fornecedor devolveu uma página HTML/XML, não uma playlist M3U. Verifique o formato da URL e o acesso.'
         : 'O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
     }
@@ -146,7 +146,7 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     if (/Host não liberado|Host não permitido/i.test(message)) {
       return apiError(502, 'A origem redirecionou para um host não autorizado na Cloudflare.');
     }
-    if (/^O servidor do fornecedor respondeu HTTP \\d{3}/.test(message) ||
+    if (/^O servidor do fornecedor respondeu HTTP \d{3}/.test(message) ||
         /^O fornecedor (devolveu|respondeu)/.test(message)) {
       return apiError(failureStatus, message);
     }
