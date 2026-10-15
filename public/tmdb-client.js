@@ -16,6 +16,8 @@ export function tmdbQueryForItem(item, role) {
   const yearMatch = name.match(/(?:\(|\[|\s)(19\d\d|20[0-3]\d)(?:\)|\]|\s|$)/);
   const year = yearMatch ? Number(yearMatch[1]) : null;
   if (yearMatch) name = name.replace(yearMatch[0], ' ');
+  // Etiquetas de resolução podem vir depois do ano, sem separador.
+  name = name.replace(/\s+(?:4K|UHD|FHD|FULL\s*HD|HD|SD|HDR|HEVC|H265|H264)\s*$/i, '');
   if (role === 'series') {
     name = name.replace(/\s*(?:[|:\-]\s*)?(?:S\d{1,2}E\d{1,3}|T\d{1,2}\s*E\d{1,3})\b.*$/i, '');
   }
