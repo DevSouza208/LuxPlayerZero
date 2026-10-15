@@ -12,14 +12,19 @@ export const DEFAULT_SETTINGS = Object.freeze({
   favoritesTitle: 'Minha lista',
   tvKeywords: '',
   moviesKeywords: '',
-  seriesKeywords: ''
+  seriesKeywords: '',
+  heroMode: 'auto',
+  pinnedName: '',
+  heroBackdrop: '',
+  railOrder: 'personal',
+  density: 'comfortable'
 });
 
 export function normalizeSettings(value = {}) {
   const safe = {};
   for (const [key, fallback] of Object.entries(DEFAULT_SETTINGS)) {
     const raw = typeof value?.[key] === 'string' ? value[key].trim() : '';
-    safe[key] = raw ? raw.slice(0, key.endsWith('Keywords') ? 220 : 90) : fallback;
+    safe[key] = raw ? raw.slice(0, key === 'heroBackdrop' ? 2048 : key.endsWith('Keywords') ? 220 : key === 'pinnedName' ? 130 : 90) : fallback;
   }
   return safe;
 }
