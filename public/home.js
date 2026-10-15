@@ -291,13 +291,26 @@ export function createHome({ play } = {}) {
     const availableRecent = recent.map(x => [itemFromKey(x.key), x]).filter(([item]) => !!item);
     const availableFav = favorites.map(x => [itemFromKey(x.key), x]).filter(([item]) => !!item);
     const recentMap = new Map(availableRecent.map(([item, saved]) => [itemKey(item), saved]));
-    railsRoot.replaceChildren(
-      createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap),
-      createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SEUS FAVORITOS'),
-      createRail('destaques-tv', settingsTitle('tv'), showcase.rails.tv, 'AO VIVO · ' + showcase.counts.tv.toLocaleString('pt-BR') + ' TÍTULOS'),
-      createRail('destaques-filmes', settingsTitle('movies'), showcase.rails.movies, 'PARA DESCOBRIR · ' + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS'),
-      createRail('destaques-series', settingsTitle('series'), showcase.rails.series, 'PARA MARATONAR · ' + showcase.counts.series.toLocaleString('pt-BR') + ' TÍTULOS')
-    );
+    const rails = {
+      continue: { enabled: 'showContinue', list: availableRecent.map(([item]) => item), draw: () =>
+        createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap) },
+      favorites: { enabled: 'showFavorites', list: availableFav.map(([item]) => item), draw: () =>
+        createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SUA SELEÇÃO') },
+      tv: { enabled: 'showTv', list: showcase.rails.tv, draw: () =>
+        createRail('destaques-tv', settingsTitle('tv'), showcase.rails.tv, 'AO VIVO · ' + showcase.counts.tv.toLocaleString('pt-BR') + ' TÍTULOS') },
+      movies: { enabled: 'showMovies', list: showcase.rails.movies, draw: () =>
+        createRail('destaques-filmes', settingsTitle('movies'), showcase.rails.movies, 'PARA DESCOBRIR · ' + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
+      series: { enabled: 'showSeries', list: showcase.rails.series, draw: () =>
+        createRail('destaques-series', settingsTitle('series'), showcase.rails.series, 'PARA MARATONAR · ' + showcase.counts.series.toLocaleString('pt-BR') + ' TÍTULOS') }
+    };
+    const order = config.railOrder === 'favorites' ? ['favorites','continue','tv','movies','series']
+      : config.railOrder === 'discovery' ? ['tv','movies','series','continue','favorites']
+      : ['continue','favorites','tv','movies','series'];
+    const visible = order.filter(key =>
+      configRaw[rails[key].enabled] !== false &&
+      (configRaw.hideEmpty === false || !items.length || rails[key].list.length));
+    railsRoot.replaceChildren(...visible.map(key => rails[key].draw()));
+    document.querySelector('.cinema-shell')?.classList.toggle('is-compact', config.density === 'compact');
     $('nav-movies').textContent = settingsTitle('movies');
     $('nav-series').textContent = settingsTitle('series');
     $('catalog-total').textContent = items.length ? items.length.toLocaleString('pt-BR') + ' títulos na biblioteca' : 'Sua biblioteca, seu universo';
