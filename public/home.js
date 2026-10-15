@@ -260,10 +260,11 @@ export function createHome({ play } = {}) {
   }
 
   function renderHero() {
-    heroItem = showcase.rails.movies.find(item => safeImage(item.logo)) ||
-      showcase.rails.series.find(item => safeImage(item.logo)) ||
-      showcase.rails.tv.find(item => safeImage(item.logo)) ||
-      showcase.rails.movies[0] || showcase.rails.series[0] || showcase.rails.tv[0] || null;
+    const ordered = config.heroMode === 'tv' ? ['tv','movies','series'] :
+      config.heroMode === 'series' ? ['series','movies','tv'] : ['movies','series','tv'];
+    heroItem = pinnedItem || ordered.map(role =>
+      showcase.rails[role].find(item => safeImage(item.logo)) || showcase.rails[role][0]
+    ).find(Boolean) || null;
     const title = $('hero-title');
     title.textContent = heroItem ? heroItem.name : config.heroTitle;
     $('hero-subtitle').textContent = heroItem ?
@@ -271,8 +272,12 @@ export function createHome({ play } = {}) {
     $('hero-category').textContent = heroItem ? 'SELECIONADO PARA VOCÊ' : 'BEM-VINDO AO SEU UNIVERSO';
     // O hero mantém o cenário cinematográfico; logos pequenos ficam em um cartão próprio.
     const poster = $('hero-poster');
+    const artwork = heroItem && safeImage(heroItem.logo);
+    const backdrop = safeImage(config.heroBackdrop);
+    const heroArt = $('hero-art');
+    if (heroArt) heroArt.src = backdrop || artwork || '/assets/login-scene.png';
     if (poster) {
-      poster.src = heroItem && safeImage(heroItem.logo) ? safeImage(heroItem.logo) : '/assets/lux-icon.png';
+      poster.src = artwork || '/assets/lux-icon.png';
       poster.referrerPolicy = 'no-referrer';
     }
     $('hero-play').hidden = !heroItem;
