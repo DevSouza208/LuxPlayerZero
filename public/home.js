@@ -413,8 +413,37 @@ export function createHome({ play } = {}) {
     $('details-kicker').textContent = 'LUX PLAYER · ' + (item.group || 'SUA BIBLIOTECA').slice(0, 62);
     const art = $('details-art');
     if (art) art.src = safeImage(item.logo) || '/assets/login-scene.png';
+    const info = $('details-meta');
+    const overview = $('details-overview');
+    const state = $('details-metadata-status');
+    if (info) { info.hidden = true; info.textContent = ''; }
+    if (overview) { overview.hidden = true; overview.textContent = ''; }
+    if (state) state.textContent = '';
     $('details-favorite').textContent = favorites.some(x => x.key === itemKey(item)) ? '♥ Na minha lista' : '＋ Minha lista';
     openDialog(detailsDialog);
+    const needArt = config.imageEngine === 'tmdb' ||
+      (config.imageEngine === 'hybrid' && !safeImage(item.logo));
+    if (!needArt && config.summaryEngine !== 'tmdb') return;
+    if (!queryFor(item)) return;
+    if (state) state.textContent = 'Verificando metadados com segurança…';
+    void metadataFor(item).then(data => {
+      // Evita exibir metadados de outro título se o modal foi trocado/fechado.
+      if (detailsItem !== item || !detailsDialog.open) return;
+      if (!data || data.status !== 'matched') {
+        if (state) state.textContent = 'Sem correspondência confirmada. Exibindo os dados da playlist.';
+        return;
+      }
+      if (art && needArt) art.src = data.backdrop || data.poster || safeImage(item.logo) || '/assets/login-scene.png';
+      if (config.summaryEngine === 'tmdb') {
+        const label = [data.year, ...(data.genres || []), data.rating ? '★ ' + data.rating : null]
+          .filter(Boolean).join('  ·  ');
+        if (info && label) { info.textContent = label; info.hidden = false; }
+        if (overview && data.overview) { overview.textContent = data.overview; overview.hidden = false; }
+      }
+      if (state) state.textContent = '';
+    }).catch(() => {
+      if (detailsItem === item && state) state.textContent = 'Metadados indisponíveis. Exibindo dados da playlist.';
+    });
   }
   $('details-close')?.addEventListener('click', () => closeDialog(detailsDialog));
   detailsDialog?.addEventListener('click', event => { if (event.target === detailsDialog) closeDialog(detailsDialog); });
