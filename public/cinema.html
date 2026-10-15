@@ -161,6 +161,25 @@
       <label><input id="admin-showSeries" type="checkbox" checked> Séries / Módulos</label>
       <label><input id="admin-hideEmpty" type="checkbox" checked> Ocultar vitrines sem títulos</label>
     </div>
+    <div class="admin-section-title">IMAGENS E SINOPSES · METADADOS</div>
+    <div class="admin-field-row">
+      <div class="admin-field">
+        <label for="admin-imageEngine">MOTOR DAS IMAGENS</label>
+        <select id="admin-imageEngine">
+          <option value="playlist">Playlist M3U (seguro · padrão)</option>
+          <option value="hybrid">Combinado · M3U + TMDB quando faltar</option>
+          <option value="tmdb">TMDB · Somente se confirmar o título</option>
+        </select>
+      </div>
+      <div class="admin-field">
+        <label for="admin-summaryEngine">MOTOR DAS SINOPSES</label>
+        <select id="admin-summaryEngine">
+          <option value="off">Desativado (mais leve · padrão)</option>
+          <option value="tmdb">TMDB · Sinopse e gêneros sob demanda</option>
+        </select>
+      </div>
+    </div>
+    <p class="admin-engine-note">TMDB é opcional. Não altera o título da playlist nem o que é reproduzido. Sem consultas em massa: máximo de 1 busca por título, cache no D1 e limite diário; em caso de dúvida, mantém os dados originais.</p>
     <div class="admin-section-title">VITRINES PERSONALIZÁVEIS</div>
     <div class="admin-field"><label for="admin-tvTitle">VITRINE 1 · NOME</label><input id="admin-tvTitle" type="text" maxlength="90" placeholder="Destaques da TV"><label for="admin-tvKeywords">GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)</label><input id="admin-tvKeywords" type="text" maxlength="220" placeholder="TV, Esportes, Notícias"></div>
     <div class="admin-field"><label for="admin-moviesTitle">VITRINE 2 · NOME</label><input id="admin-moviesTitle" type="text" maxlength="90" placeholder="Filmes ou Cursos"><label for="admin-moviesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-moviesKeywords" type="text" maxlength="220" placeholder="Filmes, Cursos, Aulas"></div>
@@ -181,6 +200,9 @@
   <div class="details-body">
     <h2 id="details-title">Título do conteúdo</h2>
     <p id="details-group">Sua biblioteca</p>
+    <div id="details-meta" class="details-meta" hidden></div>
+    <p id="details-overview" class="details-overview" hidden></p>
+    <p id="details-metadata-status" class="details-metadata-status" role="status" aria-live="polite"></p>
     <div class="details-actions">
       <button type="button" id="details-play" class="details-play"><span aria-hidden="true">▶</span> Assistir agora</button>
       <button type="button" id="details-favorite" class="details-favorite">＋ Minha lista</button>
