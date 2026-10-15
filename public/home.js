@@ -161,7 +161,11 @@ export function createHome({ play } = {}) {
 
   function itemFromKey(key) { return showcase.matches.get(key); }
   function savedKeys() { return [...new Set([...favorites, ...recent].map(x => x.key))]; }
-  function rebuild() { showcase = buildShowcase(items, config, savedKeys()); }
+  function rebuild() {
+    showcase = buildShowcase(items, config, savedKeys());
+    pinnedItem = config.heroMode === 'pinned' && config.pinnedName
+      ? items.find(item => item.name === config.pinnedName) || null : null;
+  }
 
   function createCard(item, category, saved = null) {
     const card = document.createElement('article');
