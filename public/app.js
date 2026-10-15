@@ -374,7 +374,7 @@ for (const media of [els.video, els.audio]) {
   media.addEventListener('error', () => {
     if (player === media && media.error) fail('O dispositivo não conseguiu reproduzir esta mídia (erro ' + media.error.code + ').');
   });
-  media.addEventListener('ended', () => { if (player === media) state('Encerrado'); });
+  media.addEventListener('ended', () => { if (player === media) { state('Encerrado'); home.onEnded(selected); } });
   media.addEventListener('pause', () => { if (player === media && !media.ended && media.readyState > 1) state('Pausado'); });
 }
 async function importSource(event) {
