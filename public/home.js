@@ -1,4 +1,5 @@
-import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, itemKey, safeImage, shouldResume } from './home-model.js';
+import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
+import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
 
 const STORAGE = 'luxzero:home:';
 const $ = id => document.getElementById(id);
@@ -50,6 +51,15 @@ export function createHome({ play } = {}) {
   let pinnedItem = null;
   let drawerReturnFocus = null;
   let searchTimer = null;
+  // Nunca consultar em massa: até 10 títulos por aba e no máximo 4 automáticos
+  // para toda a Home; nenhum lookup é disparado durante o parsing da M3U.
+  const tmdbResolved = new Map();
+  const tmdbPending = new Map();
+  let tmdbCalls = 0;
+  let autoEnriched = 0;
+  const MAX_TMDB_CALLS = 10;
+  const MAX_AUTO_ENRICH = 4;
+
   const adminDialog = $('admin-dialog');
   const railsRoot = $('home-rails');
 
@@ -159,6 +169,56 @@ export function createHome({ play } = {}) {
     return config[role + 'Title'];
   }
 
+  function queryFor(item) {
+    if (!item) return null;
+    const role = classifyRole(item);
+    return tmdbQueryForItem(item, role);
+  }
+  function classifyRole(item) {
+    // A categoria já foi derivada da M3U; nunca confiar em uma imagem TMDB
+    // para determinar qual URL será tocada.
+    return classifyItem(item, config);
+  }
+  function keyForQuery(query) {
+    return query ? [query.type, query.title.toLocaleLowerCase('pt-BR'), query.year || ''].join('|') : '';
+  }
+  function cachedMetadata(item) {
+    const query = queryFor(item);
+    return query ? tmdbResolved.get(keyForQuery(query)) || null : null;
+  }
+  async function metadataFor(item) {
+    const query = queryFor(item);
+    if (!query || !metadataNeeded(config, 'details')) return null;
+    const key = keyForQuery(query);
+    if (tmdbResolved.has(key)) return tmdbResolved.get(key);
+    if (tmdbPending.has(key)) return tmdbPending.get(key);
+    if (tmdbCalls >= MAX_TMDB_CALLS) return null;
+    tmdbCalls++;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 9000);
+    const promise = requestTmdb(query, fetch, controller.signal)
+      .catch(() => null)
+      .then(data => {
+        tmdbResolved.set(key, data);
+        return data;
+      }).finally(() => {
+        clearTimeout(timeout);
+        tmdbPending.delete(key);
+      });
+    tmdbPending.set(key, promise);
+    return promise;
+  }
+  function autoArtRequest(item) {
+    if (!item || autoEnriched >= MAX_AUTO_ENRICH ||
+      config.imageEngine === 'playlist') return;
+    if (config.imageEngine === 'hybrid' && safeImage(item.logo)) return;
+    const query = queryFor(item);
+    if (!query || tmdbPending.has(keyForQuery(query)) || tmdbResolved.has(keyForQuery(query))) return;
+    autoEnriched++;
+    void metadataFor(item).then(data => {
+      if (data && items.includes(item)) render();
+    });
+  }
   function itemFromKey(key) { return showcase.matches.get(key); }
   function savedKeys() { return [...new Set([...favorites, ...recent].map(x => x.key))]; }
   function rebuild() {
