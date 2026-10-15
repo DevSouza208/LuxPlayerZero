@@ -32,12 +32,17 @@ function words(value) {
   return String(value || '').split(',').map(s => normalize(s.trim())).filter(Boolean);
 }
 
-export function classifyItem(item, settings = DEFAULT_SETTINGS) {
+export function classifyItem(item, settings = DEFAULT_SETTINGS, compiledKeywords = null) {
   const group = normalize(item?.group);
   const name = normalize(item?.name);
   // Os campos do admin permitem usar qualquer grupo da M3U em cada vitrine.
-  for (const [role, key] of [['tv', 'tvKeywords'], ['movies', 'moviesKeywords'], ['series', 'seriesKeywords']]) {
-    if (words(settings[key]).some(term => group.includes(term))) return role;
+  const keywords = compiledKeywords || [
+    ['tv', words(settings.tvKeywords)],
+    ['movies', words(settings.moviesKeywords)],
+    ['series', words(settings.seriesKeywords)]
+  ];
+  for (const [role, terms] of keywords) {
+    if (terms.some(term => group.includes(term))) return role;
   }
   const path = (() => { try { return new URL(item?.url).pathname.toLowerCase(); } catch { return ''; } })();
   if (/\/series\//.test(path) || /serie|temporad|episod|novela|dorama|anime|modulo/.test(group)) return 'series';
@@ -79,8 +84,13 @@ export function buildShowcase(items, settings = DEFAULT_SETTINGS, savedKeys = []
   const matches = new Map();
   const saved = new Set(savedKeys);
   const seenGroups = { tv: new Set(), movies: new Set(), series: new Set() };
+  const keywords = [
+    ['tv', words(settings.tvKeywords)],
+    ['movies', words(settings.moviesKeywords)],
+    ['series', words(settings.seriesKeywords)]
+  ];
   for (const item of items) {
-    const role = classifyItem(item, settings);
+    const role = classifyItem(item, settings, keywords);
     counts[role]++;
     const group = String(item.group || 'Sem categoria');
     if (detectedGroups.size < 5000 || detectedGroups.has(group)) {
