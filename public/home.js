@@ -43,7 +43,13 @@ export function createHome({ play } = {}) {
   let lastProgress = 0;
 
   // O formulário de origem continua na sidebar, intacto e sempre acessível.
-  const sourcePanel = $('minha-fonte');
+  const sourceDrawer = $('source-drawer');
+  const sourceOverlay = $('source-overlay');
+  const detailsDialog = $('details-dialog');
+  let detailsItem = null;
+  let pinnedItem = null;
+  let drawerReturnFocus = null;
+  let searchTimer = null;
   const adminDialog = $('admin-dialog');
   const railsRoot = $('home-rails');
 
@@ -53,12 +59,64 @@ export function createHome({ play } = {}) {
   function closeDialog(dialog) {
     if (dialog?.open) dialog.close();
   }
-  for (const id of ['open-source', 'hero-connect', 'empty-connect']) {
-    $(id)?.addEventListener('click', () => {
-      sourcePanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      $('source-url')?.focus({ preventScroll: true });
-    });
+  function openDrawer() {
+    drawerReturnFocus = document.activeElement;
+    sourceDrawer?.classList.add('is-open');
+    if (sourceDrawer) {
+      sourceDrawer.inert = false;
+      sourceDrawer.setAttribute('aria-hidden', 'false');
+    }
+    if (sourceOverlay) sourceOverlay.hidden = false;
+    document.body.classList.add('source-open');
+    $('source-url')?.focus({ preventScroll: true });
   }
+  function closeDrawer() {
+    sourceDrawer?.classList.remove('is-open');
+    if (sourceDrawer) {
+      sourceDrawer.inert = true;
+      sourceDrawer.setAttribute('aria-hidden', 'true');
+    }
+    if (sourceOverlay) sourceOverlay.hidden = true;
+    document.body.classList.remove('source-open');
+    drawerReturnFocus?.focus?.({ preventScroll: true });
+  }
+  for (const id of ['open-source', 'hero-connect', 'empty-connect']) {
+    $(id)?.addEventListener('click', openDrawer);
+  }
+  $('drawer-close')?.addEventListener('click', closeDrawer);
+  sourceOverlay?.addEventListener('click', closeDrawer);
+  document.querySelectorAll('.source-shortcut').forEach(anchor => {
+    anchor.addEventListener('click', event => { event.preventDefault(); openDrawer(); });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && sourceDrawer?.classList.contains('is-open')) closeDrawer();
+  });
+  const navSearch = $('nav-search');
+  navSearch?.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const search = $('search');
+      if (search) { search.value = navSearch.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
+    }, 260);
+  });
+  navSearch?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      clearTimeout(searchTimer);
+      const search = $('search');
+      if (search) { search.value = navSearch.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
+      $('biblioteca')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+  const navLinks = [...document.querySelectorAll('.cinema-nav-link')];
+  navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.forEach(el => { el.classList.remove('is-active'); el.removeAttribute('aria-current'); });
+      link.classList.add('is-active');
+      link.setAttribute('aria-current', 'page');
+    });
+  });
+
   $('open-admin')?.addEventListener('click', () => {
     for (const key of Object.keys(DEFAULT_SETTINGS)) {
       const field = $('admin-' + key);
@@ -68,6 +126,18 @@ export function createHome({ play } = {}) {
     if (list) list.textContent = showcase.groups.length ?
       showcase.groups.slice(0, 9).map(([name, count]) => name + ' (' + count + ')').join(' · ') :
       'Conecte uma playlist para identificar os grupos disponíveis.';
+    const counts = showcase.counts;
+    $('admin-stats').textContent = items.length ?
+      items.length.toLocaleString('pt-BR') + ' títulos · ' +
+      counts.tv.toLocaleString('pt-BR') + ' TV · ' +
+      counts.movies.toLocaleString('pt-BR') + ' Filmes/Cursos · ' +
+      counts.series.toLocaleString('pt-BR') + ' Séries/Módulos · ' +
+      showcase.groups.length + ' grupos em destaque' :
+      'Conecte uma fonte para visualizar as estatísticas.';
+    for (const flag of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty']) {
+      const checkbox = $('admin-' + flag);
+      if (checkbox) checkbox.checked = configRaw[flag] !== false;
+    }
     openDialog(adminDialog);
   });
   document.querySelectorAll('[data-close-dialog]').forEach(button => {
@@ -99,8 +169,8 @@ export function createHome({ play } = {}) {
     const visual = document.createElement('button');
     visual.type = 'button';
     visual.className = 'media-visual';
-    visual.dataset.play = item.id;
-    visual.setAttribute('aria-label', 'Reproduzir ' + item.name);
+    visual.dataset.details = item.id;
+    visual.setAttribute('aria-label', 'Ver detalhes de ' + item.name);
     const image = safeImage(item.logo);
     if (image) {
       const img = document.createElement('img');
@@ -231,10 +301,10 @@ export function createHome({ play } = {}) {
       if (item) toggleFavorite(item);
       return;
     }
-    const button = event.target.closest('[data-play]');
+    const button = event.target.closest('[data-details]');
     if (button) {
-      const item = getById(button.dataset.play);
-      if (item) start(item);
+      const item = getById(button.dataset.details);
+      if (item) showDetails(item);
     }
   });
   function getById(id) {
@@ -242,6 +312,25 @@ export function createHome({ play } = {}) {
     const item = items[Number(id.slice(1))];
     return item?.id === id ? item : null;
   }
+  function showDetails(item) {
+    if (!item || !detailsDialog) return;
+    detailsItem = item;
+    $('details-title').textContent = item.name;
+    $('details-group').textContent = item.group || 'Disponível na sua biblioteca';
+    $('details-kicker').textContent = 'LUX PLAYER · ' + (item.group || 'SUA BIBLIOTECA').slice(0, 62);
+    const art = $('details-art');
+    if (art) art.src = safeImage(item.logo) || '/assets/login-scene.png';
+    $('details-favorite').textContent = favorites.some(x => x.key === itemKey(item)) ? '♥ Na minha lista' : '＋ Minha lista';
+    openDialog(detailsDialog);
+  }
+  $('details-close')?.addEventListener('click', () => closeDialog(detailsDialog));
+  detailsDialog?.addEventListener('click', event => { if (event.target === detailsDialog) closeDialog(detailsDialog); });
+  $('details-play')?.addEventListener('click', () => { const item = detailsItem; closeDialog(detailsDialog); start(item); });
+  $('details-favorite')?.addEventListener('click', () => {
+    if (!detailsItem) return;
+    toggleFavorite(detailsItem);
+    $('details-favorite').textContent = favorites.some(x => x.key === itemKey(detailsItem)) ? '♥ Na minha lista' : '＋ Minha lista';
+  });
   function start(item) {
     if (!item) return;
     void play(item);
@@ -299,7 +388,8 @@ export function createHome({ play } = {}) {
       active = null;
       rebuild();
       render();
-      // A importação continua usando o formulário original, sem modal intermediário.
+      // O formulário original permanece na gaveta; só fecha ao importar com sucesso.
+      closeDrawer();
     },
     clear() {
       items = [];
