@@ -235,7 +235,7 @@ export function createHome({ play } = {}) {
     visual.className = 'media-visual';
     visual.dataset.details = item.id;
     visual.setAttribute('aria-label', 'Ver detalhes de ' + item.name);
-    const image = safeImage(item.logo);
+    const image = chooseArtwork(safeImage(item.logo), cachedMetadata(item), config.imageEngine);
     if (image) {
       const img = document.createElement('img');
       img.src = image;
@@ -333,11 +333,15 @@ export function createHome({ play } = {}) {
     // O hero mantém o cenário cinematográfico; logos pequenos ficam em um cartão próprio.
     const poster = $('hero-poster');
     const artwork = heroItem && safeImage(heroItem.logo);
+    const data = cachedMetadata(heroItem);
+    const enriched = data?.status === 'matched' && config.imageEngine !== 'playlist';
     const backdrop = safeImage(config.heroBackdrop);
     const heroArt = $('hero-art');
-    if (heroArt) heroArt.src = backdrop || artwork || '/assets/login-scene.png';
+    if (heroArt) heroArt.src = backdrop ||
+      (enriched && (config.imageEngine === 'tmdb' || !artwork) ? data.backdrop || data.poster : '') ||
+      artwork || '/assets/login-scene.png';
     if (poster) {
-      poster.src = artwork || '/assets/lux-icon.png';
+      poster.src = chooseArtwork(artwork, data, config.imageEngine) || '/assets/lux-icon.png';
       poster.referrerPolicy = 'no-referrer';
     }
     $('hero-play').hidden = !heroItem;
@@ -373,6 +377,13 @@ export function createHome({ play } = {}) {
     document.querySelector('.cinema-shell')?.classList.toggle('is-compact', config.density === 'compact');
     $('nav-movies').textContent = settingsTitle('movies');
     $('nav-series').textContent = settingsTitle('series');
+    if (items.length && metadataNeeded(config, 'auto')) {
+      autoArtRequest(heroItem);
+      if (autoEnriched < MAX_AUTO_ENRICH) {
+        autoArtRequest(showcase.rails.movies.find(item => !safeImage(item.logo)) || showcase.rails.movies[0]);
+        autoArtRequest(showcase.rails.series.find(item => !safeImage(item.logo)) || showcase.rails.series[0]);
+      }
+    }
     $('catalog-total').textContent = items.length ? items.length.toLocaleString('pt-BR') + ' títulos na biblioteca' : 'Sua biblioteca, seu universo';
   }
 
