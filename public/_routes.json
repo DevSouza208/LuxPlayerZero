@@ -1,7 +1,8 @@
 {
   "version": 1,
   "include": [
-    "/api/bridge/*"
+    "/api/bridge/*",
+    "/api/metadata/*"
   ],
   "exclude": []
 }

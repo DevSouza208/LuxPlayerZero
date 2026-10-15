@@ -1,9 +1,9 @@
 /* Lux Cinema PWA: cache somente da interface pública. Nunca armazenar M3U, mídia,
  * /api, credenciais ou respostas de terceiros no service worker. */
-const VERSION = 'lux-cinema-shell-1';
+const VERSION = 'lux-cinema-shell-2';
 const ASSETS = [
   '/cinema/', '/style.css', '/home.css', '/cinema-premium.css',
-  '/cinema-app.js', '/home.js', '/home-model.js',
+  '/cinema-app.js', '/home.js', '/home-model.js', '/tmdb-client.js',
   '/playlist.js', '/gateway.js', '/direct-source.js',
   '/assets/lux-icon.png', '/assets/lux-logo.png'
 ];
