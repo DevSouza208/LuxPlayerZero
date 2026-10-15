@@ -105,3 +105,26 @@ body{background:#07060b}
 @media(max-width:760px){.shell{display:flex;flex-direction:column}.sidebar{position:relative;top:auto;align-self:stretch;height:auto;min-height:0;overflow:visible;padding:16px 17px;gap:15px}.side-nav{display:flex;flex-direction:row;overflow-x:auto;white-space:nowrap;padding-bottom:3px;gap:4px}.nav-caption{display:none}.nav-link{flex-shrink:0;font-size:11px;padding:9px 11px;min-height:38px}.nav-button{width:auto}.source-card{max-width:none}.main{--home-gutter:17px;padding:0 17px 30px}.feature-hero{height:530px}.hero-content{padding:65px 21px 42px}.hero-content h1{font-size:clamp(37px,8.3vw,58px)}.hero-poster{right:-45px;top:29%;width:200px;opacity:.25}.hero-edition{font-size:10px}.hero-kicker{font-size:9px;letter-spacing:1.4px}.hero-number{bottom:17px;right:18px;font-size:13px}.hero-number span{font-size:8px}.hero-meta{margin-top:20px}.media-card{flex-basis:150px}.content-rail{margin:25px 0 31px}.rail-hint{display:none}.rail-title{font-size:21px}.topbar{min-height:95px}.watch-area{padding-top:15px}.admin-field-row{grid-template-columns:1fr}}
 @media(max-width:430px){.feature-hero{height:560px}.hero-content{padding:45px 18px 30px}.hero-content h1{font-size:37px}.hero-actions{gap:8px}.hero-primary,.hero-secondary{font-size:11px;min-height:43px;padding:10px 12px}.hero-edition{letter-spacing:2px}.media-card{flex-basis:140px}.admin-actions{flex-direction:column;align-items:stretch}.admin-save,.admin-reset{width:100%}}
 @media(prefers-reduced-motion:reduce){.media-card,.hero-primary,.hero-secondary{transition:none}}
+
+/* Lux Cinema 2026: refinamentos sobre o layout estável. */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
+body,.nav-link,.primary-btn,.media-title{font-family:'Outfit',sans-serif}
+.brand-copy strong,.hero-content h1,.rail-title,.topbar-title h1,.admin-dialog-head h2{font-family:'Outfit',sans-serif}
+.hero-content h1{font-weight:800;letter-spacing:-.047em}
+.hero-edition{font-family:'Outfit',sans-serif}
+.rail-title{font-weight:700}
+.hero-poster{aspect-ratio:2/3;transition:box-shadow .3s}
+.hero-poster img{width:70%;height:70%;object-fit:contain}
+.media-visual{aspect-ratio:2/3;box-shadow:0 15px 30px #0005;transition:border-color .25s,box-shadow .25s}
+.media-card:hover .media-visual{border-color:#ad79e9bd;box-shadow:0 14px 32px #0008,0 0 26px #a255e23a}
+.media-visual img{transition:transform .35s;object-fit:cover}
+.media-card:hover .media-visual img{transform:scale(1.055)}
+.rail-track{scrollbar-width:none;overscroll-behavior-x:contain}
+.rail-track::-webkit-scrollbar{display:none}
+.content-rail[data-rail="tv"] .media-card{flex-basis:clamp(225px,23vw,325px)}
+.content-rail[data-rail="tv"] .media-visual{aspect-ratio:16/9}
+.content-rail[data-rail="tv"] .media-monogram{font-size:65px}
+.hero-primary{box-shadow:0 12px 24px #0006;transition:transform .2s,box-shadow .2s}
+.hero-primary:hover{box-shadow:0 18px 35px #a15bef33}
+.sidebar{box-shadow:14px 0 45px #0003}
+.nav-link:focus-visible,.hero-primary:focus-visible,.hero-secondary:focus-visible,.media-visual:focus-visible,.media-favorite:focus-visible,.admin-close:focus-visible{outline:2px solid #cb9aff;outline-offset:3px}
