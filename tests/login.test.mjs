@@ -48,9 +48,15 @@ test('logins sociais continuam apenas como interface, sem autenticação simulad
   assert.equal(js.includes('accounts.google.com/o/oauth2'), false);
 });
 
-test('laboratório usa identidade roxa, sem o antigo verde fluorescente', () => {
+test('player usa identidade roxa e tela de TV ao vivo, sem o antigo laboratório', () => {
   const css = readFileSync(new URL('../public/style.css', import.meta.url), 'utf8');
-  assert.ok(css.includes('--accent:#b493ff'));
+  assert.ok(css.includes('--accent:#b38aff'));
+  const html = readFileSync(new URL('../public/player.html', import.meta.url), 'utf8');
+  assert.ok(html.includes('TV ao vivo'));
+  assert.ok(!html.includes('PLAYBACK LAB / 0.1.0'));
+  for (const id of ['source-form', 'bridge-settings', 'channels', 'video', 'audio', 'diagnostics', 'demo']) {
+    assert.ok(html.includes('id="' + id + '"'), 'Gancho do player ausente: ' + id);
+  }
   assert.equal(css.includes('#a7f976'), false);
 });
 
