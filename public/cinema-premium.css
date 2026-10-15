@@ -54,3 +54,14 @@ html{scroll-padding-top:80px}body{background:#050508;color:#f9f8fe}
 @media(max-width:780px){.cinema-header{height:61px;padding:0 17px;gap:10px}.cinema-brand-word{font-size:14px;letter-spacing:1.5px}.cinema-brand-mark{width:34px;height:34px}.cinema-brand-mark img{height:28px;width:28px}.cinema-nav{position:absolute;top:61px;left:0;right:0;height:46px;border-radius:0;border-left:0;border-right:0;background:#09080dc9;overflow-x:auto;scrollbar-width:none;max-width:none;justify-content:flex-start;padding:4px 14px;gap:7px}.cinema-nav-link{padding:8px 11px;flex-shrink:0}.cinema-search{width:34px;min-width:34px;height:34px;padding:0 8px;cursor:pointer}.cinema-search:focus-within{position:absolute;z-index:4;right:105px;left:15px;width:auto;background:#13101a}.cinema-search input{width:0;opacity:0}.cinema-search:focus-within input{width:100%;opacity:1}.cinema-header-actions{gap:4px}.cinema-icon-button{width:34px;height:34px}.cinema-avatar{display:none}.cinema-shell .feature-hero{height:590px;margin-top:46px}.cinema-shell .hero-content{width:calc(100% - 36px);margin-left:20px;padding:155px 0 48px;justify-content:flex-end}.cinema-shell .hero-content h1{font-size:clamp(37px,8vw,52px);max-width:94%}.cinema-shell .hero-content p{font-size:13px;max-width:500px}.cinema-shell .hero-edition{margin-top:12px}.cinema-shell .hero-poster{width:140px;right:30px;top:21%;opacity:.44}.cinema-shell .hero-overlay{background:linear-gradient(0deg,#060609 0%,#060609c5 52%,#0606091f 92%),linear-gradient(90deg,#05050872,transparent)}.cinema-shell .home-rails{padding:0 17px 22px}.cinema-shell .media-card{flex-basis:143px}.cinema-shell .content-rail[data-rail="tv"] .media-card{flex-basis:230px}.cinema-shell .watch-area{padding:27px 17px 40px}.admin-toggle-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:470px){.cinema-brand-word{display:none}.cinema-header-actions{gap:2px}.cinema-shell .feature-hero{height:565px}.cinema-shell .hero-content h1{font-size:36px}.cinema-shell .hero-primary,.cinema-shell .hero-secondary{font-size:11px;padding:10px 12px;min-height:43px}.cinema-shell .hero-edition{font-size:9px}.cinema-shell .hero-meta{font-size:10px}.admin-toggle-grid{grid-template-columns:1fr}.source-drawer{padding:23px 16px}}
 @media(prefers-reduced-motion:reduce){.source-drawer,.cinema-shell .media-visual,.cinema-shell .media-visual img{transition:none!important}}
+
+/* Modo instalado no iOS/Android: áreas seguras da câmera e barra inferior. */
+@media(display-mode:standalone){
+  .cinema-header{height:calc(68px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px)}
+  .source-drawer{padding-bottom:calc(35px + env(safe-area-inset-bottom,0px))}
+  .lux-admin-dialog,.lux-details-dialog{max-height:calc(94dvh - env(safe-area-inset-top,0px))}
+  @media(max-width:780px){
+    .cinema-header{height:calc(61px + env(safe-area-inset-top,0px))}
+    .cinema-nav{top:calc(61px + env(safe-area-inset-top,0px))}
+  }
+}
