@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 /* Lux Player Zero — camada visual da Home.
    O formulário M3U, a biblioteca e o player continuam com o CSS e HTML originais. */
 :root{--lux-purple:#b38aff;--lux-ink:#09070e;--lux-lavender:#d5b6ff}
@@ -107,7 +108,6 @@ body{background:#07060b}
 @media(prefers-reduced-motion:reduce){.media-card,.hero-primary,.hero-secondary{transition:none}}
 
 /* Lux Cinema 2026: refinamentos sobre o layout estável. */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');
 body,.nav-link,.primary-btn,.media-title{font-family:'Outfit',sans-serif}
 .brand-copy strong,.hero-content h1,.rail-title,.topbar-title h1,.admin-dialog-head h2{font-family:'Outfit',sans-serif}
 .hero-content h1{font-weight:800;letter-spacing:-.047em}
