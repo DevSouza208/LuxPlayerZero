@@ -44,7 +44,11 @@ function updateBridgePanel() {
   // Não pedir uma chave para reproduzir vídeo: ela é somente para salvar a lista.
   els.bridgePanel.hidden = !(bridgeNeeded || (sourceIsHttp && bridgeStatus?.snapshotReady));
   const presentation = describeBridge(bridgeStatus, catalogueHasHttp);
-  els.bridgeAvailability.textContent = presentation.message;
+  const isPreview = location.hostname.endsWith('.pages.dev') &&
+    location.hostname !== 'luxplayerzero.pages.dev';
+  els.bridgeAvailability.textContent = isPreview && !bridgeStatus?.configured ?
+    'Este preview não tem as configurações do gateway de Produção. Configure as variáveis e os bindings em Preview na Cloudflare Pages para importar M3U HTTP por URL. Você também pode importar um arquivo local ou testar a demonstração.' :
+    presentation.message;
   els.bridgeAvailability.dataset.kind = presentation.kind;
   els.bridgeKeyWrapper.hidden = !presentation.showKey;
 }
@@ -454,6 +458,9 @@ els.file.addEventListener('change', async () => {
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
 els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); home.clear(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+$('preview-demo')?.addEventListener('click', () => {
+  els.demo.click();
+});
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;
