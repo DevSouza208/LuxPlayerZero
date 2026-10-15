@@ -21,7 +21,7 @@ A tabela D1 é criada automaticamente na primeira sincronização. O SQL também
 - O D1 mantém `source_hash`, `catalog_id`, `r2_key`, `synced_at`, `item_count` e `size_bytes`.
 - `GET /api/bridge/playlist?id=...` consulta o D1 e devolve o arquivo do R2 por HTTPS somente com a sessão autenticada.
 - Se a origem ficar indisponível após a primeira sincronização, a cópia anterior pode ser reutilizada.
-- Arquivos são limitados a 20 MiB neste estágio; as credenciais eventualmente presentes na M3U ficam no bucket privado.
+- Arquivos M3U são limitados a **256 MiB**. A importação usa streaming e upload multipart de 8 MiB no R2 para evitar carregar o arquivo inteiro na memória do Worker. As credenciais eventualmente presentes na M3U ficam no bucket privado. O navegador ainda precisa interpretar a lista recebida, o que pode consumir memória em catálogos muito grandes.
 - Essa função não converte os fluxos de vídeo HTTP em HTTPS: o player continua tentando HTTPS diretamente.
 - A função requer chave e servidores autorizados. O isolamento por usuário Lux ID e a atualização automática ainda são etapas futuras.
 
