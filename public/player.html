@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="no-referrer">
-  <meta name="description" content="Lux Player Zero — sua biblioteca e reprodução em um só lugar.">
-  <title>Lux Player Zero · TV ao vivo</title>
+  <meta name="description" content="Lux Player Zero — seu universo de entretenimento, do seu jeito.">
+  <title>Lux Player Zero · Seu universo</title>
   <link rel="icon" href="/assets/lux-icon.png">
   <link rel="stylesheet" href="/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
@@ -15,86 +15,133 @@
 </head>
 <body>
 <div class="shell">
-  <aside class="sidebar" aria-label="Navegação e fontes">
-    <a class="brand" href="/player" aria-label="Lux Player Zero, início">
-      <img src="/assets/lux-icon.png" alt="" class="brand-logo">
-      <span class="brand-copy"><strong>LUX <em>PLAYER</em></strong><small>ZERO EDITION</small></span>
+  <header class="site-header">
+    <a class="brand" href="#inicio" aria-label="Lux Player Zero, início">
+      <img src="/assets/lux-logo.png" alt="Lux Player" class="brand-logo">
+      <span class="brand-edition">ZERO</span>
     </a>
-
-    <nav class="side-nav" aria-label="Seções do player">
-      <span class="nav-caption">EXPLORAR</span>
-      <a class="nav-link active" href="#ao-vivo" aria-current="page"><span class="nav-icon">▣</span> TV ao vivo <span class="nav-active-dot"></span></a>
-      <a class="nav-link" href="#biblioteca"><span class="nav-icon">▤</span> Biblioteca</a>
-      <a class="nav-link" href="#minha-fonte"><span class="nav-icon">⌁</span> Minhas fontes</a>
+    <nav class="main-nav" aria-label="Navegação principal">
+      <a href="#inicio" class="nav-link active">Início</a>
+      <a href="#destaques-tv" class="nav-link">TV ao vivo</a>
+      <a href="#destaques-filmes" class="nav-link" id="nav-movies">Filmes</a>
+      <a href="#destaques-series" class="nav-link" id="nav-series">Séries</a>
+      <a href="#minha-lista" class="nav-link">Minha lista</a>
     </nav>
+    <div class="header-actions">
+      <button id="open-source" class="header-source" type="button" title="Conectar ou trocar fonte">＋ <span>Minha fonte</span></button>
+      <button id="open-admin" class="header-admin" type="button" title="Personalizar a vitrine" aria-label="Abrir painel de personalização">⚙</button>
+      <span class="avatar" aria-label="Lux Player">L</span>
+    </div>
+  </header>
 
-    <section id="minha-fonte" class="source-card" aria-label="Gerenciar fonte de conteúdo">
-      <div class="source-heading"><span class="source-signal"></span><div><strong>Minha fonte</strong><small>Conecte sua biblioteca</small></div></div>
-      <form id="source-form" autocomplete="off">
-        <label for="source-type">TIPO DE FONTE</label>
-        <select id="source-type" name="type">
-          <option value="m3u" selected>Playlist M3U</option>
-          <option value="xtream">Xtream Codes</option>
-          <option value="direct">URL de vídeo / rádio</option>
-        </select>
-        <label for="source-url" id="source-url-label">URL DA PLAYLIST</label>
-        <input id="source-url" type="url" inputmode="url" placeholder="https://.../lista.m3u" spellcheck="false">
-        <div id="bridge-settings" class="bridge-settings" hidden>
-          <div class="bridge-settings-head"><span>CONEXÃO SEGURA</span><span class="bridge-pill">HTTPS</span></div>
-          <p id="bridge-availability" role="status" aria-live="polite">Verificando conexão...</p>
-          <div id="bridge-key-wrap">
-            <label for="bridge-key">CHAVE DE ACESSO</label>
-            <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave de acesso">
-          </div>
+  <main class="main" id="inicio">
+    <section class="feature-hero" aria-label="Destaque da sua biblioteca">
+      <img id="hero-art" class="hero-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
+      <div class="hero-overlay"></div>
+      <div class="hero-copy">
+        <span class="hero-eyebrow"><span class="live-spark"></span><span id="hero-category">BEM-VINDO AO SEU UNIVERSO</span></span>
+        <div class="hero-brand">LUX <span>ORIGINAL</span></div>
+        <h1 id="hero-title">Seu universo. Seu próximo play.</h1>
+        <p id="hero-subtitle">Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.</p>
+        <div class="hero-actions">
+          <button id="hero-play" type="button" class="hero-primary" hidden><span aria-hidden="true">▶</span> Assistir agora</button>
+          <button id="hero-connect" type="button" class="hero-primary"><span aria-hidden="true">＋</span> Conectar minha fonte</button>
+          <button id="hero-add" type="button" class="hero-secondary" hidden>＋ Minha lista</button>
+          <a class="hero-secondary hero-explore" href="#home-rails">Explorar catálogo <span aria-hidden="true">↓</span></a>
         </div>
-        <div id="credentials-fields" hidden>
-          <label for="xc-user">USUÁRIO</label>
-          <input id="xc-user" type="text" spellcheck="false" autocapitalize="off" autocomplete="off">
-          <label for="xc-pass">SENHA</label>
-          <input id="xc-pass" type="password" autocomplete="new-password">
-        </div>
-        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
-        <div id="file-fields" hidden>
-          <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
-          <label for="m3u-file" class="upload">Selecionar arquivo .m3u / .txt</label>
-          <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
-        </div>
-      </form>
+        <div class="hero-bottom"><span class="hero-bottom-line"></span><span id="catalog-total">Sua biblioteca, seu universo</span></div>
+      </div>
+      <div class="hero-side-label" aria-hidden="true">A SUA EXPERIÊNCIA COMEÇA AQUI</div>
     </section>
-    <div class="sidebar-bottom"><span class="status-indicator"></span> Lux Player Zero <span class="sidebar-version">v0.1</span></div>
-  </aside>
-
-  <main class="main" id="ao-vivo">
-    <header class="topbar">
-      <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
-      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true">↗</span></a></div>
-    </header>
 
     <div id="message" class="message" role="status" aria-live="polite">Conecte uma fonte para começar a assistir.</div>
 
-    <section class="workspace" aria-label="TV ao vivo e canais">
-      <div class="player-column">
-        <div class="section-head"><div><span class="eyebrow">SUA TELA</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
-        <div class="video-wrap">
-          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
-          <video id="video" controls playsinline preload="none" hidden></video>
-          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
-        </div>
-        <div class="now-playing"><div><span class="eyebrow">EM REPRODUÇÃO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
-        <p class="disclaimer">O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.</p>
-      </div>
+    <div id="home-rails" class="home-rails" aria-label="Vitrines do seu catálogo"></div>
 
-      <section class="library" id="biblioteca" aria-label="Biblioteca de canais">
-        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual">Limpar</button></div>
-        <div class="list-tools"><input id="search" type="search" placeholder="Buscar canais..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">TV</option><option value="radio">Rádio</option></select></div>
-        <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
-      </section>
+    <section class="watch-area" id="reproduzir" aria-label="Reprodutor e catálogo completo">
+      <div class="watch-heading"><div><span class="eyebrow">SEU ESPAÇO DE REPRODUÇÃO</span><h2>Hora de dar o play<span>.</span></h2></div><span class="watch-live"><span></span> SEU PLAYER</span></div>
+      <div class="workspace">
+        <div class="player-column">
+          <div class="section-head"><div><span class="eyebrow">AGORA ASSISTINDO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="format" class="format-pill">SEM FONTE</span></div>
+          <div class="video-wrap">
+            <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>Seu próximo play começa aqui</p><span>Escolha um título ou um canal para assistir.</span></div>
+            <video id="video" controls playsinline preload="none" hidden></video>
+            <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
+          </div>
+          <div class="now-playing"><span class="eyebrow">STATUS DA REPRODUÇÃO</span><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
+        </div>
+        <section class="library" id="biblioteca" aria-label="Buscar em todo o catálogo">
+          <div class="section-head"><div><span class="eyebrow">CATÁLOGO COMPLETO</span><h3>Explorar biblioteca <span id="channel-count">00</span></h3></div><button id="clear" class="text-button" type="button" title="Limpar a lista atual">Limpar</button></div>
+          <div class="list-tools"><input id="search" type="search" placeholder="O que você quer assistir?" aria-label="Buscar no catálogo"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">Vídeo</option><option value="radio">Rádio</option></select></div>
+          <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais e títulos aparecem aqui.</div></div>
+        </section>
+      </div>
     </section>
+    <footer class="site-footer"><span>LUX PLAYER ZERO <span class="footer-dot">✦</span> SEU UNIVERSO, SUAS REGRAS.</span><span>Reprodutor independente. Não fornece conteúdo ou assinaturas.</span></footer>
     <div class="dev-tools" hidden aria-hidden="true">
       <div class="demo-row"><button id="demo" type="button">Importar playlist de demonstração</button></div>
       <details class="diagnostics"><summary>Diagnóstico de reprodução</summary><pre id="diagnostics">Nenhum evento registrado.</pre></details>
     </div>
   </main>
 </div>
+
+<dialog id="source-dialog" class="lux-dialog" aria-labelledby="source-dialog-title">
+  <div class="dialog-head"><div><span class="eyebrow">SUA BIBLIOTECA, DO SEU JEITO</span><h2 id="source-dialog-title">Conectar uma fonte</h2></div><button type="button" class="dialog-close" data-close-dialog="source-dialog" aria-label="Fechar">×</button></div>
+  <p class="dialog-intro">Use uma playlist ou conecte uma mídia. O Lux organiza o catálogo sem alterar sua origem.</p>
+  <form id="source-form" autocomplete="off">
+    <label for="source-type">TIPO DE FONTE</label>
+    <select id="source-type" name="type">
+      <option value="m3u" selected>Playlist M3U</option>
+      <option value="xtream">Xtream Codes</option>
+      <option value="direct">URL de vídeo / rádio</option>
+    </select>
+    <label for="source-url" id="source-url-label">URL DA PLAYLIST</label>
+    <input id="source-url" type="url" inputmode="url" placeholder="https://.../lista.m3u" spellcheck="false">
+    <div id="file-fields" class="file-import" hidden>
+      <div class="divider-text">OU IMPORTE DIRETAMENTE DO DISPOSITIVO</div>
+      <label for="m3u-file" class="upload">↥ &nbsp; Escolher arquivo .m3u / .txt</label>
+      <input id="m3u-file" class="visually-hidden-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl">
+      <p class="file-help">Arquivo local: funciona sem gateway R2/D1. Nenhuma chave necessária.</p>
+    </div>
+    <div id="bridge-settings" class="bridge-settings" hidden>
+      <div class="bridge-settings-head"><span>CONEXÃO SEGURA</span><span class="bridge-pill">HTTPS</span></div>
+      <p id="bridge-availability" role="status" aria-live="polite">Verificando conexão...</p>
+      <div id="bridge-key-wrap">
+        <label for="bridge-key">CHAVE DE ACESSO</label>
+        <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave de acesso">
+      </div>
+    </div>
+    <div id="credentials-fields" hidden>
+      <label for="xc-user">USUÁRIO</label>
+      <input id="xc-user" type="text" spellcheck="false" autocapitalize="off" autocomplete="off">
+      <label for="xc-pass">SENHA</label>
+      <input id="xc-pass" type="password" autocomplete="new-password">
+    </div>
+    <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
+
+  </form>
+  <button id="preview-demo" type="button" class="demo-preview-btn">✦ &nbsp; Testar interface com catálogo de demonstração</button>
+  <p class="dialog-footnote">A lista é armazenada de forma privada quando o gateway está disponível. Links de vídeo permanecem na origem.</p>
+</dialog>
+
+<dialog id="admin-dialog" class="lux-dialog admin-dialog" aria-labelledby="admin-dialog-title">
+  <div class="dialog-head"><div><span class="eyebrow">PERSONALIZAÇÃO DA EXPERIÊNCIA</span><h2 id="admin-dialog-title">Painel de admin</h2></div><button type="button" class="dialog-close" data-close-dialog="admin-dialog" aria-label="Fechar">×</button></div>
+  <p class="dialog-intro">Personalize os nomes e a organização das vitrines. Use os grupos que já vêm na sua M3U: filmes, séries, cursos, aulas ou qualquer outro tipo de conteúdo.</p>
+  <form id="admin-form" class="admin-form">
+    <div class="admin-field"><label for="admin-heroTitle">CHAMADA PRINCIPAL</label><input id="admin-heroTitle" type="text" maxlength="90" placeholder="Seu universo. Seu próximo play."></div>
+    <div class="admin-field"><label for="admin-heroSubtitle">DESCRIÇÃO DO HERO</label><input id="admin-heroSubtitle" type="text" maxlength="90"></div>
+    <div class="admin-grid">
+      <div class="admin-field"><label for="admin-continueTitle">SEÇÃO CONTINUAR ASSISTINDO</label><input id="admin-continueTitle" type="text" maxlength="90"></div>
+      <div class="admin-field"><label for="admin-favoritesTitle">SEÇÃO MINHA LISTA</label><input id="admin-favoritesTitle" type="text" maxlength="90"></div>
+    </div>
+    <div class="admin-divider"><span>VITRINES PERSONALIZÁVEIS</span></div>
+    <div class="admin-field"><label for="admin-tvTitle">VITRINE 1 · NOME</label><input id="admin-tvTitle" type="text" maxlength="90" placeholder="Destaques da TV"><label for="admin-tvKeywords">GRUPOS DA PLAYLIST (PALAVRAS SEPARADAS POR VÍRGULA)</label><input id="admin-tvKeywords" type="text" maxlength="220" placeholder="TV, Esportes, Notícias"></div>
+    <div class="admin-field"><label for="admin-moviesTitle">VITRINE 2 · NOME</label><input id="admin-moviesTitle" type="text" maxlength="90" placeholder="Filmes / Cursos"><label for="admin-moviesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-moviesKeywords" type="text" maxlength="220" placeholder="Filmes, Cursos, Aulas"></div>
+    <div class="admin-field"><label for="admin-seriesTitle">VITRINE 3 · NOME</label><input id="admin-seriesTitle" type="text" maxlength="90" placeholder="Séries / Módulos"><label for="admin-seriesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-seriesKeywords" type="text" maxlength="220" placeholder="Séries, Temporadas, Módulos"></div>
+    <div class="admin-groups"><strong>Grupos detectados na lista</strong><p id="detected-groups">Conecte uma playlist para identificar os grupos disponíveis.</p></div>
+    <p class="admin-notice">Versão inicial: as preferências são salvas somente neste navegador. Este painel ainda não possui autenticação de administrador nem sincronização com o D1.</p>
+    <div class="admin-actions"><button type="button" id="admin-reset" class="reset-btn">Restaurar padrão</button><button type="submit" class="primary-btn">Salvar personalização <span aria-hidden="true">↗</span></button></div>
+  </form>
+</dialog>
 </body>
 </html>

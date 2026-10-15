@@ -2,6 +2,7 @@ import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
+import { createHome } from './home.js';
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -27,6 +28,8 @@ let watchdog = null;
 let history = [];
 let bridgeStatus = null;
 let bridgeNeeded = false;
+// A Home é apenas uma camada de interface; o motor de mídia permanece intacto.
+const home = createHome({ play: item => playItem(item) });
 const bridge = createBridge({
   getKey: () => els.bridgeKey.value.trim(),
   onStatus: message => {
@@ -41,7 +44,11 @@ function updateBridgePanel() {
   // Não pedir uma chave para reproduzir vídeo: ela é somente para salvar a lista.
   els.bridgePanel.hidden = !(bridgeNeeded || (sourceIsHttp && bridgeStatus?.snapshotReady));
   const presentation = describeBridge(bridgeStatus, catalogueHasHttp);
-  els.bridgeAvailability.textContent = presentation.message;
+  const isPreview = location.hostname.endsWith('.pages.dev') &&
+    location.hostname !== 'luxplayerzero.pages.dev';
+  els.bridgeAvailability.textContent = isPreview && !bridgeStatus?.configured ?
+    'Este preview não tem as configurações do gateway de Produção. Configure as variáveis e os bindings em Preview na Cloudflare Pages para importar M3U HTTP por URL. Você também pode importar um arquivo local ou testar a demonstração.' :
+    presentation.message;
   els.bridgeAvailability.dataset.kind = presentation.kind;
   els.bridgeKeyWrapper.hidden = !presentation.showKey;
 }
@@ -164,6 +171,7 @@ function setChannels(items, caption) {
   els.count.textContent = String(channels.length).padStart(2, '0');
   render();
   updateBridgePanel();
+  home.setItems(channels);
   note(channels.length + ' item(ns) disponíveis em ' + caption + '. Selecione um para reproduzir.');
   log('Catálogo importado', String(channels.length) + ' entradas');
 }
@@ -253,6 +261,7 @@ async function playItem(item) {
   stop();
   const generation = operation;
   selected = item;
+  home.onSelect(item);
   render();
   els.title.textContent = item.name;
   els.format.textContent = streamType(item.url);
@@ -353,14 +362,23 @@ for (const media of [els.video, els.audio]) {
     if (watchdog) clearTimeout(watchdog);
     watchdog = null;
     state('Reproduzindo');
-    note('Fonte aberta. Monitorando reprodução.');
+    home.onPlaying(selected);
+    note('Reproduzindo agora.');
     log('Reprodução iniciada');
+  });
+  media.addEventListener('loadedmetadata', () => {
+    if (player !== media || !selected || !Number.isFinite(media.duration)) return;
+    const position = home.resumePosition(selected);
+    if (position > 0) { try { media.currentTime = position; } catch {} }
+  });
+  media.addEventListener('timeupdate', () => {
+    if (player === media && selected) home.onProgress(selected, media.currentTime, media.duration);
   });
   media.addEventListener('waiting', () => { if (player === media) { state('Buffering'); log('Aguardando buffer'); } });
   media.addEventListener('error', () => {
     if (player === media && media.error) fail('O dispositivo não conseguiu reproduzir esta mídia (erro ' + media.error.code + ').');
   });
-  media.addEventListener('ended', () => { if (player === media) state('Encerrado'); });
+  media.addEventListener('ended', () => { if (player === media) { state('Encerrado'); home.onEnded(selected); } });
   media.addEventListener('pause', () => { if (player === media && !media.ended && media.readyState > 1) state('Pausado'); });
 }
 async function importSource(event) {
@@ -439,7 +457,10 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); home.clear(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+$('preview-demo')?.addEventListener('click', () => {
+  els.demo.click();
+});
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;

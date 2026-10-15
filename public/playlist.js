@@ -29,10 +29,26 @@ export function inferKind(name, url, radioTag = false) {
 
 function attrs(value) {
   const result = {};
-  const re = /([\w-]+)\s*=\s*"([^"]*)"/g;
+  const re = /([\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
   let match;
-  while ((match = re.exec(value))) result[match[1].toLowerCase()] = match[2];
+  while ((match = re.exec(value))) result[match[1].toLowerCase()] = match[2] ?? match[3];
   return result;
+}
+
+// Vírgulas em atributos, como tvg-name="HD,FHD,4K", não separam o título.
+function extinfSeparator(line) {
+  let quote = '';
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quote) {
+      if (ch === quote) quote = '';
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === ',') {
+      return i;
+    }
+  }
+  return -1;
 }
 
 export function parseM3u(text, baseUrl) {
@@ -49,7 +65,7 @@ export function parseM3u(text, baseUrl) {
     const line = raw.trim();
     if (!line) continue;
     if (line.startsWith('#EXTINF:')) {
-      const idx = line.indexOf(',');
+      const idx = extinfSeparator(line);
       const header = idx >= 0 ? line.slice(0, idx) : line;
       const properties = attrs(header);
       const title = idx >= 0 ? line.slice(idx + 1).trim() : '';
