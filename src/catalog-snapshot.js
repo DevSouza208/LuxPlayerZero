@@ -111,22 +111,46 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     return apiError(503, 'Não foi possível acessar a tabela do catálogo no D1.');
   }
 
-  // A lista HTTP é baixada pelo servidor, não pelo navegador do usuário.
+  // Baixa a resposta COMPLETA do get.php: todos os registros de TV,
+  // filmes e séries que o fornecedor incluir na M3U, sem baixar vídeos.
+  // Nunca expor URLs com credenciais ou o corpo de erro do fornecedor.
   let content;
+  let failureStatus = 502;
   try {
     const { response } = await fetchAllowed(
       source, env, { signal: AbortSignal.timeout(25000) }, fetcher
     );
-    if (!response.ok) throw new Error('Origem indisponível.');
+    if (!response.ok) {
+      throw new Error('O servidor do fornecedor respondeu HTTP ' + response.status + ' ao solicitar a playlist.');
+    }
     if (Number(response.headers.get('content-length') || 0) > MAX_CATALOG_BYTES) {
-      throw new Error('Arquivo maior que 20 MB.');
+      failureStatus = 413;
+      throw new Error('A playlist ultrapassa o limite atual de 20 MB.');
     }
     content = await readLimited(response.body, MAX_CATALOG_BYTES);
-    if (!isM3u(content)) throw new Error('Resposta não é uma playlist M3U.');
-  } catch {
+    if (!isM3u(content)) {
+      throw new Error(/^\\s*(?:<!doctype html|<html|<\\?xml)/i.test(content)
+        ? 'O fornecedor devolveu uma página HTML/XML, não uma playlist M3U. Verifique o formato da URL e o acesso.'
+        : 'O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
+    }
+  } catch (error) {
     const cached = await latestAvailable(env, old);
     if (cached) return cached;
-    return apiError(502, 'Não foi possível baixar uma playlist M3U válida por HTTP. Confira a fonte.');
+    const message = String(error?.message || '');
+    if (/excede o limite de tamanho|ultrapassa o limite/i.test(message)) {
+      return apiError(413, 'A playlist ultrapassa o limite atual de 20 MB. Precisamos aumentar a capacidade de importação.');
+    }
+    if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+      return apiError(504, 'O fornecedor demorou mais de 25 segundos para entregar a playlist.');
+    }
+    if (/Host não liberado|Host não permitido/i.test(message)) {
+      return apiError(502, 'A origem redirecionou para um host não autorizado na Cloudflare.');
+    }
+    if (/^O servidor do fornecedor respondeu HTTP \\d{3}/.test(message) ||
+        /^O fornecedor (devolveu|respondeu)/.test(message)) {
+      return apiError(failureStatus, message);
+    }
+    return apiError(502, 'A Cloudflare não conseguiu receber a playlist do fornecedor. Pode ser bloqueio da origem ou falha de conexão.');
   }
 
   const id = old?.catalog_id || crypto.randomUUID();
