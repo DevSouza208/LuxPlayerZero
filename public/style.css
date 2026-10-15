@@ -17,3 +17,20 @@
 @media(max-width:740px){.site-header{height:65px;padding:0 17px;gap:14px}.brand-logo{width:95px;height:35px}.brand-edition{font-size:8px}.main-nav{position:absolute;top:65px;left:0;right:0;height:45px;background:#100d18e8;padding:0 17px;overflow-x:auto;scrollbar-width:none;gap:22px}.nav-link{padding:13px 0;font-size:11px;flex-shrink:0;max-width:130px}.header-actions{margin-left:auto;gap:8px}.header-source,.header-admin{height:34px;width:34px;padding:0}.avatar{width:31px;height:31px;font-size:14px}.feature-hero{margin-top:45px;height:570px;min-height:0}.hero-art{width:100%;height:68%;opacity:.52;object-position:center top}.hero-overlay{background:linear-gradient(0deg,#08070d 5%,#08070d80 56%,#08070d22 90%),linear-gradient(90deg,#08070d80,#08070d05)}.hero-copy{padding:125px 21px 30px;justify-content:flex-end;max-width:100%}.hero-copy h1{font-size:clamp(35px,8.2vw,55px);letter-spacing:-2px;max-width:560px}.hero-copy p{font-size:12px;max-width:480px}.hero-eyebrow{font-size:9px;letter-spacing:1.5px}.hero-brand{font-size:10px;margin-top:15px}.hero-actions{margin-top:22px}.hero-primary,.hero-secondary{padding:11px 13px;min-height:43px;font-size:11px}.hero-side-label{display:none}.hero-bottom{margin-top:21px}.home-rails{padding:0 17px}.content-rail{margin:26px 0 32px}.rail-title{font-size:21px}.rail-hint{display:none}.media-card{flex-basis:154px}.watch-area{padding:35px 17px}.watch-heading h2{font-size:27px}.watch-live{display:none}.site-footer{padding:22px 17px;flex-direction:column;align-items:start;font-size:9px}.lux-dialog{padding:20px}.admin-grid{grid-template-columns:1fr}}
 @media(max-width:440px){.hero-copy{padding-top:130px}.feature-hero{height:585px}.hero-explore{display:none}.hero-copy h1{font-size:37px}.media-card{flex-basis:142px}.rail-title{font-size:19px}.admin-actions{flex-direction:column;align-items:stretch}.admin-actions .primary-btn,.reset-btn{width:100%}.section-head h3{max-width:66vw;font-size:15px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* A importação local precisa continuar acessível mesmo sem o gateway da prévia. */
+.file-import{position:relative;margin:2px 0 4px;padding:11px 13px 10px;border:1px solid #514064;border-radius:10px;background:#21192c}
+.file-import .divider-text{margin:0 0 10px;color:#a797bb;font-size:9px;font-weight:800}
+.file-import .upload{display:flex;align-items:center;justify-content:center;min-height:43px;background:#332444;border:1px dashed #9972c5;border-radius:8px;color:#e3d0fa;font-size:12px!important;font-weight:800;letter-spacing:0!important}
+.file-import .upload:hover{background:#46305e;border-color:#c69aff;color:#fff}
+.file-help{font-size:10px;color:#ab9abc;margin:8px 0 0;line-height:1.5}
+.visually-hidden-file{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;opacity:0!important;padding:0!important;border:0!important}
+.visually-hidden-file:focus-visible + .file-help{outline:2px solid #b38aff;outline-offset:4px}
+.demo-preview-btn{width:100%;min-height:43px;margin-top:16px;padding:10px 12px;border:1px solid #70568a;background:#281b37;color:#e2d1f5;border-radius:9px;font-size:11px;font-weight:800}
+.demo-preview-btn:hover{background:#3a2650;border-color:#b58be2}
+#source-dialog{width:min(94vw,570px);padding:clamp(16px,2.8vw,25px);max-height:calc(100dvh - 34px);scrollbar-width:thin;scrollbar-color:#6a547b transparent}
+#source-dialog .dialog-intro{margin:10px 0 12px}
+#source-dialog form{gap:7px}
+#source-dialog form label{margin-top:6px}
+#source-dialog .bridge-settings{margin-top:5px}
+#source-dialog .dialog-footnote{margin-top:12px}
