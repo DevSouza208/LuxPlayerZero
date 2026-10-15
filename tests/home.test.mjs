@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { parseM3u } from '../public/playlist.js';
 import { DEFAULT_SETTINGS, normalizeSettings, classifyItem, itemKey, safeImage, shouldResume, buildShowcase } from '../public/home-model.js';
 
 const item = (name, group, url = 'https://example.org/stream.ts', logo = '') =>
@@ -67,4 +68,20 @@ test('A nova Home mantém os ganchos do player e possui painel de personalizaç�
   assert.ok(js.includes('home.setItems(channels)'));
   assert.ok(js.includes('home.onPlaying(selected)'));
   assert.ok(js.includes('home.resumePosition(selected)'));
+});
+
+test('Lê títulos e grupos quando a M3U contém vírgulas dentro dos atributos', () => {
+  const playlist = [
+    '#EXTM3U',
+    '#EXTINF:-1 tvg-name="HD,FHD,4K" group-title="TV, Brasil" tvg-logo="https://example.org/globo.png",Globo SP FHD',
+    'https://example.org/live/globo.ts',
+    "#EXTINF:-1 group-title='Cursos, Tecnologia' tvg-name='Aula 01',Introdução",
+    'https://example.org/course/intro.mp4'
+  ].join('\\n');
+  const parsed = parseM3u(playlist);
+  assert.equal(parsed.length, 2);
+  assert.equal(parsed[0].name, 'Globo SP FHD');
+  assert.equal(parsed[0].group, 'TV, Brasil');
+  assert.equal(parsed[1].group, 'Cursos, Tecnologia');
+  assert.equal(classifyItem(parsed[1]), 'movies');
 });
