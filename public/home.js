@@ -387,12 +387,25 @@ export function createHome({ play } = {}) {
     for (const key of Object.keys(DEFAULT_SETTINGS)) {
       next[key] = String($('admin-' + key)?.value || '').trim();
     }
+    for (const key of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty']) {
+      next[key] = Boolean($('admin-' + key)?.checked);
+    }
     configRaw = next;
     config = normalizeSettings(next);
     write('settings', configRaw);
     rebuild();
     render();
     closeDialog(adminDialog);
+  });
+  $('admin-export')?.addEventListener('click', async () => {
+    const button = $('admin-export');
+    // Apenas preferências visuais; nunca inclui playlist, credenciais ou URLs de stream.
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(configRaw, null, 2));
+      if (button) button.textContent = 'Configuração copiada ✓';
+    } catch {
+      if (button) button.textContent = 'Cópia indisponível';
+    }
   });
   $('admin-reset')?.addEventListener('click', () => {
     configRaw = {};
