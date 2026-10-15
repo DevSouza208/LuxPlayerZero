@@ -1,0 +1,35 @@
+{
+  "id": "/cinema/",
+  "name": "Lux Player Zero · Cinema",
+  "short_name": "Lux Zero",
+  "description": "Seu universo de entretenimento em uma interface premium. Conecte sua própria fonte.",
+  "lang": "pt-BR",
+  "start_url": "/cinema/",
+  "scope": "/cinema/",
+  "display": "standalone",
+  "display_override": [
+    "standalone"
+  ],
+  "orientation": "any",
+  "background_color": "#08070d",
+  "theme_color": "#08070d",
+  "icons": [
+    {
+      "src": "/assets/lux-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/lux-icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "entertainment",
+    "video"
+  ],
+  "prefer_related_applications": false
+}
