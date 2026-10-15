@@ -77,7 +77,7 @@ test('Lê títulos e grupos quando a M3U contém vírgulas dentro dos atributos'
     'https://example.org/live/globo.ts',
     "#EXTINF:-1 group-title='Cursos, Tecnologia' tvg-name='Aula 01',Introdução",
     'https://example.org/course/intro.mp4'
-  ].join('\\n');
+  ].join(String.fromCharCode(10));
   const parsed = parseM3u(playlist);
   assert.equal(parsed.length, 2);
   assert.equal(parsed[0].name, 'Globo SP FHD');
