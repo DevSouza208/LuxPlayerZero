@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="no-referrer">
-  <meta name="description" content="Lux Player Zero — um reprodutor de mídia independente, sem listas incluídas.">
-  <title>Lux Player Zero · Laboratório</title>
+  <meta name="description" content="Lux Player Zero — sua biblioteca e reprodução em um só lugar.">
+  <title>Lux Player Zero · TV ao vivo</title>
+  <link rel="icon" href="/assets/lux-icon.png">
   <link rel="stylesheet" href="/style.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
@@ -14,84 +15,85 @@
 </head>
 <body>
 <div class="shell">
-  <aside class="sidebar" aria-label="Fontes e configuração">
-    <header class="brand">
-      <div class="brand-mark" aria-hidden="true"><span>◈</span></div>
-      <div><strong>LUX <span>ZERO</span></strong><small>PLAYBACK LAB / 0.1.0</small></div>
-    </header>
-    <div class="line"></div>
-    <div class="sidebar-heading"><span class="eyebrow">01 — CONEXÃO</span><span class="microdot" title="Nenhum cadastro é salvo no servidor"></span></div>
-    <p class="intro">Escolha uma fonte. O player cuida do restante — dentro das capacidades do dispositivo.</p>
-    <form id="source-form" autocomplete="off">
-      <label for="source-type">TIPO DE FONTE</label>
-      <select id="source-type" name="type">
-        <option value="direct">URL de vídeo / rádio</option>
-        <option value="m3u">Playlist M3U</option>
-        <option value="xtream">Xtream Codes</option>
-      </select>
-      <label for="source-url" id="source-url-label">ENDEREÇO DA MÍDIA</label>
-      <input id="source-url" type="url" inputmode="url" placeholder="https://.../stream.m3u8" spellcheck="false">
-      <div id="bridge-settings" class="bridge-settings" hidden>
-        <div class="bridge-settings-head"><span>CATÁLOGO NO R2 E D1</span><span class="bridge-pill">M3U HTTP → HTTPS</span></div>
-        <p id="bridge-availability" role="status" aria-live="polite">Verificando armazenamento do catálogo...</p>
-        <div id="bridge-key-wrap">
-          <label for="bridge-key">CHAVE DE ACESSO</label>
-          <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave de acesso ao catálogo">
+  <aside class="sidebar" aria-label="Navegação e fontes">
+    <a class="brand" href="/player" aria-label="Lux Player Zero, início">
+      <img src="/assets/lux-icon.png" alt="" class="brand-logo">
+      <span class="brand-copy"><strong>LUX <em>PLAYER</em></strong><small>ZERO EDITION</small></span>
+    </a>
+
+    <nav class="side-nav" aria-label="Seções do player">
+      <span class="nav-caption">EXPLORAR</span>
+      <a class="nav-link active" href="#ao-vivo" aria-current="page"><span class="nav-icon">▣</span> TV ao vivo <span class="nav-active-dot"></span></a>
+      <a class="nav-link" href="#biblioteca"><span class="nav-icon">▤</span> Biblioteca</a>
+      <a class="nav-link" href="#minha-fonte"><span class="nav-icon">⌁</span> Minhas fontes</a>
+    </nav>
+
+    <section id="minha-fonte" class="source-card" aria-label="Gerenciar fonte de conteúdo">
+      <div class="source-heading"><span class="source-signal"></span><div><strong>Minha fonte</strong><small>Conecte sua biblioteca</small></div></div>
+      <form id="source-form" autocomplete="off">
+        <label for="source-type">TIPO DE FONTE</label>
+        <select id="source-type" name="type">
+          <option value="m3u" selected>Playlist M3U</option>
+          <option value="xtream">Xtream Codes</option>
+          <option value="direct">URL de vídeo / rádio</option>
+        </select>
+        <label for="source-url" id="source-url-label">URL DA PLAYLIST</label>
+        <input id="source-url" type="url" inputmode="url" placeholder="https://.../lista.m3u" spellcheck="false">
+        <div id="bridge-settings" class="bridge-settings" hidden>
+          <div class="bridge-settings-head"><span>CONEXÃO SEGURA</span><span class="bridge-pill">HTTPS</span></div>
+          <p id="bridge-availability" role="status" aria-live="polite">Verificando conexão...</p>
+          <div id="bridge-key-wrap">
+            <label for="bridge-key">CHAVE DE ACESSO</label>
+            <input id="bridge-key" type="password" autocomplete="off" placeholder="Chave de acesso">
+          </div>
         </div>
-      </div>
-      <div id="credentials-fields" hidden>
-        <label for="xc-user">USUÁRIO</label>
-        <input id="xc-user" type="text" spellcheck="false" autocapitalize="off" autocomplete="off">
-        <label for="xc-pass">SENHA</label>
-        <input id="xc-pass" type="password" autocomplete="new-password">
-      </div>
-      <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
-      <div id="file-fields" hidden>
-        <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
-        <label for="m3u-file" class="upload">+ Selecionar arquivo .m3u / .txt</label>
-        <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
-      </div>
-    </form>
-    <div class="privacy"><span class="privacy-dot"></span><p><b>Fontes sob seu controle</b><br>No HTTPS, a conexão é direta quando possível. Para listas HTTP, o Cloudflare pode guardar a M3U no R2 privado, com referência no D1. Os vídeos continuam na origem.</p></div>
-    <div class="sidebar-footer">ZERO COMPLEXIDADE DESNECESSÁRIA <span>✳</span></div>
+        <div id="credentials-fields" hidden>
+          <label for="xc-user">USUÁRIO</label>
+          <input id="xc-user" type="text" spellcheck="false" autocapitalize="off" autocomplete="off">
+          <label for="xc-pass">SENHA</label>
+          <input id="xc-pass" type="password" autocomplete="new-password">
+        </div>
+        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
+        <div id="file-fields" hidden>
+          <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
+          <label for="m3u-file" class="upload">Selecionar arquivo .m3u / .txt</label>
+          <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
+        </div>
+      </form>
+    </section>
+    <div class="sidebar-bottom"><span class="status-indicator"></span> Lux Player Zero <span class="sidebar-version">v0.1</span></div>
   </aside>
 
-  <main class="main">
+  <main class="main" id="ao-vivo">
     <header class="topbar">
-      <div class="breadcrumbs">LUX / <strong>PLAYBACK</strong> / LABORATÓRIO</div>
-      <span class="environment"><span class="green-dot"></span> EXPERIMENTAL</span>
+      <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
+      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true">↗</span></a></div>
     </header>
-    <section class="hero" aria-label="Introdução">
-      <div>
-        <span class="eyebrow accent">TECNOLOGIA DE REPRODUÇÃO · NOVA GERAÇÃO</span>
-        <h1>Menos camadas.<br><em>Mais reprodução.</em></h1>
-        <p>Um motor independente. Nenhum catálogo imposto. Apenas o conteúdo que você escolher conectar.</p>
-      </div>
-      <div class="hero-shape" aria-hidden="true"><div class="halo halo-one"></div><div class="halo halo-two"></div><div class="halo halo-three"></div><span>0</span></div>
-    </section>
 
-    <div id="message" class="message" role="status" aria-live="polite">Pronto para começar. Conecte uma fonte à esquerda ou experimente o vídeo público de demonstração.</div>
+    <div id="message" class="message" role="status" aria-live="polite">Conecte uma fonte para começar a assistir.</div>
 
-    <section class="workspace">
-      <div class="library">
-        <div class="section-head"><div><span class="eyebrow">02 — BIBLIOTECA</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Limpar a lista atual">Limpar</button></div>
-        <div class="list-tools"><input id="search" type="search" placeholder="Buscar na lista..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">Vídeo</option><option value="radio">Rádio</option></select></div>
-        <div id="channels" class="channels" role="list"><div class="list-empty">Sua biblioteca começa aqui.</div></div>
-        <div class="demo-row"><span>QUER TESTAR O MOTOR?</span><button id="demo" type="button">Importar playlist M3U de demonstração ↗</button></div>
-      </div>
-
+    <section class="workspace" aria-label="TV ao vivo e canais">
       <div class="player-column">
-        <div class="section-head"><div><span class="eyebrow">03 — REPRODUÇÃO</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
+        <div class="section-head"><div><span class="eyebrow">SUA TELA</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
         <div class="video-wrap">
-          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>O próximo play começa aqui.</p><span>Selecione uma mídia da sua biblioteca.</span></div>
+          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
           <video id="video" controls playsinline preload="none" hidden></video>
           <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
         </div>
-        <div class="now-playing"><div><span class="eyebrow">REPRODUZINDO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
-        <details class="diagnostics"><summary>Diagnóstico de reprodução <span>↗</span></summary><pre id="diagnostics">Nenhum evento registrado.</pre></details>
-        <div class="disclaimer">O Lux Zero é somente um reprodutor. Não fornece canais, playlists, filmes ou assinaturas.</div>
+        <div class="now-playing"><div><span class="eyebrow">EM REPRODUÇÃO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
+        <p class="disclaimer">O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.</p>
       </div>
+
+      <section class="library" id="biblioteca" aria-label="Biblioteca de canais">
+        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual">Limpar</button></div>
+        <div class="list-tools"><input id="search" type="search" placeholder="Buscar canais..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">TV</option><option value="radio">Rádio</option></select></div>
+        <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
+      </section>
     </section>
+    <div class="dev-tools" hidden aria-hidden="true">
+      <div class="demo-row"><button id="demo" type="button">Importar playlist de demonstração</button></div>
+      <details class="diagnostics"><summary>Diagnóstico de reprodução</summary><pre id="diagnostics">Nenhum evento registrado.</pre></details>
+    </div>
   </main>
 </div>
 </body>
