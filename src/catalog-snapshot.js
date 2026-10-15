@@ -7,10 +7,12 @@
  */
 import {
   apiError, apiOk, bridgeReady, permittedUrl, session,
-  sameOriginPost, fetchAllowed, readLimited
+  sameOriginPost, fetchAllowed
 } from './bridge-core.js';
 
-const MAX_CATALOG_BYTES = 20 * 1024 * 1024;
+const MAX_CATALOG_BYTES = 256 * 1024 * 1024;
+const PART_BYTES = 8 * 1024 * 1024;
+const FETCH_TIMEOUT_MS = 180000;
 const ENCODER = new TextEncoder();
 
 export function snapshotReady(env) {
@@ -57,15 +59,90 @@ function savedResult(row, cached = false) {
   };
 }
 
-function isM3u(text) {
-  const clean = String(text || '').replace(/^\uFEFF/, '').trimStart();
-  return clean.startsWith('#EXTM3U') &&
-    /(?:^|\n)\s*#EXTINF:/m.test(clean) &&
-    !/(?:^|\n)\s*#EXT-X-(?:TARGETDURATION|STREAM-INF|MEDIA-SEQUENCE)/mi.test(clean);
-}
+/**
+ * Lê e grava uma M3U por partes de 8 MiB no R2, sem acumular os 256 MiB
+ * na memória do Worker. Mantém o arquivo original e conta os #EXTINF.
+ * Cada parte, exceto a última, atende ao mínimo de 5 MiB do R2.
+ */
+async function streamCatalogToR2(body, bucket, fileKey) {
+  if (!body) throw new Error('O fornecedor devolveu uma resposta vazia.');
+  const upload = await bucket.createMultipartUpload(fileKey, {
+    httpMetadata: { contentType: 'audio/x-mpegurl; charset=utf-8', cacheControl: 'private, no-store' }
+  });
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  const parts = [];
+  let buffer = new Uint8Array(PART_BYTES);
+  let used = 0;
+  let bytes = 0;
+  let itemCount = 0;
+  let firstLine = false;
+  let lineTail = '';
 
-function catalogSize(text) {
-  return ENCODER.encode(text).byteLength;
+  function inspectLine(raw) {
+    const line = raw.trim();
+    if (!line) return;
+    if (!firstLine) {
+      firstLine = true;
+      if (line.replace(/^\uFEFF/, '') !== '#EXTM3U') {
+        throw new Error(/^\s*(?:<!doctype html|<html|<\?xml)/i.test(line)
+          ? 'O fornecedor devolveu uma página HTML/XML, não uma playlist M3U.'
+          : 'O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
+      }
+    }
+    if (/^#EXTINF:/i.test(line)) itemCount++;
+    if (/^#EXT-X-(?:TARGETDURATION|STREAM-INF|MEDIA-SEQUENCE)/i.test(line)) {
+      throw new Error('O fornecedor devolveu um stream HLS, não um catálogo M3U.');
+    }
+  }
+  function inspectText(text) {
+    lineTail += text;
+    let index;
+    while ((index = lineTail.indexOf('\n')) >= 0) {
+      inspectLine(lineTail.slice(0, index));
+      lineTail = lineTail.slice(index + 1);
+    }
+    if (lineTail.length > 128 * 1024) {
+      throw new Error('A playlist contém uma linha longa demais para processamento seguro.');
+    }
+  }
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > MAX_CATALOG_BYTES) {
+        throw new Error('A playlist ultrapassa o limite de 256 MB.');
+      }
+      inspectText(decoder.decode(value, { stream: true }));
+      let offset = 0;
+      while (offset < value.byteLength) {
+        const take = Math.min(PART_BYTES - used, value.byteLength - offset);
+        buffer.set(value.subarray(offset, offset + take), used);
+        used += take;
+        offset += take;
+        if (used === PART_BYTES) {
+          parts.push(await upload.uploadPart(parts.length + 1, buffer));
+          buffer = new Uint8Array(PART_BYTES);
+          used = 0;
+        }
+      }
+    }
+    inspectText(decoder.decode());
+    if (lineTail) inspectLine(lineTail);
+    if (!firstLine || itemCount === 0) {
+      throw new Error('O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
+    }
+    if (used) parts.push(await upload.uploadPart(parts.length + 1, buffer.subarray(0, used)));
+    await upload.complete(parts);
+    return { itemCount, bytes };
+  } catch (error) {
+    try { await upload.abort(); } catch {}
+    throw error;
+  } finally {
+    try { await reader.cancel(); } catch {}
+  }
 }
 
 async function previousFor(env, hash) {
@@ -111,68 +188,49 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     return apiError(503, 'Não foi possível acessar a tabela do catálogo no D1.');
   }
 
-  // Baixa a resposta COMPLETA do get.php: todos os registros de TV,
-  // filmes e séries que o fornecedor incluir na M3U, sem baixar vídeos.
-  // Nunca expor URLs com credenciais ou o corpo de erro do fornecedor.
-  let content;
-  let failureStatus = 502;
+  // Recebe o catálogo completo em partes e grava direto no R2 privado.
+  // Nenhum vídeo é baixado; apenas o índice M3U original.
+  const id = old?.catalog_id || crypto.randomUUID();
+  const fileKey = 'catalogos/' + id + '/' + crypto.randomUUID() + '.m3u';
+  let imported;
   try {
     const { response } = await fetchAllowed(
-      source, env, { signal: AbortSignal.timeout(25000) }, fetcher
+      source, env, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }, fetcher
     );
     if (!response.ok) {
       throw new Error('O servidor do fornecedor respondeu HTTP ' + response.status + ' ao solicitar a playlist.');
     }
     if (Number(response.headers.get('content-length') || 0) > MAX_CATALOG_BYTES) {
-      failureStatus = 413;
-      throw new Error('A playlist ultrapassa o limite atual de 20 MB.');
+      throw new Error('A playlist ultrapassa o limite de 256 MB.');
     }
-    content = await readLimited(response.body, MAX_CATALOG_BYTES);
-    if (!isM3u(content)) {
-      throw new Error(/^\s*(?:<!doctype html|<html|<\?xml)/i.test(content)
-        ? 'O fornecedor devolveu uma página HTML/XML, não uma playlist M3U. Verifique o formato da URL e o acesso.'
-        : 'O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
-    }
+    imported = await streamCatalogToR2(response.body, env.CATALOG_BUCKET, fileKey);
   } catch (error) {
     const cached = await latestAvailable(env, old);
     if (cached) return cached;
     const message = String(error?.message || '');
-    if (/excede o limite de tamanho|ultrapassa o limite/i.test(message)) {
-      return apiError(413, 'A playlist ultrapassa o limite atual de 20 MB. Precisamos aumentar a capacidade de importação.');
+    if (/ultrapassa o limite de 256 MB/.test(message)) {
+      return apiError(413, 'A playlist ultrapassa o limite de 256 MB.');
     }
     if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
-      return apiError(504, 'O fornecedor demorou mais de 25 segundos para entregar a playlist.');
+      return apiError(504, 'O fornecedor demorou mais de 180 segundos para entregar a playlist.');
     }
     if (/Host não liberado|Host não permitido/i.test(message)) {
       return apiError(502, 'A origem redirecionou para um host não autorizado na Cloudflare.');
     }
     if (/^O servidor do fornecedor respondeu HTTP \d{3}/.test(message) ||
-        /^O fornecedor (devolveu|respondeu)/.test(message)) {
-      return apiError(failureStatus, message);
+        /^O fornecedor (devolveu|respondeu)/.test(message) ||
+        /^A playlist contém uma linha/.test(message)) {
+      return apiError(502, message);
     }
-    return apiError(502, 'A Cloudflare não conseguiu receber a playlist do fornecedor. Pode ser bloqueio da origem ou falha de conexão.');
+    return apiError(502, 'Não foi possível importar a playlist completa. Confira a origem e a disponibilidade do R2.');
   }
-
-  const id = old?.catalog_id || crypto.randomUUID();
-  const fileKey = 'catalogos/' + id + '/' + crypto.randomUUID() + '.m3u';
   const row = {
     catalog_id: id,
     r2_key: fileKey,
     synced_at: new Date().toISOString(),
-    item_count: (content.match(/(?:^|\n)\s*#EXTINF:/g) || []).length,
-    size_bytes: catalogSize(content)
+    item_count: imported.itemCount,
+    size_bytes: imported.bytes
   };
-
-  try {
-    await env.CATALOG_BUCKET.put(fileKey, content, {
-      httpMetadata: {
-        contentType: 'audio/x-mpegurl; charset=utf-8',
-        cacheControl: 'private, no-store'
-      }
-    });
-  } catch {
-    return apiError(502, 'Não foi possível guardar a playlist no R2.');
-  }
 
   try {
     await env.DB.prepare(
