@@ -2,6 +2,7 @@ import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
+import { createHome } from './home.js';
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -27,6 +28,8 @@ let watchdog = null;
 let history = [];
 let bridgeStatus = null;
 let bridgeNeeded = false;
+// A Home é apenas uma camada de interface; o motor de mídia permanece intacto.
+const home = createHome({ play: item => playItem(item) });
 const bridge = createBridge({
   getKey: () => els.bridgeKey.value.trim(),
   onStatus: message => {
@@ -164,6 +167,7 @@ function setChannels(items, caption) {
   els.count.textContent = String(channels.length).padStart(2, '0');
   render();
   updateBridgePanel();
+  home.setItems(channels);
   note(channels.length + ' item(ns) disponíveis em ' + caption + '. Selecione um para reproduzir.');
   log('Catálogo importado', String(channels.length) + ' entradas');
 }
@@ -253,6 +257,7 @@ async function playItem(item) {
   stop();
   const generation = operation;
   selected = item;
+  home.onSelect(item);
   render();
   els.title.textContent = item.name;
   els.format.textContent = streamType(item.url);
@@ -353,8 +358,17 @@ for (const media of [els.video, els.audio]) {
     if (watchdog) clearTimeout(watchdog);
     watchdog = null;
     state('Reproduzindo');
-    note('Fonte aberta. Monitorando reprodução.');
+    home.onPlaying(selected);
+    note('Reproduzindo agora.');
     log('Reprodução iniciada');
+  });
+  media.addEventListener('loadedmetadata', () => {
+    if (player !== media || !selected || !Number.isFinite(media.duration)) return;
+    const position = home.resumePosition(selected);
+    if (position > 0) { try { media.currentTime = position; } catch {} }
+  });
+  media.addEventListener('timeupdate', () => {
+    if (player === media && selected) home.onProgress(selected, media.currentTime, media.duration);
   });
   media.addEventListener('waiting', () => { if (player === media) { state('Buffering'); log('Aguardando buffer'); } });
   media.addEventListener('error', () => {
@@ -439,7 +453,7 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); home.clear(); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;
