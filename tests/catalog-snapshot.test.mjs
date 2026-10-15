@@ -172,3 +172,30 @@ test('não permite que a origem HTTP redirecione para servidores fora da lista',
   assert.equal(r.status,502);
   assert.equal(objects.size,0);
 });
+
+test('diagnóstico identifica HTTP do fornecedor sem expor credenciais', async () => {
+  const {env}=mockResources();
+  const c=await cookie(env);
+  const r=await syncCatalog(req('sync','POST',{url:original},c),env,
+    async()=>new Response('proibido',{status:403}));
+  assert.equal(r.status,502);
+  const data=await r.json();
+  assert.match(data.error,/HTTP 403/);
+  assert.doesNotMatch(JSON.stringify(data),/cliente|privada|password|username/);
+});
+
+test('diagnóstico distingue limite de tamanho, HTML e timeout', async () => {
+  const {env}=mockResources();
+  const c=await cookie(env);
+  const large=await syncCatalog(req('sync','POST',{url:original},c),env,
+    async()=>new Response('x',{headers:{'content-length':String(21*1024*1024)}}));
+  assert.equal(large.status,413);
+  assert.match((await large.json()).error,/20 MB/);
+  const html=await syncCatalog(req('sync','POST',{url:original},c),env,
+    async()=>new Response('<html>login</html>'));
+  assert.match((await html.json()).error,/HTML/);
+  const timed=await syncCatalog(req('sync','POST',{url:original},c),env,
+    async()=>{const error=new Error('The operation timed out');error.name='TimeoutError';throw error;});
+  assert.equal(timed.status,504);
+  assert.match((await timed.json()).error,/25 segundos/);
+});
