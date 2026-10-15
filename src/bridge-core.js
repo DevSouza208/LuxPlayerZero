@@ -5,7 +5,8 @@
  */
 const MAX_CATALOG_BYTES = 20 * 1024 * 1024;
 const MAX_MANIFEST_BYTES = 2 * 1024 * 1024;
-const SESSION_MS = 8 * 60 * 60 * 1000;
+// Acesso lembrado por 7 dias em cookie HttpOnly; a chave nunca vai ao frontend persistente.
+const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const MEDIA_TOKEN_MS = 8 * 60 * 60 * 1000;
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
