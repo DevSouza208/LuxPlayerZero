@@ -65,3 +65,10 @@ html{scroll-padding-top:80px}body{background:#050508;color:#f9f8fe}
     .cinema-nav{top:calc(61px + env(safe-area-inset-top,0px))}
   }
 }
+
+/* Metadados opcionais: textos legíveis sem transformar o diálogo em uma ficha técnica. */
+.admin-engine-note{font:400 11px/1.65 'Outfit',sans-serif;color:#ada0ba;padding:12px 14px;margin:0;background:#211727;border:1px solid #5d416d66;border-radius:10px}
+.details-meta{font-size:12px;line-height:1.6;font-weight:600;color:#d0aae9;margin:15px 0 0;letter-spacing:.15px}
+.details-overview{font:400 14px/1.76 'Outfit',sans-serif;color:#cfc4da;margin:16px 0 0;max-width:650px;white-space:normal}
+.details-metadata-status{font-size:11px;color:#93839e;line-height:1.6;margin:14px 0 0}
+.details-overview[hidden],.details-meta[hidden]{display:none!important}
