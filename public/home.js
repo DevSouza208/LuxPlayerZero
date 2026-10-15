@@ -150,6 +150,7 @@ export function createHome({ play } = {}) {
     const section = document.createElement('section');
     section.className = 'content-rail';
     section.id = id;
+    if (id === 'destaques-tv') section.dataset.rail = 'tv';
     const header = document.createElement('div');
     header.className = 'rail-heading';
     const left = document.createElement('div');
