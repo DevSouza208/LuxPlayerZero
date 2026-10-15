@@ -216,7 +216,7 @@ test('diagnóstico distingue limite de tamanho, HTML e timeout', async () => {
   const timed=await syncCatalog(req('sync','POST',{url:original},c),env,
     async()=>{const error=new Error('The operation timed out');error.name='TimeoutError';throw error;});
   assert.equal(timed.status,504);
-  assert.match((await timed.json()).error,/25 segundos/);
+  assert.match((await timed.json()).error,/180 segundos/);
 });
 
 test('playlist maior que 20 MiB é aceita em partes até 256 MiB', async () => {
