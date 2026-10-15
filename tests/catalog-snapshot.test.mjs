@@ -44,6 +44,25 @@ function mockResources() {
   };
   const bucket = {
     async put(key, value) { objects.set(key, String(value)); },
+    async createMultipartUpload(key) {
+      const uploaded = new Map();
+      return {
+        async uploadPart(number, value) {
+          uploaded.set(number, Uint8Array.from(value));
+          return { partNumber: number, etag: 'test-' + number };
+        },
+        async complete(parts) {
+          const ordered = parts.map(part => uploaded.get(part.partNumber));
+          const total = ordered.reduce((sum, bytes) => sum + bytes.byteLength, 0);
+          const result = new Uint8Array(total);
+          let offset = 0;
+          for (const bytes of ordered) { result.set(bytes, offset); offset += bytes.byteLength; }
+          objects.set(key, new TextDecoder().decode(result));
+          return { key };
+        },
+        async abort() { uploaded.clear(); }
+      };
+    },
     async get(key) {
       const content = objects.get(key);
       if (content === undefined) return null;
@@ -188,9 +207,9 @@ test('diagnóstico distingue limite de tamanho, HTML e timeout', async () => {
   const {env}=mockResources();
   const c=await cookie(env);
   const large=await syncCatalog(req('sync','POST',{url:original},c),env,
-    async()=>new Response('x',{headers:{'content-length':String(21*1024*1024)}}));
+    async()=>new Response('x',{headers:{'content-length':String(257*1024*1024)}}));
   assert.equal(large.status,413);
-  assert.match((await large.json()).error,/20 MB/);
+  assert.match((await large.json()).error,/256 MB/);
   const html=await syncCatalog(req('sync','POST',{url:original},c),env,
     async()=>new Response('<html>login</html>'));
   assert.match((await html.json()).error,/HTML/);
@@ -198,4 +217,19 @@ test('diagnóstico distingue limite de tamanho, HTML e timeout', async () => {
     async()=>{const error=new Error('The operation timed out');error.name='TimeoutError';throw error;});
   assert.equal(timed.status,504);
   assert.match((await timed.json()).error,/25 segundos/);
+});
+
+test('playlist maior que 20 MiB é aceita em partes até 256 MiB', async () => {
+  const {env,objects}=mockResources();
+  const c=await cookie(env);
+  const entry = '#EXTINF:-1,Canal de teste\nhttp://lista.example.org:8080/live/1.ts\n';
+  const repeat = Math.ceil(21 * 1024 * 1024 / entry.length);
+  const content = '#EXTM3U\n' + entry.repeat(repeat);
+  const response=await syncCatalog(req('sync','POST',{url:original},c),env,
+    async()=>new Response(content));
+  assert.equal(response.status,200);
+  const data=await response.json();
+  assert.equal(data.bytes,new TextEncoder().encode(content).byteLength);
+  assert.equal(data.itemCount,repeat);
+  assert.equal([...objects.values()][0],content);
 });
