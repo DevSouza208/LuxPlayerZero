@@ -96,12 +96,14 @@ async function streamCatalogToR2(body, bucket, fileKey) {
     }
   }
   function inspectText(text) {
-    lineTail += text;
+    let start = 0;
     let index;
-    while ((index = lineTail.indexOf('\n')) >= 0) {
-      inspectLine(lineTail.slice(0, index));
-      lineTail = lineTail.slice(index + 1);
+    while ((index = text.indexOf('\n', start)) >= 0) {
+      inspectLine(lineTail + text.slice(start, index));
+      lineTail = '';
+      start = index + 1;
     }
+    lineTail += text.slice(start);
     if (lineTail.length > 128 * 1024) {
       throw new Error('A playlist contém uma linha longa demais para processamento seguro.');
     }
