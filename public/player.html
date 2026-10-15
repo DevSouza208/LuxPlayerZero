@@ -6,9 +6,10 @@
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Lux Player Zero — sua biblioteca e reprodução em um só lugar.">
-  <title>Lux Player Zero · TV ao vivo</title>
+  <title>Lux Player Zero · Seu universo</title>
   <link rel="icon" href="/assets/lux-icon.png">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/home.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
   <script type="module" src="/app.js"></script>
@@ -21,11 +22,18 @@
       <span class="brand-copy"><strong>LUX <em>PLAYER</em></strong><small>ZERO EDITION</small></span>
     </a>
 
-    <nav class="side-nav" aria-label="Seções do player">
-      <span class="nav-caption">EXPLORAR</span>
-      <a class="nav-link active" href="#ao-vivo" aria-current="page"><span class="nav-icon">▣</span> TV ao vivo <span class="nav-active-dot"></span></a>
-      <a class="nav-link" href="#biblioteca"><span class="nav-icon">▤</span> Biblioteca</a>
-      <a class="nav-link" href="#minha-fonte"><span class="nav-icon">⌁</span> Minhas fontes</a>
+    <nav class="side-nav" aria-label="Seções do Lux Player">
+      <span class="nav-caption">SEU UNIVERSO</span>
+      <a class="nav-link active" href="#inicio" aria-current="page"><span class="nav-icon">⌂</span> Início <span class="nav-active-dot"></span></a>
+      <a class="nav-link" href="#continue"><span class="nav-icon">↺</span> Continuar assistindo</a>
+      <a class="nav-link" href="#minha-lista"><span class="nav-icon">♡</span> Minha lista</a>
+      <span class="nav-caption nav-caption-secondary">EXPLORAR</span>
+      <a class="nav-link" href="#destaques-tv"><span class="nav-icon">▣</span> TV ao vivo</a>
+      <a class="nav-link" href="#destaques-filmes"><span class="nav-icon">▤</span> <span id="nav-movies">Filmes</span></a>
+      <a class="nav-link" href="#destaques-series"><span class="nav-icon">▦</span> <span id="nav-series">Séries</span></a>
+      <a class="nav-link" href="#reproduzir"><span class="nav-icon">▷</span> Reprodutor</a>
+      <button id="open-admin" class="nav-link nav-button" type="button"><span class="nav-icon">⚙</span> Personalizar vitrines</button>
+      <a class="nav-link source-nav" href="#minha-fonte"><span class="nav-icon">⌁</span> Minha fonte</a>
     </nav>
 
     <section id="minha-fonte" class="source-card" aria-label="Gerenciar fonte de conteúdo">
@@ -64,7 +72,28 @@
     <div class="sidebar-bottom"><span class="status-indicator"></span> Lux Player Zero <span class="sidebar-version">v0.1</span></div>
   </aside>
 
-  <main class="main" id="ao-vivo">
+  <main class="main" id="inicio">
+    <section class="feature-hero" aria-label="Destaque da sua biblioteca">
+      <img id="hero-art" class="hero-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="hero-kicker"><span class="hero-spark"></span><span id="hero-category">SUA PRÓXIMA HISTÓRIA COMEÇA AQUI</span></span>
+        <div class="hero-edition">LUX <span>ORIGINALS</span> <span class="hero-edition-line"></span> ZERO EDITION</div>
+        <h1 id="hero-title">Seu universo.<br>Seu próximo play.</h1>
+        <p id="hero-subtitle">Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.</p>
+        <div class="hero-actions">
+          <button id="hero-play" class="hero-primary" type="button" hidden><span aria-hidden="true">▶</span> Assistir agora</button>
+          <button id="hero-connect" class="hero-primary" type="button"><span aria-hidden="true">＋</span> Conectar fonte</button>
+          <button id="hero-add" class="hero-secondary" type="button" hidden>＋ Minha lista</button>
+          <a class="hero-secondary" href="#home-rails">Explorar biblioteca <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-meta"><span class="hero-meta-line"></span><span id="catalog-total">Seu conteúdo, suas escolhas.</span></div>
+      </div>
+      <div class="hero-poster" aria-hidden="true"><div class="poster-glow"></div><img id="hero-poster" src="/assets/lux-icon.png" alt="" referrerpolicy="no-referrer"><span>SELEÇÃO LUX</span></div>
+      <div class="hero-number" aria-hidden="true">01 <span>/ SEU UNIVERSO</span></div>
+    </section>
+    <div id="home-rails" class="home-rails" aria-label="Destaques e vitrines da sua biblioteca"></div>
+    <section class="watch-area" id="reproduzir" aria-label="Reprodutor e busca completa">
     <header class="topbar">
       <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
       <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true">↗</span></a></div>
@@ -90,11 +119,34 @@
         <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
       </section>
     </section>
+    </section>
     <div class="dev-tools" hidden aria-hidden="true">
       <div class="demo-row"><button id="demo" type="button">Importar playlist de demonstração</button></div>
       <details class="diagnostics"><summary>Diagnóstico de reprodução</summary><pre id="diagnostics">Nenhum evento registrado.</pre></details>
     </div>
   </main>
 </div>
+<dialog id="admin-dialog" class="lux-admin-dialog" aria-labelledby="admin-dialog-title">
+  <div class="admin-dialog-head">
+    <div><span class="eyebrow">SUA PLATAFORMA, SUAS REGRAS</span><h2 id="admin-dialog-title">Personalizar vitrines</h2></div>
+    <button class="admin-close" type="button" data-close-dialog="admin-dialog" aria-label="Fechar">×</button>
+  </div>
+  <p class="admin-description">Escolha como sua biblioteca aparece. Os nomes e grupos funcionam com IPTV, cursos, aulas e outras playlists M3U.</p>
+  <form id="admin-form" class="admin-form">
+    <div class="admin-field"><label for="admin-heroTitle">TÍTULO DO HERO (QUANDO A LISTA ESTIVER VAZIA)</label><input id="admin-heroTitle" type="text" maxlength="90"></div>
+    <div class="admin-field"><label for="admin-heroSubtitle">DESCRIÇÃO DO HERO</label><input id="admin-heroSubtitle" type="text" maxlength="90"></div>
+    <div class="admin-field-row">
+      <div class="admin-field"><label for="admin-continueTitle">CONTINUAR ASSISTINDO</label><input id="admin-continueTitle" type="text" maxlength="90"></div>
+      <div class="admin-field"><label for="admin-favoritesTitle">MINHA LISTA</label><input id="admin-favoritesTitle" type="text" maxlength="90"></div>
+    </div>
+    <div class="admin-section-title">VITRINES PERSONALIZÁVEIS</div>
+    <div class="admin-field"><label for="admin-tvTitle">VITRINE 1 · NOME</label><input id="admin-tvTitle" type="text" maxlength="90" placeholder="Destaques da TV"><label for="admin-tvKeywords">GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)</label><input id="admin-tvKeywords" type="text" maxlength="220" placeholder="TV, Esportes, Notícias"></div>
+    <div class="admin-field"><label for="admin-moviesTitle">VITRINE 2 · NOME</label><input id="admin-moviesTitle" type="text" maxlength="90" placeholder="Filmes ou Cursos"><label for="admin-moviesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-moviesKeywords" type="text" maxlength="220" placeholder="Filmes, Cursos, Aulas"></div>
+    <div class="admin-field"><label for="admin-seriesTitle">VITRINE 3 · NOME</label><input id="admin-seriesTitle" type="text" maxlength="90" placeholder="Séries ou Módulos"><label for="admin-seriesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-seriesKeywords" type="text" maxlength="220" placeholder="Séries, Temporadas, Módulos"></div>
+    <div class="admin-groups"><strong>Grupos detectados na sua playlist</strong><p id="detected-groups">Conecte uma playlist para identificar os grupos disponíveis.</p></div>
+    <p class="admin-notice">Nesta versão, a personalização é salva apenas neste navegador. Não há autenticação de administrador ou sincronização com o D1.</p>
+    <div class="admin-actions"><button type="button" id="admin-reset" class="admin-reset">Restaurar padrão</button><button type="submit" class="admin-save">Salvar personalização <span>↗</span></button></div>
+  </form>
+</dialog>
 </body>
 </html>
