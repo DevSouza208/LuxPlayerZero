@@ -338,9 +338,13 @@ export function createHome({ play } = {}) {
     const enriched = data?.status === 'matched' && config.imageEngine !== 'playlist';
     const backdrop = safeImage(config.heroBackdrop);
     const heroArt = $('hero-art');
-    if (heroArt) heroArt.src = backdrop ||
-      (enriched && (config.imageEngine === 'tmdb' || !artwork) ? data.backdrop || data.poster : '') ||
-      artwork || '/assets/login-scene.png';
+    // Logos de canal são pequenas e quadradas; nunca esticá-las como hero panorâmico.
+    // Somente backdrop TMDB confirmado ou imagem panorâmica explicitamente escolhida.
+    if (heroArt) {
+      heroArt.src = backdrop ||
+        (enriched && data.backdrop ? data.backdrop : '') || '/assets/login-scene.png';
+      heroArt.referrerPolicy = 'no-referrer';
+    }
     if (poster) {
       poster.src = chooseArtwork(artwork, data, config.imageEngine) || '/assets/lux-icon.png';
       poster.referrerPolicy = 'no-referrer';
@@ -413,7 +417,12 @@ export function createHome({ play } = {}) {
     $('details-group').textContent = item.group || 'Disponível na sua biblioteca';
     $('details-kicker').textContent = 'LUX PLAYER · ' + (item.group || 'SUA BIBLIOTECA').slice(0, 62);
     const art = $('details-art');
-    if (art) art.src = safeImage(item.logo) || '/assets/login-scene.png';
+    const logo = safeImage(item.logo);
+    if (art) art.src = '/assets/login-scene.png';
+    const detailPoster = $('details-poster');
+    const detailPosterFallback = $('details-poster-fallback');
+    if (detailPoster) { detailPoster.hidden = !logo; if (logo) detailPoster.src = logo; }
+    if (detailPosterFallback) detailPosterFallback.hidden = !!logo;
     const info = $('details-meta');
     const overview = $('details-overview');
     const state = $('details-metadata-status');
@@ -434,7 +443,8 @@ export function createHome({ play } = {}) {
         if (state) state.textContent = 'Sem correspondência confirmada. Exibindo os dados da playlist.';
         return;
       }
-      if (art && needArt) art.src = data.backdrop || data.poster || safeImage(item.logo) || '/assets/login-scene.png';
+      if (art && data.backdrop) art.src = data.backdrop;
+      if (detailPoster && needArt && data.poster) { detailPoster.src = data.poster; detailPoster.hidden = false; if (detailPosterFallback) detailPosterFallback.hidden = true; }
       if (config.summaryEngine === 'tmdb') {
         const label = [data.year, ...(data.genres || []), data.rating ? '★ ' + data.rating : null]
           .filter(Boolean).join('  ·  ');
@@ -507,6 +517,44 @@ export function createHome({ play } = {}) {
     } catch {
       if (button) button.textContent = 'Cópia indisponível';
     }
+  });
+  // Atalhos editoriais sem tocar em streams, catálogo ou segredos.
+  // A escolha apenas preenche o formulário; alterações só valem após Salvar.
+  const presets = {
+    streaming: {
+      tvTitle: 'Ao vivo agora', moviesTitle: 'Filmes para você',
+      seriesTitle: 'Séries para maratonar',
+      tvKeywords: 'TV, Canais, Esportes, Notícias',
+      moviesKeywords: 'Filmes, Cinema, Lançamentos, VOD',
+      seriesKeywords: 'Séries, Temporadas, Episódios'
+    },
+    courses: {
+      tvTitle: 'Aulas ao vivo', moviesTitle: 'Cursos disponíveis',
+      seriesTitle: 'Módulos e trilhas',
+      tvKeywords: 'Lives, Ao vivo, Webinars',
+      moviesKeywords: 'Cursos, Formação, Treinamento',
+      seriesKeywords: 'Módulos, Aulas, Lições'
+    },
+    generic: {
+      tvTitle: 'Assista agora', moviesTitle: 'Para descobrir',
+      seriesTitle: 'Explore sua biblioteca',
+      tvKeywords: '', moviesKeywords: '', seriesKeywords: ''
+    }
+  };
+  document.querySelectorAll('[data-admin-preset]').forEach(button => {
+    button.addEventListener('click', () => {
+      const preset = presets[button.dataset.adminPreset];
+      if (!preset) return;
+      for (const [key, value] of Object.entries(preset)) {
+        const field = $('admin-' + key);
+        if (field) field.value = value;
+      }
+      document.querySelectorAll('[data-admin-preset]').forEach(other => {
+        other.setAttribute('aria-pressed', String(other === button));
+      });
+      const message = $('admin-preset-status');
+      if (message) message.textContent = 'Modelo preenchido. Clique em Salvar personalização para aplicar.';
+    });
   });
   $('admin-reset')?.addEventListener('click', () => {
     configRaw = {};
