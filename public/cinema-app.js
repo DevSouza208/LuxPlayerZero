@@ -51,7 +51,11 @@ function updateBridgePanel() {
   const sourceIsHttp = isBridgeRequired(els.url.value) && els.type.value !== 'direct';
   const catalogueHasHttp = channels.some(item => isBridgeRequired(item.url));
   // Não pedir uma chave para reproduzir vídeo: ela é somente para salvar a lista.
-  els.bridgePanel.hidden = !(bridgeNeeded || (sourceIsHttp && bridgeStatus?.snapshotReady));
+  const remembered = !channels.length && Boolean(savedSnapshot());
+  const canReconnect = remembered && bridgeStatus?.snapshotReady && !bridgeStatus?.connected;
+  els.bridgePanel.hidden = !(bridgeNeeded || (sourceIsHttp && bridgeStatus?.snapshotReady) || canReconnect);
+  const reconnectPanel = $('restore-library-panel');
+  if (reconnectPanel) reconnectPanel.hidden = !canReconnect;
   const presentation = describeBridge(bridgeStatus, catalogueHasHttp);
   els.bridgeAvailability.textContent = presentation.message;
   els.bridgeAvailability.dataset.kind = presentation.kind;
@@ -458,14 +462,17 @@ async function importSource(event) {
 els.type.addEventListener('change', updateForm);
 els.form.addEventListener('submit', event => { void importSource(event); });
 els.file.addEventListener('change', async () => {
+  const generation = ++sourceLoad;
   const file = els.file.files?.[0];
   if (!file) return;
   try {
     if (file.size > 20 * 1024 * 1024) throw new Error('Arquivo excede 20 MB.');
     const entries = parseM3u(await file.text());
     if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
-    setChannels(entries, file.name);
-    updateBridgePanel();
+    if (generation === sourceLoad) {
+      setChannels(entries, file.name);
+      updateBridgePanel();
+    }
   } catch (error) { fail(errorText(error)); }
   finally { els.file.value = ''; }
 });
@@ -535,6 +542,39 @@ async function restoreSavedLibrary() {
     }
   }
 }
+$('restore-library')?.addEventListener('click', async () => {
+  const key = els.bridgeKey.value.trim();
+  if (!savedSnapshot()) { note('Nenhuma biblioteca guardada para recuperar.', 'info'); return; }
+  if (!key) {
+    note('Informe a chave privada do gateway para restaurar a biblioteca.', 'info');
+    els.bridgeKey.focus();
+    return;
+  }
+  const button = $('restore-library');
+  button.disabled = true;
+  button.textContent = 'Validando sessão…';
+  try {
+    const response = await fetch('/api/bridge/connect', {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      referrerPolicy: 'no-referrer',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ key })
+    });
+    els.bridgeKey.value = '';
+    if (!response.ok) {
+      note('A chave não foi aceita. Confira as credenciais do gateway.', 'error');
+      return;
+    }
+    await refreshBridgeStatus();
+    await restoreSavedLibrary();
+  } catch {
+    note('Não foi possível restabelecer a sessão privada. Tente novamente.', 'error');
+  } finally {
+    els.bridgeKey.value = '';
+    button.disabled = false;
+    button.innerHTML = '↺ &nbsp; Reconectar e restaurar biblioteca';
+  }
+});
 updateForm();
 void (async () => {
   await refreshBridgeStatus();
