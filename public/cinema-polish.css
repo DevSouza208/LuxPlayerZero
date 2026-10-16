@@ -80,3 +80,22 @@
 }
 @media(max-width:440px){.admin-presets{grid-template-columns:1fr}.cinema-shell .hero-content h1{font-size:38px}.cinema-shell .hero-poster{right:16px}}
 @media(prefers-reduced-motion:reduce){.cinema-shell .media-card,.cinema-shell .hero-primary,.cinema-shell .hero-secondary,.admin-presets button{transition:none!important;transform:none!important}}
+
+/* Feedback explícito do Aplicar e salvar e configuração privada TMDB. */
+.admin-connection-status,.admin-save-status{margin:4px 0 8px;border:1px solid #77608b77;border-radius:10px;background:#211629;color:#d8c4e7;padding:11px 13px;font:500 12px/1.65 'Outfit',sans-serif}
+.admin-connection-status[data-ready="true"]{border-color:#946bb77b;background:#261831;color:#e2d1f4}
+.admin-connection-status[data-ready="false"]{border-color:#d99c6d73;background:#34201f;color:#ffd3b7}
+.admin-save-status{border:0;background:none;margin:0;padding:0;color:#a998b7;font-size:11px}
+.cinema-feedback{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;z-index:120;width:max-content;max-width:min(92vw,680px);padding:14px 20px;border:1px solid #9774b6;border-radius:12px;background:#201529f5;box-shadow:0 14px 58px #000c;color:#f8f1ff;text-align:center;font:600 13px/1.55 'Outfit',sans-serif;backdrop-filter:blur(18px)}
+.cinema-feedback[data-warning="true"]{background:#33211ff5;border-color:#cd856c;color:#ffe1d4}
+.cinema-feedback[hidden]{display:none!important}
+@media(max-width:520px){.cinema-feedback{bottom:15px;font-size:12px;padding:13px 14px}.lux-admin-dialog .admin-save{width:100%}}
+
+/* Sessão privada expirada: restauração do índice no R2 sem URL da fonte. */
+.restore-library-panel{margin-top:18px;padding:15px;border:1px solid #8a65a66e;border-radius:12px;background:#281b34;display:flex;flex-direction:column;gap:9px}
+.restore-library-panel[hidden]{display:none!important}
+.restore-library-panel strong{font:700 13px 'Outfit',sans-serif;color:#eee2fa}
+.restore-library-panel p{font:400 11px/1.65 'Outfit',sans-serif;color:#b9a5cb;margin:0}
+.restore-library-panel button{padding:11px 12px;min-height:43px;border:1px solid #a677d6;border-radius:8px;background:linear-gradient(115deg,#7e3dc7,#a473dd);color:#fff;font:700 12px 'Outfit',sans-serif}
+.restore-library-panel button:hover{filter:brightness(1.09)}
+.restore-library-panel button:disabled{opacity:.55;cursor:wait}

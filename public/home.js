@@ -8,7 +8,8 @@ function read(key, fallback) {
   catch { return fallback; }
 }
 function write(key, value) {
-  try { localStorage.setItem(STORAGE + key, JSON.stringify(value)); } catch {}
+  try { localStorage.setItem(STORAGE + key, JSON.stringify(value)); return true; }
+  catch { return false; }
 }
 function validEntries(value) {
   if (!Array.isArray(value)) return [];
@@ -61,6 +62,39 @@ export function createHome({ play } = {}) {
   const MAX_AUTO_ENRICH = 4;
 
   const adminDialog = $('admin-dialog');
+  let toastTimeout = null;
+  function flash(message, warning = false) {
+    const feedback = $('cinema-feedback');
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.dataset.warning = warning ? 'true' : 'false';
+    feedback.hidden = false;
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => { feedback.hidden = true; }, 6500);
+  }
+  async function tmdbConfigured() {
+    try {
+      const response = await fetch('/api/metadata/status', {
+        credentials: 'same-origin', cache: 'no-store', referrerPolicy: 'no-referrer'
+      });
+      if (!response.ok) return false;
+      const data = await response.json();
+      return data?.configured === true;
+    } catch { return false; }
+  }
+  async function showTmdbStatus() {
+    const status = $('admin-tmdb-status');
+    if (status) status.textContent = 'Verificando integração privada do TMDB…';
+    const configured = await tmdbConfigured();
+    if (status) {
+      status.textContent = configured ?
+        'Chave do TMDB e banco D1 detectados na Cloudflare. Imagens são buscadas sob demanda, com cache e limite de consultas.' :
+        'TMDB ainda não configurado neste ambiente: cadastre TMDB_API_KEY como Secret e confirme o binding DB (D1) na Cloudflare Pages.';
+      status.dataset.ready = configured ? 'true' : 'false';
+    }
+    return configured;
+  }
+
   const railsRoot = $('home-rails');
 
   function openDialog(dialog) {
@@ -149,6 +183,7 @@ export function createHome({ play } = {}) {
       if (checkbox) checkbox.checked = configRaw[flag] !== false;
     }
     openDialog(adminDialog);
+    void showTmdbStatus();
   });
   document.querySelectorAll('[data-close-dialog]').forEach(button => {
     button.addEventListener('click', () => closeDialog($(button.dataset.closeDialog)));
@@ -501,12 +536,35 @@ export function createHome({ play } = {}) {
     for (const key of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty']) {
       next[key] = Boolean($('admin-' + key)?.checked);
     }
+    // Salvar deve realmente funcionar; em caso de storage bloqueado, não fingir sucesso.
+    if (!write('settings', next)) {
+      flash('Não foi possível salvar neste navegador. Libere o armazenamento local.', true);
+      const status = $('admin-save-status');
+      if (status) status.textContent = 'Falha ao salvar: armazenamento indisponível.';
+      return;
+    }
+    const imageModeChanged = next.imageEngine !== configRaw.imageEngine ||
+      next.summaryEngine !== configRaw.summaryEngine;
     configRaw = next;
     config = normalizeSettings(next);
-    write('settings', configRaw);
+    if (imageModeChanged) {
+      tmdbCalls = 0;
+      autoEnriched = 0;
+      tmdbResolved.clear();
+    }
     rebuild();
     render();
     closeDialog(adminDialog);
+    flash('✓ Personalização aplicada e salva neste navegador.');
+    const wantsTmdb = config.imageEngine !== 'playlist' || config.summaryEngine === 'tmdb';
+    if (wantsTmdb) {
+      void tmdbConfigured().then(ready => {
+        flash(ready ?
+          '✓ Personalização aplicada e salva. TMDB configurado; capas serão carregadas conforme houver correspondências.' :
+          '✓ Personalização aplicada e salva. TMDB precisa da chave TMDB_API_KEY e D1 na Cloudflare para carregar imagens.',
+          !ready);
+      });
+    }
   });
   $('admin-export')?.addEventListener('click', async () => {
     const button = $('admin-export');
