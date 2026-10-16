@@ -10,24 +10,24 @@ export function validSnapshotId(value) {
   return typeof value === 'string' && ID.test(value);
 }
 
-export function rememberSnapshot(catalogId, storage = localStorage) {
+export function rememberSnapshot(catalogId, storage = null) {
   if (!validSnapshotId(catalogId)) return false;
   try {
-    storage.setItem(KEY, JSON.stringify({ id: catalogId, savedAt: Date.now() }));
+    (storage || localStorage).setItem(KEY, JSON.stringify({ id: catalogId, savedAt: Date.now() }));
     return true;
   } catch { return false; }
 }
 
-export function savedSnapshot(storage = localStorage) {
+export function savedSnapshot(storage = null) {
   try {
-    const value = JSON.parse(storage.getItem(KEY));
+    const value = JSON.parse((storage || localStorage).getItem(KEY));
     if (!validSnapshotId(value?.id)) return null;
     return value.id;
   } catch { return null; }
 }
 
-export function forgetSnapshot(storage = localStorage) {
-  try { storage.removeItem(KEY); return true; } catch { return false; }
+export function forgetSnapshot(storage = null) {
+  try { (storage || localStorage).removeItem(KEY); return true; } catch { return false; }
 }
 
 export function snapshotPath(id) {
