@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/home.css">
   <link rel="stylesheet" href="/cinema-premium.css">
+  <link rel="stylesheet" href="/cinema-polish.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
   <script type="module" src="/cinema-app.js"></script>
@@ -180,6 +181,13 @@
       </div>
     </div>
     <p class="admin-engine-note">TMDB é opcional. Não altera o título da playlist nem o que é reproduzido. Sem consultas em massa: máximo de 1 busca por título, cache no D1 e limite diário; em caso de dúvida, mantém os dados originais.</p>
+    <div class="admin-section-title">MODELOS RÁPIDOS PARA SUA BIBLIOTECA</div>
+    <div class="admin-presets" role="group" aria-label="Sugestões de nomes para as vitrines">
+      <button type="button" data-admin-preset="streaming" aria-pressed="false"><span class="preset-icon">▣</span> Streaming</button>
+      <button type="button" data-admin-preset="courses" aria-pressed="false"><span class="preset-icon">▤</span> Cursos e aulas</button>
+      <button type="button" data-admin-preset="generic" aria-pressed="false"><span class="preset-icon">✦</span> Biblioteca livre</button>
+    </div>
+    <p id="admin-preset-status" class="admin-preset-status" role="status" aria-live="polite">Selecione um modelo ou personalize os títulos manualmente.</p>
     <div class="admin-section-title">VITRINES PERSONALIZÁVEIS</div>
     <div class="admin-field"><label for="admin-tvTitle">VITRINE 1 · NOME</label><input id="admin-tvTitle" type="text" maxlength="90" placeholder="Destaques da TV"><label for="admin-tvKeywords">GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)</label><input id="admin-tvKeywords" type="text" maxlength="220" placeholder="TV, Esportes, Notícias"></div>
     <div class="admin-field"><label for="admin-moviesTitle">VITRINE 2 · NOME</label><input id="admin-moviesTitle" type="text" maxlength="90" placeholder="Filmes ou Cursos"><label for="admin-moviesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-moviesKeywords" type="text" maxlength="220" placeholder="Filmes, Cursos, Aulas"></div>
@@ -195,6 +203,7 @@
   <div class="details-visual">
     <img id="details-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
     <div class="details-shade"></div>
+    <div class="details-poster-frame"><img id="details-poster" alt="" hidden><span id="details-poster-fallback" aria-hidden="true">LUX</span></div>
     <span id="details-kicker" class="details-kicker">LUX PLAYER · DA SUA BIBLIOTECA</span>
   </div>
   <div class="details-body">
@@ -209,5 +218,6 @@
     </div>
   </div>
 </dialog>
+<footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
 </body>
 </html>
