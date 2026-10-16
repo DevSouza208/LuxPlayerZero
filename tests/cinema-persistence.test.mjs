@@ -73,3 +73,13 @@ test('Status do TMDB não divulga chave e só considera pronto com D1', () => {
   assert.ok(status.includes('env?.DB?.prepare'));
   assert.ok(!status.includes('JSON.stringify(env'));
 });
+
+test('Após expirar o cookie, a interface permite reconectar com a chave sem reimportar URL', () => {
+  const js = path('cinema-app.js'), html = path('cinema.html');
+  assert.ok(html.includes('id="restore-library"'));
+  assert.ok(html.includes('id="restore-library-panel"'));
+  assert.ok(js.includes("fetch('/api/bridge/connect'"));
+  assert.ok(js.includes('await restoreSavedLibrary()'));
+  assert.ok(js.includes("els.bridgeKey.value = ''"));
+  assert.ok(js.includes('sourceLoad++'), 'Mudanças de fonte devem cancelar restauração em andamento.');
+});
