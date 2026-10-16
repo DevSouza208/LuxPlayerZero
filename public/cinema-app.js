@@ -3,6 +3,7 @@ import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
 import { createHome } from './home.js';
+import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot } from './saved-catalog.js';
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -28,6 +29,8 @@ let watchdog = null;
 let history = [];
 let bridgeStatus = null;
 let bridgeNeeded = false;
+// A referência privada do R2 é salva somente após uma importação bem-sucedida.
+let lastSnapshotId = null;
 // A vitrine é opcional: erros de interface nunca podem derrubar importação/reprodução.
 let home = null;
 try { home = createHome({ play: item => playItem(item) }); }
@@ -121,6 +124,7 @@ async function request(url, as = 'text') {
   if (isHttpCatalog && bridgeStatus?.snapshotReady &&
       (bridge.isConnected() || bridgeStatus.connected || els.bridgeKey.value.trim())) {
     const result = await bridge.snapshot(url);
+    lastSnapshotId = result.catalogId || null;
     log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
       'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');
     return result.content;
@@ -147,6 +151,7 @@ async function request(url, as = 'text') {
 
       if (isHttpCatalog && bridgeStatus?.snapshotReady) {
         const result = await bridge.snapshot(url);
+        lastSnapshotId = result.catalogId || null;
         log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
           'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');
         return result.content;
@@ -164,7 +169,7 @@ async function request(url, as = 'text') {
     throw error;
   } finally { clearTimeout(timeout); }
 }
-function setChannels(items, caption) {
+function setChannels(items, caption, snapshotId = null) {
   channels = items.map((item, index) => ({ ...item, id: 'c' + index }));
   selected = null;
   stop();
@@ -176,6 +181,10 @@ function setChannels(items, caption) {
   homeCall('setItems', channels);
   note(channels.length + ' item(ns) disponíveis em ' + caption + '. Selecione um para reproduzir.');
   log('Catálogo importado', String(channels.length) + ' entradas');
+  if (snapshotId) {
+    if (!rememberSnapshot(snapshotId)) log('Memória da biblioteca', 'Armazenamento local indisponível');
+    else log('Memória da biblioteca', 'Referência privada do R2 salva');
+  } else forgetSnapshot();
 }
 function render() {
   const query = els.search.value.toLocaleLowerCase('pt-BR').trim();
@@ -390,6 +399,7 @@ async function importSource(event) {
   const generation = ++sourceLoad;
   const mode = els.type.value;
   const input = els.url.value.trim();
+  lastSnapshotId = null;
   if (!input) { note('Informe o endereço da fonte.', 'error'); return; }
   updateBridgePanel();
   els.connect.disabled = true;
@@ -403,7 +413,7 @@ async function importSource(event) {
       const text = await request(input);
       const entries = parseM3u(text, input);
       if (!entries.length) throw new Error('A lista não contém mídias HTTP/HTTPS válidas.');
-      if (generation === sourceLoad) setChannels(entries, 'M3U');
+      if (generation === sourceLoad) setChannels(entries, 'M3U', lastSnapshotId);
     } else {
       const base = normalizeXtreamBase(input);
       checkProtocol(base);
@@ -434,7 +444,7 @@ async function importSource(event) {
           url: buildXtreamLiveUrl(base, user, pass, stream.stream_id, extension)
         }));
       }
-      if (generation === sourceLoad) setChannels(entries, 'Xtream');
+      if (generation === sourceLoad) setChannels(entries, 'Xtream', lastSnapshotId);
     }
   } catch (error) {
     if (generation === sourceLoad) fail(errorText(error));
@@ -461,7 +471,7 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { sourceLoad++; forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;
@@ -478,5 +488,55 @@ els.demo.addEventListener('click', async () => {
     els.demo.disabled = false;
   }
 });
+/**
+ * Não precisamos guardar 260 mil itens nem URLs com senha no localStorage.
+ * O snapshot privado foi salvo em R2; só salvamos seu ID aleatório no dispositivo.
+ * A resposta HTTP é autenticada pelo cookie HttpOnly válido por 7 dias.
+ */
+async function restoreSavedLibrary() {
+  const id = savedSnapshot();
+  if (!id || channels.length) return;
+  if (!bridgeStatus?.snapshotReady) {
+    note('A biblioteca anterior está referenciada no dispositivo, mas o R2 está indisponível.', 'info');
+    return;
+  }
+  if (!bridgeStatus.connected) {
+    note('Sua biblioteca foi lembrada. Reconecte a chave do gateway para recuperar a lista do R2.', 'info');
+    return;
+  }
+  const generation = sourceLoad;
+  note('Restaurando sua biblioteca privada do R2…', 'info');
+  try {
+    const result = await readSavedSnapshot(id);
+    if (generation !== sourceLoad) return;
+    if (result.kind === 'needs-session') {
+      note('Sessão expirada. Reconecte o gateway para recuperar sua biblioteca salva.', 'info');
+      return;
+    }
+    if (result.kind === 'not-found') {
+      forgetSnapshot();
+      note('O snapshot antigo não foi encontrado. Conecte sua lista para gerar um novo.', 'info');
+      return;
+    }
+    if (result.kind !== 'ok') {
+      note('Não foi possível recuperar a playlist do R2. A referência foi preservada para tentar novamente.', 'info');
+      return;
+    }
+    const entries = parseM3u(result.content);
+    if (!entries.length) throw new Error('O snapshot salvo não tem mídias válidas.');
+    if (generation === sourceLoad) {
+      setChannels(entries, 'R2 (biblioteca restaurada)', id);
+      note(entries.length.toLocaleString('pt-BR') + ' títulos restaurados automaticamente do R2.', 'info');
+    }
+  } catch {
+    if (generation === sourceLoad) {
+      note('Falha ao restaurar o catálogo. A referência no R2 foi mantida para a próxima tentativa.', 'info');
+      log('Biblioteca', 'Restauração privada falhou');
+    }
+  }
+}
 updateForm();
-void refreshBridgeStatus();
+void (async () => {
+  await refreshBridgeStatus();
+  await restoreSavedLibrary();
+})();
