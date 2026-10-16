@@ -90,3 +90,12 @@
 .cinema-feedback[data-warning="true"]{background:#33211ff5;border-color:#cd856c;color:#ffe1d4}
 .cinema-feedback[hidden]{display:none!important}
 @media(max-width:520px){.cinema-feedback{bottom:15px;font-size:12px;padding:13px 14px}.lux-admin-dialog .admin-save{width:100%}}
+
+/* Sessão privada expirada: restauração do índice no R2 sem URL da fonte. */
+.restore-library-panel{margin-top:18px;padding:15px;border:1px solid #8a65a66e;border-radius:12px;background:#281b34;display:flex;flex-direction:column;gap:9px}
+.restore-library-panel[hidden]{display:none!important}
+.restore-library-panel strong{font:700 13px 'Outfit',sans-serif;color:#eee2fa}
+.restore-library-panel p{font:400 11px/1.65 'Outfit',sans-serif;color:#b9a5cb;margin:0}
+.restore-library-panel button{padding:11px 12px;min-height:43px;border:1px solid #a677d6;border-radius:8px;background:linear-gradient(115deg,#7e3dc7,#a473dd);color:#fff;font:700 12px 'Outfit',sans-serif}
+.restore-library-panel button:hover{filter:brightness(1.09)}
+.restore-library-panel button:disabled{opacity:.55;cursor:wait}
