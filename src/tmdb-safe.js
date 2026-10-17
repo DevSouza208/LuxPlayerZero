@@ -111,7 +111,7 @@ export function chooseExactMatch(query, results) {
     const proximity = query.year === null ? 0 :
       Math.max(0, ...names.map(name => similarity(normalized, canonical(name))));
     const score = exact ? 1 : canonicalExact ? .99 : proximity;
-    if (score >= .88) scored.push({ row, score });
+    if (score >= .86) scored.push({ row, score });
   }
   const unique = [...new Map(scored.map(entry => [entry.row.id, entry])).values()]
     .sort((a, b) => b.score - a.score);
