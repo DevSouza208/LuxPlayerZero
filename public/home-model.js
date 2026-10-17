@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   heroBackdrop: '',
   railOrder: 'personal',
   density: 'comfortable',
-  imageEngine: 'playlist',
+  imageEngine: 'tmdb',
   summaryEngine: 'off'
 });
 
