@@ -80,3 +80,8 @@ CI 39000764614 aprovou 143 testes, login pelo Lux ID com abertura do perfil padr
 - Testes cobrem homônimos, IDs, episódio declarado, número inválido, preservação de URL e contagem. Smoke do guia usa dados fictícios cadastrados no SQLite local pelo endpoint real e verifica agora/próximo; nenhum EPG é simulado em produção.
 
 Validação final desta rodada: CI 39001246313 aprovado, 145 testes + smoke com perfis, Lux ID, diagnóstico, filtros mobile, setas, offline/online, callback de continuação e guia rápido com fixture EPG local. Nenhuma mídia real foi reproduzida nem serviço de produção alterado.
+
+### Sugestões após assistir
+O callback existente de término abre sugestões de até seis títulos do catálogo ao finalizar um filme ou chegar ao último episódio disponível. Apenas gêneros declarados alimentam a seleção; toda a série finalizada é excluída, episódios sugeridos são agrupados em um título por série e itens assistidos são omitidos. Os botões abrem os detalhes reais, sem iniciar mídia automaticamente. Personalização desativada e ausência de gêneros/candidatos têm estados explícitos. A continuação de episódios disponíveis permanece independente. Trocar de item, catálogo ou configuração cancela o painel. O service worker usa shell 12.
+
+Verificação: 146 testes locais, incluindo exclusão de séries/assistidos, opt-out e imutabilidade das entradas. Smoke de navegador ampliado para ações dos botões, texto seguro e largura de 320px. Teste com mídia real permanece necessário; os callbacks de reprodução no smoke são simulados.

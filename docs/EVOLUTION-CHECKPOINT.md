@@ -77,3 +77,10 @@ Código validado localmente em 053c003; CI 39001246313 aprovado com 145 testes e
 A configuração de revisão agora requer 0009_account_defaults.sql além de 0003–0008 e do schema original. Nenhuma migração remota, deploy ou merge foi feito. Os 13 arquivos protegidos continuam idênticos. O parser recebeu somente metadados opcionais de episódios, mantendo URLs, ordem, contagem, download e inferência de tipo.
 
 Próximas pendências concretas: recomendações no fim da reprodução, coleções/franquias vinculadas ao catálogo, revisão de correspondências TMDB, comparação de versões de snapshots e preferências de idioma/legendas/aparência. Validar separadamente mídias autorizadas, PWA instalado e TV real. E-mail/OAuth, feeds periódicos de EPG e controle parental permanecem dependentes de configuração/contrato seguro; não simular disponibilidade.
+
+## Retomada — sugestões após assistir
+Código local ca81a76 / remoto f5bc77837993d41af79882456619c7244cb7ef27, CI 39002084031 aprovado: sintaxe, 146 testes e browser smoke. Implementado painel ao terminar filme ou último episódio disponível, com botões de detalhes, gêneros declarados, exclusão da série finalizada, agrupamento de sugestões de séries, opt-out e estado vazio. A captura de 320px do mesmo recurso em cab6ed6 foi revisada; a correção subsequente apenas preserva a mensagem ao ocultar a aba. Shell PWA 12. Arquivos protegidos continuam idênticos.
+
+CSV: 67 concluídas, 142 em construção, 31 pendentes, 15 bloqueadas. LUX-085/105/163/164 permanecem em construção até validar o callback de término com mídia autorizada real. CI usa callbacks simulados, sem reprodução. Nenhum deploy, merge ou migração remota.
+
+Ponto exato: recomendações pós-reprodução implementadas e verificadas no PR #16. Coleções/franquias (LUX-058/165), revisão TMDB, comparação de snapshots e preferências continuam pendentes; não foram implementadas neste bloco. Antes de continuar, consultar CSV e preservar os mesmos 13 arquivos protegidos. Produção, mídias reais, PWA instalado, TV física e configurações externas continuam sem validação.
