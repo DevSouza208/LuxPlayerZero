@@ -21,6 +21,7 @@ const assert=require('node:assert/strict');
   await page.locator('input[type=file]').setInputFiles({name:'fixture.m3u',mimeType:'audio/x-mpegurl',buffer:Buffer.from(fixture)});
   await page.getByRole('button',{name:/Ver detalhes de Jornada/}).first().click();await page.locator('.lux-fullscreen-detail[open]').waitFor();
   await page.getByRole('tab',{name:'Temporada 2',exact:true}).click();assert.equal(await page.locator('.lux-full-episode-card').count(),1);
+  await page.keyboard.press('ArrowLeft');assert.equal(await page.getByRole('tab',{name:'Temporada 1',exact:true}).getAttribute('aria-selected'),'true');await page.keyboard.press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'Temporada 2',exact:true}).getAttribute('aria-selected'),'true');
   const assertFullscreen=async()=>assert.equal(await page.locator('.lux-fullscreen-detail').evaluate(el=>{const r=el.getBoundingClientRect();return Math.abs(r.x)<1&&Math.abs(r.y)<1&&Math.abs(r.width-innerWidth)<1&&Math.abs(r.height-innerHeight)<1&&el.matches(':modal')}),true);
   await assertFullscreen();await page.screenshot({path:'test-results/series-desktop.png'});
   await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>Boolean(document.activeElement.closest('.lux-fullscreen-detail'))),true);

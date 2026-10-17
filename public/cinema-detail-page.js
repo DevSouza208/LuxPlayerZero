@@ -19,19 +19,20 @@ export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onF
  '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section></section>';
  const page=shell.firstElementChild, $=selector=>shell.querySelector(selector);
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
- let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null;
+ let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
  const selectedSeasons=new Map();
  const setPhoto=(target,value)=>{target.onerror=()=>{target.hidden=true;if(target===poster)fallback.hidden=false};const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
  const play=entry=>{if(!entry)return;suspend();onPlay?.(entry)};
- function renderSeason(){
+ function renderSeason(focusSelected=false){
   if(!series?.seasons?.length)return;
   const selected=series.seasons.find(s=>s.number===season)||series.seasons[0];season=selected.number;
   $('.lux-full-season-title').textContent='Temporada '+season;
   const header=document.createDocumentFragment();
   for(const row of series.seasons){const btn=make('button','lux-full-season-tab'+(row.number===season?' is-active':''),'Temporada '+row.number);
-   btn.type='button';btn.setAttribute('role','tab');btn.setAttribute('aria-selected',String(row.number===season));
-   btn.addEventListener('click',()=>{season=row.number;selectedSeasons.set(series.key,season);onSeason?.(series.key,season);renderSeason()});header.append(btn)}
+   btn.type='button';btn.tabIndex=row.number===season?0:-1;btn.setAttribute('role','tab');btn.setAttribute('aria-selected',String(row.number===season));
+   btn.addEventListener('click',()=>{season=row.number;selectedSeasons.set(series.key,season);onSeason?.(series.key,season);renderSeason(true)});header.append(btn)}
   $('.lux-full-season-choices').replaceChildren(header);
+  if(focusSelected)$('[role=tab][aria-selected=true]')?.focus();
   const grid=document.createDocumentFragment();
   for(const row of selected.episodes){
    const card=make('button','lux-full-episode-card');card.type='button';
@@ -47,7 +48,7 @@ export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onF
   $('.lux-full-episode-grid').replaceChildren(grid);
  }
  function open(next,opts={}){
-  if(!next)return;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
+  if(!next)return;lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
   epoch++;const currentEpoch=epoch;
   if(first){returnFocus=document.activeElement;oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden'}
   opened=true;suspended=false;shell.hidden=false;if(!shell.open)shell.showModal();shell.scrollTop=0;
@@ -59,7 +60,7 @@ export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onF
     [next.catalogYear,next.normalizedGroup||next.group].filter(Boolean).join(' · ');
   const desc=$('.lux-full-description');desc.hidden=true;desc.textContent='';
   const credits=$('.lux-full-credits');credits.hidden=true;credits.replaceChildren();
-  const resume=series?.episodes.find(row=>getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
+  const resume=series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
   const playLabel=$('[data-full-play] span');playLabel.textContent=resume?'Continuar T'+resume.season+':E'+resume.number:(getProgress?.(next)?.position>15?'Continuar':'Começar');
   $('[data-full-watched]').textContent=isWatched?.(next)?'Marcar não assistido':'Marcar assistido';
   $('[data-full-favorite]').textContent=isFavorite?.(next)?'♥ Na minha lista':'＋ Minha lista';
@@ -97,18 +98,23 @@ export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onF
  }
  function resume(){
    if(!suspended||!item)return false;
-   oldOverflow=document.body.style.overflow;
-   document.body.style.overflow='hidden';suspended=false;opened=true;
-   shell.hidden=false;if(!shell.open)shell.showModal();page.focus({preventScroll:true});return true;
+   open(item,lastOptions);return true;
  }
  function close(){
    if(!opened&&!suspended)return;
    opened=false;suspended=false;epoch++;shell.close();shell.hidden=true;returnFocus?.focus?.();
    document.body.style.overflow=oldOverflow;series=null;item=null;
  }
+ $('.lux-full-season-choices').addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+  const tabs=[...$('.lux-full-season-choices').querySelectorAll('[role=tab]')],index=tabs.indexOf(document.activeElement);
+  if(index<0)return;event.preventDefault();
+  const target=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+  tabs[target].click();
+ });
  shell.addEventListener('click',event=>{
   if(event.target.closest('[data-full-close]'))close();
-  else if(event.target.closest('[data-full-play]'))play((series?.episodes.find(row=>getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0])?.item||item);
+  else if(event.target.closest('[data-full-play]'))play((series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0])?.item||item);
   else if(event.target.closest('[data-full-watched]')&&item){void Promise.resolve(onWatched?.(item)).then(()=>{$('[data-full-watched]').textContent=isWatched?.(item)?'Marcar não assistido':'Marcar assistido';if(series)renderSeason()})}
   else if(event.target.closest('[data-full-favorite]')&&item){onFavorite?.(item);$('[data-full-favorite]').textContent=isFavorite?.(item)?'♥ Na minha lista':'＋ Minha lista'}
  });

@@ -55,3 +55,14 @@ Nenhuma fase funcional foi marcada como concluída. OAuth, e-mail, EPG e esporte
 
 ## Atualização — execução retomada
 O usuário autorizou continuar todo o prompt com acompanhamento por CSV. O checkpoint inicial acima é histórico. Consulte agora `TAREFAS.csv` e `EVOLUTION-IMPLEMENTATION.md`. A implementação não parou no planejamento; módulos de contas, perfis, catálogo, guia e recomendações foram adicionados em revisão. Nenhum deploy ou merge foi feito.
+
+
+## Ponto de retomada — 17/10/2026, revisão #16
+- Branch: feat/streaming-evolution-20261017. PR em rascunho: https://github.com/DevSouza208/LuxPlayerZero/pull/16.
+- Controle: 255 tarefas em docs/TAREFAS.csv, cada uma com evidência e bloqueio. Status não equivale a publicação.
+- Contas, perfis, MFA, guia, esportes manuais, indexação secundária, metadados detalhados e continuação de episódios implementados em revisão.
+- 139 testes locais aprovados; CI 38999705743 aprovou 138 testes e smoke anterior. Nova rodada inclui continuação de episódios. Screenshots desktop/mobile do modal e conta revisadas.
+- Arquivos protegidos seguem idênticos ao baseline. Nenhum merge, migração remota ou deploy executado.
+- Retomada técnica: verificar CI do head atual, seguir linhas pendentes do CSV; priorizar preferências/default profile, filtros, revisão de correspondências, diagnóstico de catálogo e navegação TV. Não confundir recursos já implementados com os ainda pendentes.
+- Dependências externas: descobrir branch/bindings de produção por acesso Cloudflare autorizado; configurar provedores OAuth/e-mail e fontes de EPG autorizadas; validar mídia real, PWA instalado e Smart TV. Não contornar proteção do bridge para implementar controle parental.
+- Antes de qualquer publicação: aplicar migrações 0003–0008 em D1 isolado, configurar secrets fora do git, testar fontes autorizadas e revisar o PR. O baseline não tem a 0002 do PR14; não aplicar automaticamente a cadeia de outro PR.
