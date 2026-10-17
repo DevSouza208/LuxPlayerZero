@@ -1,0 +1,256 @@
+﻿id;fase;tarefa;status;evidencia;bloqueio;atualizado_em
+LUX-001;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Ler todo o repositório LuxPlayerZero.;pendente;;;2026-10-17
+LUX-002;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Ler `AGENTS.md`, `DESIGN.md` e `PRODUCT.md`.;concluído;"Lidos no head do PR15; ausentes na main";;2026-10-17
+LUX-003;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Examinar os PRs #14 e #15, que ainda são trabalho em revisão.;em construção;"Metadados e diff protegido examinados; revisão integral pendente";;2026-10-17
+LUX-004;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Ler a documentação técnica e visual do Lux Player 2.0.;pendente;;;2026-10-17
+LUX-005;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Identificar os componentes existentes que podem ser reaproveitados.;pendente;;;2026-10-17
+LUX-006;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Identificar código duplicado, funções não utilizadas e problemas arquiteturais.;pendente;;;2026-10-17
+LUX-007;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Confirmar qual branch está implantada no Cloudflare.;pendente;;;2026-10-17
+LUX-008;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Criar uma branch de desenvolvimento própria, com backup do estado funcional.;em construção;"feat/streaming-evolution-20261017 em 20aa1fd; backup remoto pendente";;2026-10-17
+LUX-009;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Registrar as áreas protegidas de reprodução e importação HTTPS.;pendente;;;2026-10-17
+LUX-010;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Executar os testes existentes como referência inicial.;concluído;main 20aa1fd: 113/113 testes aprovados;;2026-10-17
+LUX-011;FASE 0 — AUDITORIA E PROTEÇÃO DO PROJETO;Criar checklist de validação antes de qualquer alteração.;pendente;;;2026-10-17
+LUX-012;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Preservar a atual tela visual de login Lux.;pendente;;;2026-10-17
+LUX-013;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Implementar fluxo Loading → Login → Home.;pendente;;;2026-10-17
+LUX-014;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Integrar login real com o D1.;pendente;;;2026-10-17
+LUX-015;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Implementar cadastro controlado por convites.;pendente;;;2026-10-17
+LUX-016;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Login por Lux ID, nome de usuário ou e-mail verificado.;pendente;;;2026-10-17
+LUX-017;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Login Google com OAuth seguro.;pendente;;;2026-10-17
+LUX-018;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Login Discord com OAuth seguro.;pendente;;;2026-10-17
+LUX-019;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Recuperação e alteração de senha por e-mail.;pendente;;;2026-10-17
+LUX-020;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Confirmação de e-mail.;pendente;;;2026-10-17
+LUX-021;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Sessões seguras persistentes.;pendente;;;2026-10-17
+LUX-022;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Logout local e revogação remota de sessões.;pendente;;;2026-10-17
+LUX-023;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Autenticação em dois fatores para administradores.;pendente;;;2026-10-17
+LUX-024;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Proteção contra tentativas repetidas de login.;pendente;;;2026-10-17
+LUX-025;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Proteção de APIs e páginas internas.;pendente;;;2026-10-17
+LUX-026;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Permissões de usuário e administrador.;pendente;;;2026-10-17
+LUX-027;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Exclusão ou desativação de contas.;pendente;;;2026-10-17
+LUX-028;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Gerenciamento dos dispositivos conectados.;pendente;;;2026-10-17
+LUX-029;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Isolamento absoluto dos dados de cada usuário.;pendente;;;2026-10-17
+LUX-030;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Histórico de ações administrativas.;pendente;;;2026-10-17
+LUX-031;FASE 1 — LOGIN, CONTAS E SEGURANÇA;Mensagens de erro claras e estados de carregamento.;pendente;;;2026-10-17
+LUX-032;FASE 2 — PERFIS LUX;Tela de seleção de perfis ao entrar.;pendente;;;2026-10-17
+LUX-033;FASE 2 — PERFIS LUX;Criar, renomear e excluir perfis.;pendente;;;2026-10-17
+LUX-034;FASE 2 — PERFIS LUX;Avatar e nome personalizados.;pendente;;;2026-10-17
+LUX-035;FASE 2 — PERFIS LUX;Perfil infantil.;pendente;;;2026-10-17
+LUX-036;FASE 2 — PERFIS LUX;PIN de proteção por perfil.;pendente;;;2026-10-17
+LUX-037;FASE 2 — PERFIS LUX;Classificação indicativa por perfil.;pendente;;;2026-10-17
+LUX-038;FASE 2 — PERFIS LUX;Preferência de idioma, legendas e aparência.;pendente;;;2026-10-17
+LUX-039;FASE 2 — PERFIS LUX;Favoritos individuais.;pendente;;;2026-10-17
+LUX-040;FASE 2 — PERFIS LUX;Histórico individual.;pendente;;;2026-10-17
+LUX-041;FASE 2 — PERFIS LUX;Continuar assistindo individual.;pendente;;;2026-10-17
+LUX-042;FASE 2 — PERFIS LUX;Sincronização de preferências entre dispositivos.;pendente;;;2026-10-17
+LUX-043;FASE 2 — PERFIS LUX;Escolha de perfil padrão.;pendente;;;2026-10-17
+LUX-044;FASE 2 — PERFIS LUX;Gestão de perfis pelo administrador da conta.;pendente;;;2026-10-17
+LUX-045;FASE 3 — HOME PREMIUM;Hero cinematográfico com banner e imagem apropriados.;pendente;;;2026-10-17
+LUX-046;FASE 3 — HOME PREMIUM;Filmes em destaque.;pendente;;;2026-10-17
+LUX-047;FASE 3 — HOME PREMIUM;Séries em destaque.;pendente;;;2026-10-17
+LUX-048;FASE 3 — HOME PREMIUM;TV ao vivo.;pendente;;;2026-10-17
+LUX-049;FASE 3 — HOME PREMIUM;Continuar assistindo.;pendente;;;2026-10-17
+LUX-050;FASE 3 — HOME PREMIUM;Minha lista.;pendente;;;2026-10-17
+LUX-051;FASE 3 — HOME PREMIUM;Adicionados recentemente.;pendente;;;2026-10-17
+LUX-052;FASE 3 — HOME PREMIUM;Lançamentos.;pendente;;;2026-10-17
+LUX-053;FASE 3 — HOME PREMIUM;Tendências.;pendente;;;2026-10-17
+LUX-054;FASE 3 — HOME PREMIUM;Filmes populares.;pendente;;;2026-10-17
+LUX-055;FASE 3 — HOME PREMIUM;Séries populares.;pendente;;;2026-10-17
+LUX-056;FASE 3 — HOME PREMIUM;Recomendados para você.;pendente;;;2026-10-17
+LUX-057;FASE 3 — HOME PREMIUM;Porque você assistiu...;pendente;;;2026-10-17
+LUX-058;FASE 3 — HOME PREMIUM;Coleções e franquias.;pendente;;;2026-10-17
+LUX-059;FASE 3 — HOME PREMIUM;Gêneros populares.;pendente;;;2026-10-17
+LUX-060;FASE 3 — HOME PREMIUM;Conteúdo infantil, quando permitido pelo perfil.;pendente;;;2026-10-17
+LUX-061;FASE 3 — HOME PREMIUM;Rails horizontais navegáveis.;pendente;;;2026-10-17
+LUX-062;FASE 3 — HOME PREMIUM;Skeletons e estados de carregamento.;pendente;;;2026-10-17
+LUX-063;FASE 3 — HOME PREMIUM;Tratamento de falhas de imagens.;pendente;;;2026-10-17
+LUX-064;FASE 3 — HOME PREMIUM;Responsividade para desktop, celular e TV.;pendente;;;2026-10-17
+LUX-065;FASE 3 — HOME PREMIUM;Estados vazios úteis.;pendente;;;2026-10-17
+LUX-066;FASE 3 — HOME PREMIUM;Preferências de personalização da Home.;pendente;;;2026-10-17
+LUX-067;FASE 4 — FILMES;Página de detalhes em tela cheia.;pendente;;;2026-10-17
+LUX-068;FASE 4 — FILMES;Banner e pôster priorizando correspondência correta no TMDB.;pendente;;;2026-10-17
+LUX-069;FASE 4 — FILMES;Nome normalizado.;pendente;;;2026-10-17
+LUX-070;FASE 4 — FILMES;Ano de lançamento.;pendente;;;2026-10-17
+LUX-071;FASE 4 — FILMES;Gêneros.;pendente;;;2026-10-17
+LUX-072;FASE 4 — FILMES;Classificação indicativa.;pendente;;;2026-10-17
+LUX-073;FASE 4 — FILMES;Sinopse.;pendente;;;2026-10-17
+LUX-074;FASE 4 — FILMES;Elenco.;pendente;;;2026-10-17
+LUX-075;FASE 4 — FILMES;Diretor e equipe.;pendente;;;2026-10-17
+LUX-076;FASE 4 — FILMES;Nota TMDB quando disponível.;pendente;;;2026-10-17
+LUX-077;FASE 4 — FILMES;Trailer oficial quando disponível.;pendente;;;2026-10-17
+LUX-078;FASE 4 — FILMES;Filmes semelhantes.;pendente;;;2026-10-17
+LUX-079;FASE 4 — FILMES;Outros filmes do elenco.;pendente;;;2026-10-17
+LUX-080;FASE 4 — FILMES;Coleções e franquias.;pendente;;;2026-10-17
+LUX-081;FASE 4 — FILMES;Favoritar e desfavoritar.;pendente;;;2026-10-17
+LUX-082;FASE 4 — FILMES;Marcar como assistido.;pendente;;;2026-10-17
+LUX-083;FASE 4 — FILMES;Histórico persistente por perfil.;pendente;;;2026-10-17
+LUX-084;FASE 4 — FILMES;Retomar de outro dispositivo.;pendente;;;2026-10-17
+LUX-085;FASE 4 — FILMES;Recomendações após assistir.;pendente;;;2026-10-17
+LUX-086;FASE 4 — FILMES;Navegação correta ao voltar do player.;pendente;;;2026-10-17
+LUX-087;FASE 5 — SÉRIES;Página de série em tela cheia.;pendente;;;2026-10-17
+LUX-088;FASE 5 — SÉRIES;Pôster e backdrop.;pendente;;;2026-10-17
+LUX-089;FASE 5 — SÉRIES;Título, sinopse e metadados.;pendente;;;2026-10-17
+LUX-090;FASE 5 — SÉRIES;Agrupamento correto por série.;pendente;;;2026-10-17
+LUX-091;FASE 5 — SÉRIES;Identificação de temporadas.;pendente;;;2026-10-17
+LUX-092;FASE 5 — SÉRIES;Identificação de episódios.;pendente;;;2026-10-17
+LUX-093;FASE 5 — SÉRIES;Suporte aos padrões `S01E01`, `T1:E1`, `1x01` e demais formatos conhecidos.;pendente;;;2026-10-17
+LUX-094;FASE 5 — SÉRIES;Utilizar IDs de séries e episódios quando existirem.;pendente;;;2026-10-17
+LUX-095;FASE 5 — SÉRIES;Seletor visual de temporadas.;pendente;;;2026-10-17
+LUX-096;FASE 5 — SÉRIES;Cards individuais de episódios.;pendente;;;2026-10-17
+LUX-097;FASE 5 — SÉRIES;Miniatura de cada episódio, quando disponível.;pendente;;;2026-10-17
+LUX-098;FASE 5 — SÉRIES;Título e sinopse de episódio quando disponíveis.;pendente;;;2026-10-17
+LUX-099;FASE 5 — SÉRIES;Marcar episódios assistidos.;pendente;;;2026-10-17
+LUX-100;FASE 5 — SÉRIES;Barra de progresso individual.;pendente;;;2026-10-17
+LUX-101;FASE 5 — SÉRIES;Lembrar a temporada selecionada.;pendente;;;2026-10-17
+LUX-102;FASE 5 — SÉRIES;Botão para continuar a série.;pendente;;;2026-10-17
+LUX-103;FASE 5 — SÉRIES;Indicação do próximo episódio.;pendente;;;2026-10-17
+LUX-104;FASE 5 — SÉRIES;Próximo episódio automático usando apenas a interface pública do player existente, se possível.;pendente;;;2026-10-17
+LUX-105;FASE 5 — SÉRIES;Recomendações no final da série.;pendente;;;2026-10-17
+LUX-106;FASE 5 — SÉRIES;Indicador de temporadas ou episódios recém-adicionados.;pendente;;;2026-10-17
+LUX-107;FASE 5 — SÉRIES;Histórico sincronizado pelo D1.;pendente;;;2026-10-17
+LUX-108;FASE 6 — LUX TV;Utilizar `tvg-id` como referência principal de identidade quando confiável.;pendente;;;2026-10-17
+LUX-109;FASE 6 — LUX TV;Normalizar nomes de canais.;pendente;;;2026-10-17
+LUX-110;FASE 6 — LUX TV;Reconhecer aliases.;pendente;;;2026-10-17
+LUX-111;FASE 6 — LUX TV;Preservar canais regionais diferentes.;pendente;;;2026-10-17
+LUX-112;FASE 6 — LUX TV;Não confundir SporTV 1, SporTV 2 e SporTV 3.;pendente;;;2026-10-17
+LUX-113;FASE 6 — LUX TV;Agrupar versões HD/FHD/4K do mesmo canal.;pendente;;;2026-10-17
+LUX-114;FASE 6 — LUX TV;Preservar todas as fontes originais.;pendente;;;2026-10-17
+LUX-115;FASE 6 — LUX TV;Mostrar a quantidade de fontes disponíveis.;pendente;;;2026-10-17
+LUX-116;FASE 6 — LUX TV;Interface de seleção da fonte já suportada pelo aplicativo.;pendente;;;2026-10-17
+LUX-117;FASE 6 — LUX TV;Categorizar Esportes, Filmes, Séries, Infantil, Notícias, Música, Documentários, TV aberta, 24 horas, Internacional e outros.;pendente;;;2026-10-17
+LUX-118;FASE 6 — LUX TV;Busca de canais.;pendente;;;2026-10-17
+LUX-119;FASE 6 — LUX TV;Favoritos de TV por perfil.;pendente;;;2026-10-17
+LUX-120;FASE 6 — LUX TV;Últimos canais acessados.;pendente;;;2026-10-17
+LUX-121;FASE 6 — LUX TV;Continuar no último canal.;pendente;;;2026-10-17
+LUX-122;FASE 6 — LUX TV;Ordenação e canais fixados.;pendente;;;2026-10-17
+LUX-123;FASE 6 — LUX TV;Ocultação de categorias permitida pelo perfil.;pendente;;;2026-10-17
+LUX-124;FASE 6 — LUX TV;Tratamento de logos ausentes.;pendente;;;2026-10-17
+LUX-125;FASE 6 — LUX TV;Contagem de canais lógicos e de fontes originais separadamente.;pendente;;;2026-10-17
+LUX-126;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Integração de dados XMLTV quando disponíveis e autorizados.;pendente;;;2026-10-17
+LUX-127;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Integração de dados EPG Xtream quando disponíveis.;pendente;;;2026-10-17
+LUX-128;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Normalização de horários e fuso.;pendente;;;2026-10-17
+LUX-129;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Associação entre programas e canais por identificadores confiáveis.;pendente;;;2026-10-17
+LUX-130;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Guia de programação completo.;pendente;;;2026-10-17
+LUX-131;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Passando agora.;pendente;;;2026-10-17
+LUX-132;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Próximos programas.;pendente;;;2026-10-17
+LUX-133;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Progresso do programa atual.;pendente;;;2026-10-17
+LUX-134;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Programação por dia.;pendente;;;2026-10-17
+LUX-135;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Busca por programas.;pendente;;;2026-10-17
+LUX-136;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Guia rápido sobreposto ao player, sem alterar sua reprodução.;pendente;;;2026-10-17
+LUX-137;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Lembretes de programas.;pendente;;;2026-10-17
+LUX-138;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Alertas de início de programa.;pendente;;;2026-10-17
+LUX-139;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Atualização periódica do EPG.;pendente;;;2026-10-17
+LUX-140;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Cache dos dados no D1/R2 conforme adequado.;pendente;;;2026-10-17
+LUX-141;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Mensagens claras quando não houver EPG.;pendente;;;2026-10-17
+LUX-142;FASE 7 — GUIA DE PROGRAMAÇÃO (EPG);Programação nunca simulada em ambiente real.;pendente;;;2026-10-17
+LUX-143;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Preservar o título bruto do fornecedor.;pendente;;;2026-10-17
+LUX-144;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Criar título limpo de exibição.;pendente;;;2026-10-17
+LUX-145;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Extrair ano, qualidade e idioma.;pendente;;;2026-10-17
+LUX-146;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Reconhecer Dublado, Legendado, Original, HD, FHD, 4K e HDR.;pendente;;;2026-10-17
+LUX-147;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Categorizar gêneros.;pendente;;;2026-10-17
+LUX-148;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Identificar coleções como Animes, Doramas, Novelas, Desenhos e Lançamentos.;pendente;;;2026-10-17
+LUX-149;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Identificar grupos declarados como Netflix, Prime Video, Disney+ e outras plataformas sem afirmar integração oficial.;pendente;;;2026-10-17
+LUX-150;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Preservar a paleta de 256 cores do sistema de tags.;pendente;;;2026-10-17
+LUX-151;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Melhorar aliases em português e inglês.;pendente;;;2026-10-17
+LUX-152;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Busca tolerante a acentos e pequenas diferenças de escrita.;pendente;;;2026-10-17
+LUX-153;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Busca por título original, normalizado, gênero e tags.;pendente;;;2026-10-17
+LUX-154;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Filtros por ano, gênero, idioma e classificação.;pendente;;;2026-10-17
+LUX-155;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Ordenação por título, ano, popularidade quando fundamentada e adição recente.;pendente;;;2026-10-17
+LUX-156;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Detecção conservadora de duplicatas.;pendente;;;2026-10-17
+LUX-157;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Melhor correspondência com TMDB por ID, ano e similaridade.;pendente;;;2026-10-17
+LUX-158;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Fallback para metadados do fornecedor.;pendente;;;2026-10-17
+LUX-159;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Sistema de revisão para correspondências duvidosas.;pendente;;;2026-10-17
+LUX-160;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Nunca remover itens porque não foram identificados pelo TMDB.;pendente;;;2026-10-17
+LUX-161;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Sistema de recomendações baseado no catálogo e histórico do perfil.;pendente;;;2026-10-17
+LUX-162;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Títulos relacionados por gênero.;pendente;;;2026-10-17
+LUX-163;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Recomendações após o término de filmes.;pendente;;;2026-10-17
+LUX-164;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Recomendações após concluir séries.;pendente;;;2026-10-17
+LUX-165;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Mais conteúdos da mesma franquia.;pendente;;;2026-10-17
+LUX-166;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Recomendações baseadas nos favoritos.;pendente;;;2026-10-17
+LUX-167;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Recomendações de títulos não assistidos.;pendente;;;2026-10-17
+LUX-168;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Evitar recomendar repetidamente o mesmo conteúdo.;pendente;;;2026-10-17
+LUX-169;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;"Explicar recomendações com mensagens simples como ""Porque você assistiu..."".";pendente;;;2026-10-17
+LUX-170;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Permitir desativar personalização.;pendente;;;2026-10-17
+LUX-171;FASE 9 — RECOMENDAÇÕES E PERSONALIZAÇÃO;Respeitar perfil infantil e privacidade.;pendente;;;2026-10-17
+LUX-172;FASE 10 — CATÁLOGO EM LARGA ESCALA;Indexação de metadados de filmes, séries e canais no D1.;pendente;;;2026-10-17
+LUX-173;FASE 10 — CATÁLOGO EM LARGA ESCALA;Busca paginada pelo backend.;pendente;;;2026-10-17
+LUX-174;FASE 10 — CATÁLOGO EM LARGA ESCALA;Filtros executados de forma eficiente.;pendente;;;2026-10-17
+LUX-175;FASE 10 — CATÁLOGO EM LARGA ESCALA;Carregamento progressivo de cards.;pendente;;;2026-10-17
+LUX-176;FASE 10 — CATÁLOGO EM LARGA ESCALA;Minimizar memória do navegador.;pendente;;;2026-10-17
+LUX-177;FASE 10 — CATÁLOGO EM LARGA ESCALA;Evitar recriar índices a cada pesquisa.;pendente;;;2026-10-17
+LUX-178;FASE 10 — CATÁLOGO EM LARGA ESCALA;Aproveitar metadados já consultados.;pendente;;;2026-10-17
+LUX-179;FASE 10 — CATÁLOGO EM LARGA ESCALA;Cache de imagens quando apropriado.;pendente;;;2026-10-17
+LUX-180;FASE 10 — CATÁLOGO EM LARGA ESCALA;Deduplicação de consultas TMDB.;pendente;;;2026-10-17
+LUX-181;FASE 10 — CATÁLOGO EM LARGA ESCALA;Limites de concorrência e timeout.;pendente;;;2026-10-17
+LUX-182;FASE 10 — CATÁLOGO EM LARGA ESCALA;Suporte a cancelamento de pesquisas antigas.;pendente;;;2026-10-17
+LUX-183;FASE 10 — CATÁLOGO EM LARGA ESCALA;Comparação entre versões dos catálogos.;pendente;;;2026-10-17
+LUX-184;FASE 10 — CATÁLOGO EM LARGA ESCALA;Identificação de itens adicionados e removidos.;pendente;;;2026-10-17
+LUX-185;FASE 10 — CATÁLOGO EM LARGA ESCALA;Histórico de sincronizações.;pendente;;;2026-10-17
+LUX-186;FASE 10 — CATÁLOGO EM LARGA ESCALA;Integridade das contagens antes/depois da organização.;pendente;;;2026-10-17
+LUX-187;FASE 10 — CATÁLOGO EM LARGA ESCALA;Preservar o último catálogo funcional quando a atualização falhar.;pendente;;;2026-10-17
+LUX-188;FASE 11 — ADMINISTRAÇÃO;Dashboard com usuários e perfis.;pendente;;;2026-10-17
+LUX-189;FASE 11 — ADMINISTRAÇÃO;Gestão de contas e convites.;pendente;;;2026-10-17
+LUX-190;FASE 11 — ADMINISTRAÇÃO;Permissões.;pendente;;;2026-10-17
+LUX-191;FASE 11 — ADMINISTRAÇÃO;Visão das fontes autorizadas e estado das sincronizações.;pendente;;;2026-10-17
+LUX-192;FASE 11 — ADMINISTRAÇÃO;Configurações de TMDB.;pendente;;;2026-10-17
+LUX-193;FASE 11 — ADMINISTRAÇÃO;Gerenciamento de categorias e tags.;pendente;;;2026-10-17
+LUX-194;FASE 11 — ADMINISTRAÇÃO;Revisão de correspondências de metadados.;pendente;;;2026-10-17
+LUX-195;FASE 11 — ADMINISTRAÇÃO;Personalização visual da Home.;pendente;;;2026-10-17
+LUX-196;FASE 11 — ADMINISTRAÇÃO;Gerenciamento de destaques.;pendente;;;2026-10-17
+LUX-197;FASE 11 — ADMINISTRAÇÃO;Estado do banco D1 e armazenamento R2.;pendente;;;2026-10-17
+LUX-198;FASE 11 — ADMINISTRAÇÃO;Histórico de falhas sem exposição de segredos.;pendente;;;2026-10-17
+LUX-199;FASE 11 — ADMINISTRAÇÃO;Estatísticas básicas de utilização respeitando a privacidade.;pendente;;;2026-10-17
+LUX-200;FASE 11 — ADMINISTRAÇÃO;Métricas de desempenho e consumo de recursos.;pendente;;;2026-10-17
+LUX-201;FASE 11 — ADMINISTRAÇÃO;Logs de ações administrativas.;pendente;;;2026-10-17
+LUX-202;FASE 11 — ADMINISTRAÇÃO;Ferramentas de diagnóstico.;pendente;;;2026-10-17
+LUX-203;FASE 11 — ADMINISTRAÇÃO;Backup e recuperação.;pendente;;;2026-10-17
+LUX-204;FASE 11 — ADMINISTRAÇÃO;Estado dos serviços com alertas claros.;pendente;;;2026-10-17
+LUX-205;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Desktop responsivo.;pendente;;;2026-10-17
+LUX-206;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Mobile responsivo.;pendente;;;2026-10-17
+LUX-207;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Layout para telas grandes.;pendente;;;2026-10-17
+LUX-208;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Navegação de controle remoto.;pendente;;;2026-10-17
+LUX-209;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Foco visível para teclado.;pendente;;;2026-10-17
+LUX-210;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Áreas de toque adequadas.;pendente;;;2026-10-17
+LUX-211;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;PWA instalável e atualização consistente.;pendente;;;2026-10-17
+LUX-212;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Tela inicial adequada no modo instalado.;pendente;;;2026-10-17
+LUX-213;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Feedback de conectividade.;pendente;;;2026-10-17
+LUX-214;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Recuperação de estado após fechar o aplicativo.;pendente;;;2026-10-17
+LUX-215;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Gestão de sessões por dispositivo.;pendente;;;2026-10-17
+LUX-216;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Interface de associação de dispositivo por código, se necessária.;pendente;;;2026-10-17
+LUX-217;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Compatibilidade visual com Android TV e navegadores de Smart TV.;pendente;;;2026-10-17
+LUX-218;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Suporte a orientação horizontal quando apropriado.;pendente;;;2026-10-17
+LUX-219;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Respeito a redução de movimento.;pendente;;;2026-10-17
+LUX-220;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Contraste, semântica e leitores de tela.;pendente;;;2026-10-17
+LUX-221;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Testes em navegador com rede lenta.;pendente;;;2026-10-17
+LUX-222;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Evitar armazenamento de fontes privadas em cache público.;pendente;;;2026-10-17
+LUX-223;FASE 13 — EXPERIÊNCIA DE ESPORTES;Área de esportes na Home.;pendente;;;2026-10-17
+LUX-224;FASE 13 — EXPERIÊNCIA DE ESPORTES;Jogos de hoje.;pendente;;;2026-10-17
+LUX-225;FASE 13 — EXPERIÊNCIA DE ESPORTES;Próximos jogos.;pendente;;;2026-10-17
+LUX-226;FASE 13 — EXPERIÊNCIA DE ESPORTES;Competições.;pendente;;;2026-10-17
+LUX-227;FASE 13 — EXPERIÊNCIA DE ESPORTES;Times.;pendente;;;2026-10-17
+LUX-228;FASE 13 — EXPERIÊNCIA DE ESPORTES;Escudos quando disponíveis legalmente.;pendente;;;2026-10-17
+LUX-229;FASE 13 — EXPERIÊNCIA DE ESPORTES;Horários e datas corretos.;pendente;;;2026-10-17
+LUX-230;FASE 13 — EXPERIÊNCIA DE ESPORTES;Identificação dos canais que podem transmitir os eventos quando houver dados confirmados.;pendente;;;2026-10-17
+LUX-231;FASE 13 — EXPERIÊNCIA DE ESPORTES;Filtragem por esporte e competição.;pendente;;;2026-10-17
+LUX-232;FASE 13 — EXPERIÊNCIA DE ESPORTES;Favoritos de times.;pendente;;;2026-10-17
+LUX-233;FASE 13 — EXPERIÊNCIA DE ESPORTES;Destaques editoriais.;pendente;;;2026-10-17
+LUX-234;FASE 13 — EXPERIÊNCIA DE ESPORTES;Atualização de programação independente do player.;pendente;;;2026-10-17
+LUX-235;FASE 13 — EXPERIÊNCIA DE ESPORTES;Não inventar transmissões, jogos ou canais.;pendente;;;2026-10-17
+LUX-236;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Preservar os testes automatizados existentes.;pendente;;;2026-10-17
+LUX-237;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Adicionar testes para cada novo módulo.;pendente;;;2026-10-17
+LUX-238;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar login e autorização por usuário.;pendente;;;2026-10-17
+LUX-239;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar isolamento entre contas.;pendente;;;2026-10-17
+LUX-240;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar catálogo grande com dados fictícios.;pendente;;;2026-10-17
+LUX-241;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar temporadas e episódios.;pendente;;;2026-10-17
+LUX-242;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar normalização sem exclusão indevida.;pendente;;;2026-10-17
+LUX-243;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar agrupamento de canais e fontes.;pendente;;;2026-10-17
+LUX-244;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar EPG.;pendente;;;2026-10-17
+LUX-245;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar persistência do histórico e favoritos.;pendente;;;2026-10-17
+LUX-246;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar responsividade com screenshots.;pendente;;;2026-10-17
+LUX-247;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar acessibilidade e navegação por teclado.;pendente;;;2026-10-17
+LUX-248;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Verificar o PWA instalado.;pendente;;;2026-10-17
+LUX-249;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Garantir que os arquivos e comportamentos protegidos não sofreram modificações.;pendente;;;2026-10-17
+LUX-250;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Confirmar que a conversão da M3U para HTTPS continua funcionando exatamente como antes.;pendente;;;2026-10-17
+LUX-251;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Confirmar que o motor de vídeo continua intacto.;pendente;;;2026-10-17
+LUX-252;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Executar GitHub Actions.;pendente;;;2026-10-17
+LUX-253;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Registrar falhas e corrigir antes da entrega.;pendente;;;2026-10-17
+LUX-254;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Revisar segurança, desempenho e consistência dos dados.;pendente;;;2026-10-17
+LUX-255;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Atualizar a documentação ao terminar cada etapa.;pendente;;;2026-10-17

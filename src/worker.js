@@ -1,3 +1,5 @@
+import { accountApi } from './account-api.js';
+import { accountGate } from './account-gate.js';
 /* Lux Player Zero — Worker mínimo: não retransmite conteúdo. */
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status,
@@ -11,6 +13,9 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/account/')) return accountApi(request, env);
+    const blocked = await accountGate(request, env);
+    if (blocked) return blocked;
     if (url.pathname === '/api/health' && request.method === 'GET') {
       return json({
         ok: true,
