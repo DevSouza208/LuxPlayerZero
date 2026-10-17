@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
 import { titleForDisplay } from './cinema-title.js';
+import { tagColor } from './lux-tag-palette.js';
 import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
 
 const STORAGE = 'luxzero:home:';
@@ -527,8 +528,19 @@ export function createHome({ play } = {}) {
     heart.setAttribute('aria-label', heart.title);
     labels.append(heart);
     info.append(labels);
-    appendText(info, 'span', 'media-group', [item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'),
-      item.catalogYear, ...(item.catalogTags || [])].filter(Boolean).join(' · '));
+    appendText(info, 'span', 'media-group',
+      [item.normalizedGroup || item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'),
+        item.catalogYear].filter(Boolean).join(' · '));
+    const tags=(item.catalogTags||[]).slice(0,3);
+    if(tags.length){
+      const strip=appendText(info,'div','lux-tag-strip','');
+      for(const tag of tags){
+        const badge=appendText(strip,'span','lux-media-tag',tag),color=tagColor(tag);
+        badge.style.color=color.solid;
+        badge.style.background=color.soft;
+        badge.style.borderColor=color.solid;
+      }
+    }
     card.append(info);
     return card;
   }
@@ -670,8 +682,18 @@ export function createHome({ play } = {}) {
     if (!item || !detailsDialog) return;
     detailsItem = item;
     $('details-title').textContent = titleForDisplay(item);
-    $('details-group').textContent = [item.group || 'Disponível na sua biblioteca',
-      item.catalogYear, ...(item.catalogTags || [])].filter(Boolean).join(' · ');
+    $('details-group').textContent = [item.normalizedGroup || item.group || 'Disponível na sua biblioteca',
+      item.catalogYear].filter(Boolean).join(' · ');
+    const tagRoot=$('details-tags');
+    if(tagRoot){
+      tagRoot.replaceChildren();
+      for(const tag of (item.catalogTags||[]).slice(0,12)){
+        const badge=appendText(tagRoot,'span','lux-media-tag',tag),color=tagColor(tag);
+        badge.style.color=color.solid;
+        badge.style.background=color.soft;
+        badge.style.borderColor=color.solid;
+      }
+    }
     $('details-kicker').textContent = 'LUX PLAYER · ' + (item.group || 'SUA BIBLIOTECA').slice(0, 62);
     const art = $('details-art');
     const logo = safeImage(item.logo);
