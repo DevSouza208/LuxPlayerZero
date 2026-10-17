@@ -3,6 +3,7 @@
  * Nunca funciona como proxy público: exige segredo forte + cookie HttpOnly
  * + lista explícita de hosts permitidos. Não armazena catálogo/vídeo.
  */
+import { authenticatedUser } from './auth-core.js';
 const MAX_CATALOG_BYTES = 20 * 1024 * 1024;
 const MAX_MANIFEST_BYTES = 2 * 1024 * 1024;
 // Acesso lembrado por 7 dias em cookie HttpOnly; a chave nunca vai ao frontend persistente.
@@ -114,6 +115,7 @@ export function sameOriginPost(request) {
 }
 export async function session(request, env) {
   if (!bridgeReady(env)) return false;
+  if (await authenticatedUser(request, env)) return true;
   const token = parseCookies(request);
   if (!token) return false;
   try {

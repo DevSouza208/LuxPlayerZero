@@ -162,12 +162,12 @@ async function latestAvailable(env, previous) {
   return null;
 }
 
-export async function syncCatalog(request, env, fetcher = fetch) {
+export async function syncCatalog(request, env, fetcher = fetch, trustedCron = false) {
   if (!snapshotReady(env)) {
     return apiError(503, 'Sincronização indisponível: configure R2 (CATALOG_BUCKET), D1 (DB) e a chave do catálogo na Cloudflare.');
   }
-  if (!sameOriginPost(request)) return apiError(403, 'Solicitação de outro site bloqueada.');
-  if (!await session(request, env)) return apiError(401, 'Informe a chave privada do catálogo para conectar.');
+  if (!trustedCron && !sameOriginPost(request)) return apiError(403, 'Solicitação de outro site bloqueada.');
+  if (!trustedCron && !await session(request, env)) return apiError(401, 'Informe a chave privada do catálogo para conectar.');
   if (Number(request.headers.get('content-length') || 0) > 8192) {
     return apiError(413, 'Endereço enviado é grande demais.');
   }

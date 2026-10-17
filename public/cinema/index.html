@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="/cinema-premium.css">
   <link rel="stylesheet" href="/cinema-polish.css">
   <link rel="stylesheet" href="/cinema-browse.css">
+  <link rel="stylesheet" href="/lux-tag-palette.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
   <style>
@@ -64,7 +65,7 @@
       <label class="cinema-search" for="nav-search"><span aria-hidden="true">⌕</span><input id="nav-search" type="search" placeholder="Buscar no catálogo..." autocomplete="off" aria-label="Buscar no catálogo"></label>
       <button type="button" id="open-source" class="cinema-icon-button" title="Conectar fonte" aria-label="Gerenciar fontes">＋</button>
       <button type="button" id="open-admin" class="cinema-icon-button" title="Personalizar" aria-label="Painel de personalização">⚙</button>
-      <span class="cinema-avatar" aria-hidden="true">L</span>
+      <button type="button" id="lux-logout" class="cinema-icon-button" title="Sair" aria-label="Sair da conta">↪</button><span class="cinema-avatar" aria-hidden="true">L</span>
     </div>
   </header>
   <div id="source-overlay" class="source-overlay" hidden></div>
@@ -269,6 +270,7 @@
   <div class="details-body">
     <h2 id="details-title">Título do conteúdo</h2>
     <p id="details-group">Sua biblioteca</p>
+    <div id="details-tags" class="lux-tag-strip" aria-label="Etiquetas do título"></div>
     <div id="details-meta" class="details-meta" hidden></div>
     <p id="details-overview" class="details-overview" hidden></p>
     <p id="details-metadata-status" class="details-metadata-status" role="status" aria-live="polite"></p>

@@ -49,7 +49,7 @@ test('A versão PWA instala o mesmo splash e mantém cache restrito ao shell', (
   assert.ok(pwa.includes('Abrindo seu Lux Player...'));
   assert.ok(pwa.includes('TMDB primeiro · capas e banners (padrão)'));
   assert.ok(pwa.includes('src="/cinema/install.js"'));
-  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-6'"));
+  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-7'"));
   assert.ok(sw.includes("'/saved-catalog.js'"));
   assert.ok(sw.includes("'/cinema-tmdb-tags.js'"));
   assert.ok(!sw.includes("'/api/bridge/playlist'"));
