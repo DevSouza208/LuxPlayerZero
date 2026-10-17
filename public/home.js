@@ -79,6 +79,11 @@ export function createHome({ play } = {}) {
   const fullDetails=createFullDetails({
     onPlay:entry=>start(entry),
     metadataFor:entry=>metadataFor(entry),
+    extendedFor:async (data,target)=>{
+      if(config.summaryEngine!=='tmdb'||data?.status!=='matched'||!data.tmdbId)return null;
+      const response=await fetch('/api/metadata/details',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({tmdbId:data.tmdbId,type:queryFor(target)?.type}),signal:AbortSignal.timeout(8000)});
+      return response.ok?response.json():null;
+    },
     isFavorite:entry=>favorites.some(row=>row.key===itemKey(entry)),
     onFavorite:entry=>toggleFavorite(entry),
     getSeason:key=>seasons[key],

@@ -70,15 +70,15 @@ LUX-068;FASE 4 — FILMES;Banner e pôster priorizando correspondência correta 
 LUX-069;FASE 4 — FILMES;Nome normalizado.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-070;FASE 4 — FILMES;Ano de lançamento.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-071;FASE 4 — FILMES;Gêneros.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-072;FASE 4 — FILMES;Classificação indicativa.;pendente;;;2026-10-17
+LUX-072;FASE 4 — FILMES;Classificação indicativa.;em construção;"Endpoint TMDB autenticado, cache 24h, certificação BR, elenco, direção, coleção e trailer oficial; testes de sanitização, sessão, origem e cache aprovados. UI aguarda revisão.";;2026-10-17
 LUX-073;FASE 4 — FILMES;Sinopse.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-074;FASE 4 — FILMES;Elenco.;pendente;;;2026-10-17
-LUX-075;FASE 4 — FILMES;Diretor e equipe.;pendente;;;2026-10-17
+LUX-074;FASE 4 — FILMES;Elenco.;em construção;"Endpoint TMDB autenticado, cache 24h, certificação BR, elenco, direção, coleção e trailer oficial; testes de sanitização, sessão, origem e cache aprovados. UI aguarda revisão.";;2026-10-17
+LUX-075;FASE 4 — FILMES;Diretor e equipe.;em construção;"Endpoint TMDB autenticado, cache 24h, certificação BR, elenco, direção, coleção e trailer oficial; testes de sanitização, sessão, origem e cache aprovados. UI aguarda revisão.";;2026-10-17
 LUX-076;FASE 4 — FILMES;Nota TMDB quando disponível.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-077;FASE 4 — FILMES;Trailer oficial quando disponível.;pendente;;;2026-10-17
+LUX-077;FASE 4 — FILMES;Trailer oficial quando disponível.;em construção;"Endpoint TMDB autenticado, cache 24h, certificação BR, elenco, direção, coleção e trailer oficial; testes de sanitização, sessão, origem e cache aprovados. UI aguarda revisão.";;2026-10-17
 LUX-078;FASE 4 — FILMES;Filmes semelhantes.;pendente;;;2026-10-17
 LUX-079;FASE 4 — FILMES;Outros filmes do elenco.;pendente;;;2026-10-17
-LUX-080;FASE 4 — FILMES;Coleções e franquias.;pendente;;;2026-10-17
+LUX-080;FASE 4 — FILMES;Coleções e franquias.;em construção;"Endpoint TMDB autenticado, cache 24h, certificação BR, elenco, direção, coleção e trailer oficial; testes de sanitização, sessão, origem e cache aprovados. UI aguarda revisão.";;2026-10-17
 LUX-081;FASE 4 — FILMES;Favoritar e desfavoritar.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-082;FASE 4 — FILMES;Marcar como assistido.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-083;FASE 4 — FILMES;Histórico persistente por perfil.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
@@ -244,13 +244,13 @@ LUX-242;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar normalização sem
 LUX-243;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar agrupamento de canais e fontes.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-244;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar EPG.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-245;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar persistência do histórico e favoritos.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
-LUX-246;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar responsividade com screenshots.;bloqueado;"Smoke de navegador preparado; teste local não executou";"Chromium ausente; download falhou. Aguardar Actions e teste em dispositivos reais";2026-10-17
-LUX-247;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar acessibilidade e navegação por teclado.;bloqueado;"Smoke de navegador preparado; teste local não executou";"Chromium ausente; download falhou. Aguardar Actions e teste em dispositivos reais";2026-10-17
+LUX-246;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar responsividade com screenshots.;em construção;"Playwright aprovado no CI; capturas obtidas e revisadas. Reforçando geometria do modal e captura da viewport; auditoria completa de acessibilidade pendente.";;2026-10-17
+LUX-247;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar acessibilidade e navegação por teclado.;em construção;"Playwright aprovado no CI; capturas obtidas e revisadas. Reforçando geometria do modal e captura da viewport; auditoria completa de acessibilidade pendente.";;2026-10-17
 LUX-248;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Verificar o PWA instalado.;bloqueado;"Smoke de navegador preparado; teste local não executou";"Chromium ausente; download falhou. Aguardar Actions e teste em dispositivos reais";2026-10-17
 LUX-249;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Garantir que os arquivos e comportamentos protegidos não sofreram modificações.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-250;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Confirmar que a conversão da M3U para HTTPS continua funcionando exatamente como antes.;em construção;Arquivos idênticos e testes HTTP→R2/D1→HTTPS verdes;Validação com Cloudflare e fonte real não executada;2026-10-17
 LUX-251;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Confirmar que o motor de vídeo continua intacto.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
-LUX-252;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Executar GitHub Actions.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17
+LUX-252;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Executar GitHub Actions.;concluído;"GitHub Actions 38999412801: sintaxe, 136 testes e smoke Playwright aprovados no commit 86142b0; alterações seguintes serão revalidadas.";;2026-10-17
 LUX-253;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Registrar falhas e corrigir antes da entrega.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-254;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Revisar segurança, desempenho e consistência dos dados.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-255;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Atualizar a documentação ao terminar cada etapa.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17

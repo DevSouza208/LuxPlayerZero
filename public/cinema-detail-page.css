@@ -48,3 +48,5 @@
 .lux-fullscreen-detail{width:100%;height:100%;max-width:none;max-height:none;border:0;margin:0;padding:0}.lux-fullscreen-detail::backdrop{background:#050407}.lux-full-detail-top button{min-width:44px;min-height:44px}.lux-fullscreen-detail :focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}.lux-full-summary h1{overflow-wrap:anywhere}.account-link{position:fixed;right:18px;bottom:16px;z-index:100;color:#f7f4ff;background:#211334;padding:12px 18px;border-radius:12px;min-height:44px}.lux-full-episode-card{content-visibility:auto;contain-intrinsic-size:auto 200px}.lux-tv-variant-count{display:block;color:#cbb9ff;font-size:12px;margin-top:6px}
 
 .guide-link{display:block;color:#cbb9ff;padding:20px;min-height:44px}
+
+.lux-full-credits{font-size:14px;color:#c1b9d1;line-height:1.6;max-width:700px}.lux-full-credits a{display:inline-block;color:#cbb9ff;min-height:44px;padding:10px 0}

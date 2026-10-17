@@ -30,11 +30,11 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 - EPG automático, EPG Xtream e feeds esportivos dependem de fontes autorizadas configuradas. A importação XMLTV e curadoria manual estão preparadas.
 - Sem consulta real ao Cloudflare, a branch implantada e seus bindings não foram confirmados. A documentação antiga cita Workers Static Assets; os endpoints de bridge existentes usam Pages Functions. Validar qual arquitetura está realmente implantada antes de qualquer deploy. Não substituir a atual para fazer os módulos novos funcionarem.
 - Contas do PR14 não são migradas automaticamente para account_users. Revisão e migração de dados existentes precisam de inventário real; não executar ambos os sistemas de login em produção por acidente.
-- Enriquecimento avançado (elenco, diretor, trailers, certificação, franquias), próximo episódio automático, controle remoto completo, revisão de correspondências e automações continuam no CSV, sem alegação de conclusão.
+- Enriquecimento avançado implementado para elenco, direção, trailers oficiais, certificação brasileira e nome da coleção, usando endpoint autenticado e cache de 24h. Recomendações TMDB ainda não são vinculadas ao catálogo. Próximo episódio automático, controle remoto completo, revisão de correspondências e automações continuam no CSV, sem alegação de conclusão.
 
 ## Configuração para ambiente isolado de revisão
 1. Usar uma cópia de teste do D1, não o banco de produção.
-2. Aplicar migrações não destrutivas novas: 0003, 0004, 0005, 0006 e 0007, em ordem. 0006 adiciona colunas e deve ser executada uma vez pelo controle de migrações. A 0001 já pertence ao mecanismo existente. Esta branch não inclui a 0002 do PR14.
+2. Aplicar migrações não destrutivas novas: 0003, 0004, 0005, 0006, 0007 e 0008, em ordem. 0006 adiciona colunas e deve ser executada uma vez pelo controle de migrações. A 0001 já pertence ao mecanismo existente. Esta branch não inclui a 0002 do PR14.
 3. Configurar DB e os bindings existentes de snapshot sem renomeá-los. Novos secrets: `LUX_AUTH_PEPPER` aleatório >=32 caracteres, `LUX_ADMIN_BOOTSTRAP_PASSWORD` aleatório >=20 caracteres. Não versionar valores reais.
 4. Entrar como `admin` somente no ambiente privado, alterar a senha, ativar 2FA, guardar códigos de recuperação e remover o secret de bootstrap.
 5. Verificar os testes, fluxos de convite, perfis e isolamento. Validar a reprodução real existente separadamente com fonte autorizada.
@@ -42,10 +42,10 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Validação executada
 - Baseline: 113 testes existentes aprovados.
-- Após os módulos novos: 136 testes aprovados (atualizar este número ao adicionar testes).
+- Após os módulos novos: 138 testes aprovados (atualizar este número ao adicionar testes).
 - Testes usam SQLite real para SQL, transações, isolamento, convites, estado, sessões, PIN e MFA. Simulações de R2 só nos testes; nenhum stream privado utilizado.
 - Teste de índice: 10 mil entradas por chunks; teste de integração de publicação/paginação com SQLite e R2 simulado.
-- Smoke de navegador preparado em scripts/browser-smoke.cjs, servidor local em scripts/dev-test-server.mjs. Chromium não estava disponível e o download retornou arquivo inválido neste ambiente. GitHub Actions foi configurado para tentar instalar, executar e guardar capturas. **Não há screenshots aprovadas nem teste real de reprodução concluído.**
+- Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Captura da conta revisada. Capturas fullPage de um dialog fixo incluem áreas fora da viewport; teste reforçado para verificar geometria/modal e salvar somente a viewport na próxima execução. Reprodução real e PWA instalado ainda não testados.
 
 ## Referências usadas
 - AGENTS.md, DESIGN.md e PRODUCT.md do PR15, adaptados ao estado desta branch.

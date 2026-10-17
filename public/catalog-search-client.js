@@ -5,10 +5,10 @@ export function createCatalogSearch(fetcher=fetch) {
  return async function search(query,page,items){
   const catalogId=savedSnapshot();if(!catalogId)return null;
   const key=[catalogId,query,page].join('|');if(cache.has(key))return cache.get(key);
-  controller?.abort();controller=new AbortController();const current=++serial;
-  const timer=setTimeout(()=>controller?.abort(),5000);
+  controller?.abort();controller=new AbortController();const requestController=controller,current=++serial;
+  const timer=setTimeout(()=>requestController.abort(),5000);
   try{
-   const r=await fetcher('/api/catalog/search?'+new URLSearchParams({catalogId,kind:'movies',q:query,page:String(page)}),{credentials:'same-origin',cache:'no-store',signal:controller.signal});
+   const r=await fetcher('/api/catalog/search?'+new URLSearchParams({catalogId,kind:'movies',q:query,page:String(page)}),{credentials:'same-origin',cache:'no-store',signal:requestController.signal});
    if(!r.ok||serial!==current)return null;const data=await r.json();
    if(!data.ready)return null;
    const entries=data.entries.map(row=>items[row.ordinal]);

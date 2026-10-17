@@ -3,7 +3,7 @@
  */
 const make=(tag,klass,label)=>{const el=document.createElement(tag);el.className=klass||'';if(label!==undefined)el.textContent=String(label);return el};
 const photo=raw=>{try{const url=new URL(String(raw||''));return url.protocol==='https:'?url.href:''}catch{return''}};
-export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
+export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
  const shell=make('dialog','lux-fullscreen-detail');shell.hidden=true;shell.id='lux-fullscreen-detail';
  shell.innerHTML=
  '<section class="lux-full-detail-page" role="dialog" aria-modal="true" aria-label="Detalhes do conteúdo" tabindex="-1">'+
@@ -12,7 +12,7 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite,getS
  '<div class="lux-full-poster"><img alt="" referrerpolicy="no-referrer"><span>LUX</span></div>'+
  '<div class="lux-full-summary"><span class="lux-full-eyebrow" id="lux-full-kind">FILME</span><h1 id="lux-full-title"></h1>'+
  '<div class="lux-full-meta"></div><p class="lux-full-description" hidden></p>'+
- '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
+ '<div class="lux-full-credits" hidden></div><div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
  '<button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
  '<section class="lux-full-seasons" hidden aria-label="Temporadas e episódios">'+
  '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2></div>'+
@@ -58,6 +58,7 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite,getS
     series.seasons.length+' temporada'+(series.seasons.length===1?'':'s')+' · '+count+' episódio'+(count===1?'':'s'):
     [next.catalogYear,next.normalizedGroup||next.group].filter(Boolean).join(' · ');
   const desc=$('.lux-full-description');desc.hidden=true;desc.textContent='';
+  const credits=$('.lux-full-credits');credits.hidden=true;credits.replaceChildren();
   const resume=series?.episodes.find(row=>getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
   const playLabel=$('[data-full-play] span');playLabel.textContent=resume?'Continuar T'+resume.season+':E'+resume.number:(getProgress?.(next)?.position>15?'Continuar':'Começar');
   $('[data-full-watched]').textContent=isWatched?.(next)?'Marcar não assistido':'Marcar assistido';
@@ -75,6 +76,17 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite,getS
     if(info.overview){desc.textContent=info.overview;desc.hidden=false}
     const values=[info.year,...(info.genres||[]).slice(0,3),info.rating?'★ '+info.rating:null].filter(Boolean);
     if(values.length)$('.lux-full-meta').textContent=(series?series.seasons.length+' temporadas · '+count+' episódios · ':'')+values.join(' · ');
+    const extended=await extendedFor?.(info,target);
+    if(!opened||currentEpoch!==epoch||!extended)return;
+    if(extended.certification)credits.append(make('p','','Classificação no Brasil: '+extended.certification));
+    if(extended.directors?.length)credits.append(make('p','','Direção: '+extended.directors.join(', ')));
+    if(extended.creators?.length)credits.append(make('p','','Criação: '+extended.creators.join(', ')));
+    if(extended.cast?.length)credits.append(make('p','','Elenco: '+extended.cast.map(row=>row.name).join(', ')));
+    if(extended.collection?.name)credits.append(make('p','','Coleção: '+extended.collection.name));
+    if(extended.trailer&&/^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/.test(extended.trailer)){
+      const link=make('a','','Ver trailer oficial');link.href=extended.trailer;link.target='_blank';link.rel='noopener noreferrer';credits.append(link);
+    }
+    credits.hidden=!credits.childNodes.length;
    }catch{/* Metadata never affects playback. */}
   })();
  }

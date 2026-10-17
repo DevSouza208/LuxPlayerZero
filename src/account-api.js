@@ -163,6 +163,7 @@ export async function accountApi(request,env) {
       if(row.pin_hash){
         await limit(env,await digest('pin:'+user.user_id+':'+row.id),5);
         if(!/^\d{6}$/.test(body.pin||'')||!equal(await hashPassword(body.pin,row.pin_salt,env),row.pin_hash))throw new HttpError(403,'PIN inválido.');
+        await env.DB.prepare('DELETE FROM account_limits WHERE key=?').bind(await digest('pin:'+user.user_id+':'+row.id)).run();
       }
       await env.DB.prepare('UPDATE account_sessions SET profile_id=? WHERE id=? AND user_id=?').bind(row.id,user.session_id,user.user_id).run();
       return reply({ok:true});
