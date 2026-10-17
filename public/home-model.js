@@ -89,6 +89,8 @@ export function shouldResume(position, duration) {
 
 export function buildShowcase(items, settings = DEFAULT_SETTINGS, savedKeys = []) {
   const rails = { tv: [], movies: [], series: [] };
+  // Referências aos itens já carregados; sem duplicar 260 mil objetos ou reclassificar nas páginas.
+  const catalogs = { tv: [], movies: [], series: [] };
   const counts = { tv: 0, movies: 0, series: 0 };
   const detectedGroups = new Map();
   const matches = new Map();
@@ -102,6 +104,7 @@ export function buildShowcase(items, settings = DEFAULT_SETTINGS, savedKeys = []
   for (const item of items) {
     const role = classifyItem(item, settings, keywords);
     counts[role]++;
+    catalogs[role].push(item);
     const group = String(item.group || 'Sem categoria');
     if (detectedGroups.size < 5000 || detectedGroups.has(group)) {
       detectedGroups.set(group, (detectedGroups.get(group) || 0) + 1);
@@ -128,5 +131,5 @@ export function buildShowcase(items, settings = DEFAULT_SETTINGS, savedKeys = []
     }
   }
   const groups = [...detectedGroups].sort((a, b) => b[1] - a[1]).slice(0, 16);
-  return { rails, counts, matches, groups };
+  return { rails, catalogs, counts, matches, groups };
 }

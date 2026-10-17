@@ -1,0 +1,48 @@
+/* Lux Cinema / páginas de catálogo. Estilo Outfit inspirado no Lux 3.0. */
+.cinema-shell.is-browsing .feature-hero,
+.cinema-shell.is-browsing #home-rails,
+.cinema-shell.is-browsing .watch-area{display:none!important}
+.browse-screen{min-height:calc(100dvh - 140px);padding:28px clamp(20px,3.85vw,74px) 55px;background:#050508;color:#f7f4fa;font-family:'Outfit',sans-serif}
+.browse-screen[hidden]{display:none!important}
+.browse-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:0 0 26px}
+.browse-kicker{color:#bf93ed;font-size:12px;letter-spacing:.18em;font-weight:750}
+.browse-heading h1{font-size:clamp(28px,3.5vw,42px);font-weight:720;letter-spacing:-.045em;line-height:1.15;margin:8px 0 0}
+.browse-pager{display:flex;align-items:center;gap:9px;white-space:nowrap}
+.browse-pager>span{font:500 12px 'Outfit',sans-serif;color:#9b8ea7;margin-right:8px}
+.browse-pager button{height:36px;min-width:37px;border:1px solid #ffffff1b;background:#0c0b10;color:#ded4e6;border-radius:10px;font:600 21px 'Outfit',sans-serif;cursor:pointer;transition:border .2s,background .2s}
+.browse-pager button:hover:not(:disabled){background:#30213e;border-color:#a67fcd}
+.browse-pager button:disabled{opacity:.3;cursor:default}
+.browse-pager .browse-go{font-size:12px;border:0;background:transparent;color:#eee5f5}
+.browse-page-entry input{height:36px;width:72px;text-align:center;border:1px solid #ffffff25;border-radius:10px;background:#101014;color:#fff;font:650 13px 'Outfit',sans-serif;appearance:textfield;-moz-appearance:textfield}
+.browse-page-entry input::-webkit-inner-spin-button,.browse-page-entry input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.browse-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:-5px 0 18px;padding-bottom:12px;border-bottom:1px solid #ffffff0c}
+.browse-group-label{display:flex;align-items:center;gap:9px;color:#a395af;font-size:10px;font-weight:700;letter-spacing:.1em}
+.browse-group-label select{height:37px;max-width:min(52vw,280px);border:1px solid #ffffff26;border-radius:9px;background:#16111d;color:#e7def0;padding:0 12px;font:500 12px 'Outfit',sans-serif}
+.browse-filter-label{font-size:11px;color:#82758d}
+.browse-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:18px 13px;align-items:stretch}
+.browse-grid .media-card{width:100%;max-width:none;min-width:0;flex:none;display:flex;flex-direction:column;background:#18171b;border:1px solid #ffffff16;border-radius:16px;overflow:hidden;transform:none;box-shadow:none;transition:border-color .2s,transform .2s,box-shadow .2s}
+.browse-grid .media-card:hover{transform:translateY(-3px);border-color:#a070d1a1;box-shadow:0 13px 35px #000a}
+.browse-grid .media-visual{width:100%;aspect-ratio:2/3;border:0;border-radius:0;box-shadow:none!important;background:radial-gradient(ellipse at 4% 2%,#51216f75,#111015 70%);position:relative}
+.browse-grid .media-visual img{width:100%;height:100%;object-fit:cover;object-position:center;transform:none}
+.browse-grid[data-role="tv"] .media-visual img{object-fit:contain;padding:12px}
+.browse-grid .media-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#08060aa0,transparent 45%);pointer-events:none}
+.browse-grid .media-visual:hover img{transform:scale(1.03)}
+.browse-grid .media-info{padding:12px 12px 13px;flex:1;display:flex;flex-direction:column;gap:7px}
+.browse-grid .media-title{min-height:0;font:650 14px/1.35 'Outfit',sans-serif;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browse-grid .media-group{margin:0;color:#8e819b;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.browse-grid .media-labels{display:block}
+.browse-grid .media-favorite{font:500 11px 'Outfit',sans-serif;color:#b5a5c4;display:block;text-align:left;margin-top:10px;width:100%;padding:0}
+.browse-grid .media-favorite:hover{color:#e4bbff}
+.browse-badge{position:absolute;top:11px;left:10px;z-index:4;padding:5px 10px;background:#09070cbf;color:#fff;border-radius:40px;font:650 10px 'Outfit',sans-serif;letter-spacing:.01em}
+.browse-empty{grid-column:1/-1;min-height:230px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#130e1973;border:1px dashed #463552;border-radius:17px;color:#afa0bb;text-align:center;font-size:13px;line-height:1.7}
+.browse-empty button{border:1px solid #815b9c;border-radius:8px;padding:10px 16px;background:#31213e;color:#f1e8f9}
+.browse-foot{margin-top:30px;display:flex;justify-content:space-between;align-items:center;color:#8e819a;font-size:11px}
+.browse-foot button{background:none;border:0;color:#c09de6;font:600 12px 'Outfit',sans-serif}
+@media(max-width:1450px){.browse-grid{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@media(max-width:1170px){.browse-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media(max-width:950px){.browse-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.browse-heading{flex-wrap:wrap}.browse-pager{max-width:100%;overflow-x:auto}}
+@media(max-width:740px){.browse-screen{padding:23px 17px 40px}.browse-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:13px 9px}.browse-grid .media-title{font-size:12px}.browse-grid .media-info{padding:10px 8px}.browse-grid .media-favorite{font-size:10px}.browse-kicker{font-size:10px}.browse-pager{gap:6px}.browse-pager>span{font-size:11px}}
+@media(max-width:510px){.browse-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.browse-heading{gap:15px}.browse-pager{width:100%;justify-content:space-between}.browse-pager>span{font-size:10px;margin-right:0}.browse-page-entry input{width:47px}.browse-filter-label{display:none}.browse-grid .media-title{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.browse-grid .media-card{transition:none!important}}
+
+.browse-group-label[hidden]{display:none!important}

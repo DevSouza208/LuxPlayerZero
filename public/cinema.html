@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/home.css">
   <link rel="stylesheet" href="/cinema-premium.css">
   <link rel="stylesheet" href="/cinema-polish.css">
+  <link rel="stylesheet" href="/cinema-browse.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
   <style>
@@ -124,6 +125,28 @@
       <div class="hero-number" aria-hidden="true">01 <span>/ SEU UNIVERSO</span></div>
     </section>
     <div id="home-rails" class="home-rails" aria-label="Destaques e vitrines da sua biblioteca"></div>
+    <section id="cinema-browse" class="browse-screen" aria-label="Catálogo completo" hidden>
+      <div class="browse-heading">
+        <div><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1></div>
+        <div class="browse-pager" aria-label="Navegação entre páginas">
+          <span id="browse-page-label">Página 1 de 1</span>
+          <button type="button" data-browse-page="first" aria-label="Primeira página">«</button>
+          <button type="button" data-browse-page="prev" aria-label="Página anterior">‹</button>
+          <label class="browse-page-entry"><input id="browse-page-input" type="number" min="1" value="1" aria-label="Número da página"></label>
+          <button id="browse-page-go" type="button" class="browse-go" aria-label="Ir para página">Ir</button>
+          <button type="button" data-browse-page="next" aria-label="Próxima página">›</button>
+          <button type="button" data-browse-page="last" aria-label="Última página">»</button>
+        </div>
+      </div>
+      <div class="browse-toolbar">
+        <label class="browse-group-label" for="browse-group">GRUPO
+          <select id="browse-group" aria-label="Filtrar por grupo"><option value="">Todos os grupos</option></select>
+        </label>
+        <span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
+      </div>
+      <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
+      <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button">Voltar ao topo ↑</button></div>
+    </section>
     <section class="watch-area" id="reproduzir" aria-label="Reprodutor e busca completa">
     <header class="topbar">
       <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
