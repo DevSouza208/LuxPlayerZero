@@ -17,7 +17,7 @@ async function openSession(request,env,user) {
       ON p.id=a.default_profile_id AND p.user_id=a.user_id WHERE a.user_id=? AND p.pin_hash IS NULL),?,?,?)`)
     .bind(await digest(token),sessionId,user.id,user.id,(request.headers.get('user-agent')||'Dispositivo').slice(0,180),now,now+SESSION_SECONDS*1000).run();
   const selected=await env.DB.prepare('SELECT profile_id FROM account_sessions WHERE id=?').bind(sessionId).first();
-  return cookie(reply({authenticated:true,username:user.username,role:user.role,profileId:selected?.profile_id||null}),token);
+  return cookie(reply({authenticated:true,username:user.username,role:user.role,profileId:selected?.profile_id||null,luxId:'LUX:'+user.id}),token);
 }
 function validateState(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))throw new HttpError(400,'Estado inválido.');
@@ -53,14 +53,18 @@ export async function accountApi(request,env) {
     requireConfig(env);
     if(request.method==='GET'&&path==='/api/account/session'){
       const user=await session(request,env);
-      return reply(user?{authenticated:true,username:user.username,role:user.role,profileId:user.profile_id}:{authenticated:false});
+      return reply(user?{authenticated:true,username:user.username,role:user.role,profileId:user.profile_id,luxId:'LUX:'+user.user_id}:{authenticated:false});
     }
     if(request.method==='POST'&&['/api/account/login','/api/account/register'].includes(path)){
       const body=await bodyJson(request,4096),username=usernameOf(body.identity),password=body.password;
       const ipKey=await digest('ip:'+ (request.headers.get('cf-connecting-ip')||'unknown'));
       await limit(env,ipKey,30);
-      if(!validUsername(username)||typeof password!=='string'||password.length>256)throw new HttpError(400,'Confira usuário e senha.');
-      const key=await digest('login:'+username);await limit(env,key,8);
+      const luxId=/^lux:([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/.exec(username)?.[1];
+      if((!validUsername(username)&&!luxId)||typeof password!=='string'||password.length>256)throw new HttpError(400,'Confira usuário ou Lux ID e senha.');
+      if(path.endsWith('/register')&&luxId)throw new HttpError(400,'Escolha um nome de usuário para criar sua conta.');
+      let user=path.endsWith('/register')?null:await env.DB.prepare(luxId?'SELECT * FROM account_users WHERE id=?':'SELECT * FROM account_users WHERE username=?').bind(luxId||username).first();
+      // Both aliases share one attempt counter for an existing account.
+      const key=await digest('login:'+(user?.id||username));await limit(env,key,8);
       if(path.endsWith('/register')){
         if(!validPassword(password)||!/^[a-f0-9]{64}$/.test(body.invite||''))throw new HttpError(400,'Use convite válido e senha de 12 a 256 caracteres.');
         const inviteHash=await digest(body.invite),now=Date.now(),id=crypto.randomUUID(),salt=randomToken();
@@ -76,7 +80,6 @@ export async function accountApi(request,env) {
         if(!batch[0].meta.changes)throw new HttpError(400,'Convite inválido ou já utilizado.');
         return await openSession(request,env,{id,username,role:'user'});
       }
-      let user=await env.DB.prepare('SELECT * FROM account_users WHERE username=?').bind(username).first();
       // One-time bootstrap is possible only on an empty installation, with a strong private secret.
       if(!user&&username==='admin'&&validPassword(env.LUX_ADMIN_BOOTSTRAP_PASSWORD)&&env.LUX_ADMIN_BOOTSTRAP_PASSWORD.length>=20&&equal(password,env.LUX_ADMIN_BOOTSTRAP_PASSWORD)){
         const salt=randomToken(),hash=await hashPassword(password,salt,env);

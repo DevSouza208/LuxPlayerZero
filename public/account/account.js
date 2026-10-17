@@ -45,7 +45,7 @@ $('logout').onclick=()=>run($('logout'),async()=>{await api('logout',{});locatio
 $('revoke-all').onclick=()=>run($('revoke-all'),async()=>{await api('revoke',{all:true});location.replace('/')});
 $('password-form').onsubmit=e=>{e.preventDefault();run(e.submitter,async()=>{await api('password',Object.fromEntries(new FormData(e.target)));location.replace('/')})};
 $('invite').onclick=()=>run($('invite'),async()=>{const data=await api('invite',{});$('invite-result').hidden=false;$('invite-token').value=data.token;status('Convite criado. Compartilhe-o somente com a pessoa convidada.');await admin()});
-try{const data=await api('session');if(!data.authenticated)location.replace('/');else{$('identity').textContent='Olá, '+data.username;await Promise.all([profiles(),devices()]);if(data.role==='admin'){$('admin').hidden=false;await admin()}}}catch(e){status(e.message,true)}
+try{const data=await api('session');if(!data.authenticated)location.replace('/');else{$('identity').textContent='Olá, '+data.username;$('account-lux-id').textContent='Seu Lux ID: '+data.luxId;await Promise.all([profiles(),devices()]);if(data.role==='admin'){$('admin').hidden=false;await admin()}}}catch(e){status(e.message,true)}
 
 $('mfa-form').onsubmit=e=>{e.preventDefault();const action=e.submitter.value;run(e.submitter,async()=>{const data=await api('mfa',{...Object.fromEntries(new FormData(e.target)),action});$('mfa-result').textContent=data.secret?'Adicione esta chave ao seu autenticador e confirme o código: '+data.secret:'2FA ativado. Guarde estes códigos de recuperação em local seguro (cada um funciona uma vez): '+data.recovery.join(' · ');if(data.enabled)e.target.reset()})};
 

@@ -48,10 +48,10 @@
 
           <form id="login-form" class="auth-form" method="post" action="#" novalidate autocomplete="on">
             <div class="field">
-              <label class="field-label" for="login-identity">Lux ID <small>Usuário ou e-mail</small></label>
+              <label class="field-label" for="login-identity">Lux ID <small>ou nome de usuário</small></label>
               <div class="input-wrap">
                 <svg class="field-icon" aria-hidden="true"><use href="#icon-user"></use></svg>
-                <input id="login-identity" type="text" inputmode="email" autocomplete="username" placeholder="Usuário ou e-mail" maxlength="254" aria-invalid="false" aria-describedby="identity-error" spellcheck="false" required>
+                <input id="login-identity" type="text" inputmode="text" autocomplete="username" placeholder="Usuário ou LUX:…" maxlength="254" aria-invalid="false" aria-describedby="identity-error" spellcheck="false" required>
               </div>
               <p class="field-error" id="identity-error" hidden></p>
             </div>

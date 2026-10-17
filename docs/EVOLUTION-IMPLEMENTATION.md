@@ -42,7 +42,7 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Validação executada
 - Baseline: 113 testes existentes aprovados.
-- Após os módulos novos: 142 testes aprovados (atualizar este número ao adicionar testes).
+- Após os módulos novos: 143 testes aprovados (atualizar este número ao adicionar testes).
 - Testes usam SQLite real para SQL, transações, isolamento, convites, estado, sessões, PIN e MFA. Simulações de R2 só nos testes; nenhum stream privado utilizado.
 - Teste de índice: 10 mil entradas por chunks; teste de integração de publicação/paginação com SQLite e R2 simulado.
 - Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Segunda execução 38999705743 aprovada com 138 testes e verificação de geometria/modal em desktop e mobile. Capturas da conta, detalhes desktop e mobile revisadas; o modal cobre a viewport. Reprodução real e PWA instalado ainda não testados.
@@ -68,3 +68,5 @@ Validação final do código desta rodada: GitHub Actions 38999939859 aprovado, 
 - Último canal: atalho baseado no histórico do perfil e restrito a item ainda disponível no catálogo. Reprodução continua pelo callback público existente.
 - Filtros por ano, gênero e áudio declarado; ordenação por fornecedor, título ou ano. Sem classificação etária presumida, popularidade ou data de adição inventadas. Busca remota mantém ordem do fornecedor; filtros adicionais usam índice local reutilizado e paginação de 48 itens. Cache por array do catálogo evita renormalização e nova ordenação a cada página. O loader protegido ainda carrega o catálogo completo.
 - Novos testes cobrem padrão/PIN/isolamento, diagnóstico sem segredos, combinação de filtros e integridade das entradas. Smoke ampliado para padrão persistente, diagnóstico, filtros mobile e queda/retorno da rede.
+
+CI 39000617956 aprovou 142 testes e fluxos de perfil padrão, diagnóstico, filtros mobile e rede offline/online. Lux ID acrescentado em seguida: identificador LUX:UUID sem colisão com nomes de usuário, exibido na conta; aliases compartilham limite de tentativas. Teste local de login/rate limit aprovado; smoke ampliado para sair e entrar pelo Lux ID no perfil padrão. E-mail segue indisponível.

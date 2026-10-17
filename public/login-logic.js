@@ -6,7 +6,7 @@ export function validateLogin({ identity, password } = {}) {
   const errors = {};
   const normalizedIdentity = String(identity ?? '').trim();
   const secret = String(password ?? '');
-  if (!normalizedIdentity) errors.identity = 'Informe seu Lux ID (usuário ou e-mail).';
+  if (!normalizedIdentity) errors.identity = 'Informe seu nome de usuário ou Lux ID.';
   else if (normalizedIdentity.length < 3) errors.identity = 'Digite pelo menos 3 caracteres.';
   if (!secret) errors.password = 'Informe sua senha.';
   return { valid: Object.keys(errors).length === 0, errors };

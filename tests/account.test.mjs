@@ -121,3 +121,12 @@ test('diagnóstico é exclusivo do admin e não devolve caminhos ou secrets',asy
  assert.equal(report.r2.status,'configured_not_probed');assert.equal(JSON.stringify(report).includes('secret'),false);
  assert.match(r.headers.get('cache-control'),/no-store/);
 });
+
+test('Lux ID autentica a mesma conta e compartilha limite com nome de usuário',async()=>{
+ const ctx=setup(),owner=await admin(ctx);
+ const session=await (await ctx.call('session',null,owner)).json();assert.match(session.luxId,/^LUX:[a-f0-9-]{36}$/);
+ const alias=await ctx.call('login',{identity:session.luxId,password:ctx.env.LUX_ADMIN_BOOTSTRAP_PASSWORD});
+ assert.equal(alias.status,200);assert.equal((await alias.json()).username,'admin');
+ for(let i=0;i<8;i++)assert.equal((await ctx.call('login',{identity:i%2?session.luxId:'admin',password:'incorrect'})).status,401);
+ assert.equal((await ctx.call('login',{identity:session.luxId,password:'incorrect'})).status,429);
+});

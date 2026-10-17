@@ -24,8 +24,13 @@ const assert=require('node:assert/strict');
   await page.locator('input[type=file]').setInputFiles({name:'fixture.m3u',mimeType:'audio/x-mpegurl',buffer:Buffer.from(fixture)});
   await page.locator('#nav-movies').click();await page.selectOption('#browse-year','2024');await page.selectOption('#browse-sort','title');
   assert.equal(await page.locator('#browse-grid .media-card').count(),1);
-  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  await page.screenshot({path:'test-results/filters-mobile.png'});await page.setViewportSize({width:1365,height:900});
+  for(const width of [390,320]){
+   await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   assert.equal(await page.evaluate(()=>document.querySelector('#browse-title').getBoundingClientRect().top>=document.querySelector('.cinema-nav').getBoundingClientRect().bottom),true);
+   assert.equal(await page.locator('.browse-pager button').evaluateAll(buttons=>buttons.every(b=>{const r=b.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})),true);
+   await page.screenshot({path:'test-results/filters-'+width+'.png'});
+  }
+  await page.setViewportSize({width:1365,height:900});
   await page.locator('a[href="#inicio"]').first().click();
   await page.getByRole('button',{name:/Ver detalhes de Jornada/}).first().click();await page.locator('.lux-fullscreen-detail[open]').waitFor();
   await page.getByRole('tab',{name:'Temporada 2',exact:true}).click();assert.equal(await page.locator('.lux-full-episode-card').count(),1);
@@ -50,6 +55,10 @@ const assert=require('node:assert/strict');
   await page.clock.fastForward(10000);assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry']);
   await page.evaluate(()=>{window.testContinuation.show({item:{id:'cancelled'},season:1,number:3,contiguous:true},true);window.testContinuation.cancel()});
   await page.clock.fastForward(10000);assert.equal(await page.evaluate(()=>window.testContinuationCalls.length),1);
+  const luxId=await page.evaluate(async()=>{const r=await fetch('/api/account/session');return (await r.json()).luxId});
+  await page.goto('http://localhost:4173/account/');await page.locator('#logout').click();await page.waitForURL('http://localhost:4173/');
+  await page.fill('#login-identity',luxId);await page.fill('#login-password','local-test-only-bootstrap-password');
+  await page.click('#login-form button[type=submit]');await page.waitForURL('**/cinema/');
   assert.deepEqual(errors,[]);
   console.log('Browser smoke passed: login → profile → catalog → series, focus, season memory and mobile. Playback not exercised.');
  }finally{await browser?.close();server.kill('SIGTERM')}

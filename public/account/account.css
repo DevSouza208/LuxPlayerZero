@@ -2,3 +2,5 @@
 
 dialog{color:var(--text);background:var(--surface);border:1px solid #654985;border-radius:20px;max-width:min(480px,90vw);padding:28px}dialog::backdrop{background:#000b}
 .profile[data-default=true]{border:1px solid #80619b;border-radius:18px}.default-badge{font-size:.85rem;color:#cbb9ff;margin:8px}.profile{min-width:0;overflow-wrap:anywhere}
+
+.lux-account-id{overflow-wrap:anywhere;font-size:.85rem;color:#c1b9d1}
