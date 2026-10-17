@@ -329,6 +329,8 @@ export function createHome({ play } = {}) {
   function savedKeys() { return [...new Set([...favorites, ...recent].map(x => x.key))]; }
   function rebuild() {
     showcase = buildShowcase(items, config, savedKeys());
+    seriesIndex=buildSeriesIndex(showcase.catalogs.series);
+    tvIndex=groupTvEntries(showcase.catalogs.tv);
     pinnedItem = config.heroMode === 'pinned' && config.pinnedName
       ? items.find(item => item.name === config.pinnedName || titleForDisplay(item) === config.pinnedName) || null : null;
   }
@@ -941,9 +943,6 @@ export function createHome({ play } = {}) {
       tmdbQueued.clear();
       autoEnriched = 0;
       items=next;
-      const grouped=buildShowcase(items,config);
-      seriesIndex=buildSeriesIndex(grouped.catalogs.series);
-      tvIndex=groupTvEntries(grouped.catalogs.tv);
       active=null;rebuild();
       render();
       // O formulário original permanece na gaveta; só fecha ao importar com sucesso.

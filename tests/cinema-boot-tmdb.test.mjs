@@ -36,7 +36,7 @@ test('Consultas TMDB apenas para títulos visíveis e com limite de concorrênci
   assert.ok(home.includes('const MAX_AUTO_ENRICH = 10;'));
   assert.ok(home.includes('const MAX_SIMULTANEOUS_TMDB = 3;'));
   assert.ok(home.includes('showcase.rails.movies.slice(0, 7)'));
-  assert.ok(home.includes('showcase.rails.series.slice(0, 7)'));
+  assert.ok(home.includes('seriesIndex.representatives.slice(0, 7)'));
   assert.ok(home.includes("if (art && needArt && data.backdrop) art.src = data.backdrop"));
   const html = file('cinema.html');
   assert.ok(html.includes('Apenas imagens M3U · TMDB desativado'));
