@@ -96,3 +96,8 @@ Validação final do código 3e599be: CI 39002501073 aprovado em sintaxe, 149 te
 
 ## Publicação autorizada e visitante — 17/10/2026
 Usuário autorizou levar o PR #16 à produção e direcionar visitante à Home. Implementado /cinema/?guest=1: shell público, preferências em memória, sem restauração automática do snapshot da conta. APIs privadas, conta e bridge continuam com suas autorizações. 151 testes locais aprovados; smoke inclui visitante sem sessão carregando M3U, Home e rejeição de API privada. Publicação e teste remoto ainda em andamento. Nenhuma credencial ou migração D1 remota configurada: a autenticação Cloudflare não foi concluída.
+
+### Publicação confirmada
+PR #16 mesclado na main por autorização explícita do usuário: eb4536a0e4bb6a7a8918d0d9692d199b4deb004a. Código visitante validado no CI 39005351227 (151 testes, navegador aprovado); screenshot revisada. Cloudflare Pages confirmou deploy 886e10f8-1fda-454d-9892-31f8774c0b72; Workers Builds confirmou versão 455b4d4f-0991-4d4e-bc8a-f06d922c63ea. Link do deploy: https://886e10f8.luxplayerzero.pages.dev . Entrada visitante: /cinema/?guest=1. O teste HTTP direto a partir do executor recebeu 403; confirmação de publicação vem dos checks Cloudflare e não comprova reprodução no dispositivo do usuário.
+
+LUX-256 concluída. Configuração remota de contas/D1/secrets permanece pendente; não foi criado admin nem aplicada migração remotamente. As demais tarefas do CSV conservam seu estado. Próxima retomada deve partir da main publicada, não presumir PR #16 aberto ou ambiente ainda apenas em preview.
