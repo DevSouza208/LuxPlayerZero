@@ -1,6 +1,6 @@
 import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
-import { recommendationIndex, recommend } from './recommendations.js';
+import { recommendationIndex, recommend, afterWatchRecommendations } from './recommendations.js';
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
 import { titleForDisplay } from './cinema-title.js';
@@ -97,7 +97,7 @@ export function createHome({ play } = {}) {
 
   });
   const quickGuide=createQuickGuide($('reproduzir'));
-  const continuation=createEpisodeContinuation({host:$('reproduzir'),onPlay:start,onReturn:()=>fullDetails.resume()});
+  const continuation=createEpisodeContinuation({host:$('reproduzir'),onPlay:start,onDetails:showDetails,onReturn:()=>fullDetails.resume()});
   const returnButton=document.createElement('button');returnButton.type='button';returnButton.className='lux-return-details';returnButton.textContent='Voltar aos detalhes';returnButton.hidden=true;
   returnButton.addEventListener('click',()=>{continuation.cancel();fullDetails.resume()});$('reproduzir')?.append(returnButton);
   const adminDialog = $('admin-dialog');
@@ -1089,8 +1089,12 @@ export function createHome({ play } = {}) {
       updateRecommendations();
       render();
       const group=seriesIndex.byItemId.get(item.id);
-      if(group)continuation.show(nextEpisode(seriesIndex,item),configRaw.autoNext===true);
-      else flash('Concluído. Veja outras sugestões na Home.');
+      const next=group?nextEpisode(seriesIndex,item):null;
+      if(next)continuation.show(next,configRaw.autoNext===true);
+      else if(classifyRole(item)!=='tv'){
+        const enabled=configRaw.personalization!==false;
+        continuation.showRecommendations(afterWatchRecommendations(recommendationMap,item,seriesIndex,{watched,enabled}),{series:Boolean(group),enabled});
+      }
     },
     resumePosition(item) {
       const value = recent.find(x => x.key === itemKey(item));

@@ -25,3 +25,20 @@ export function recommend(index,seeds,{watched=new Set(),limit=16,enabled=true}=
  }
  return [...scored.values()].sort((a,b)=>b.score-a.score||String(a.item.name).localeCompare(String(b.item.name),'pt-BR')).slice(0,limit);
 }
+
+/** Keep one tile per real series and exclude the finished series as a whole. */
+export function afterWatchRecommendations(index,finished,seriesIndex,options={}) {
+ const excluded=new Set(options.watched||[]);
+ const finishedGroup=seriesIndex.byItemId.get(finished.id);
+ for(const row of finishedGroup?.episodes||[])excluded.add(itemKey(row.item));
+ const rows=recommend(index,[finished],{...options,watched:excluded,limit:5000});
+ const seen=new Set(),result=[];
+ for(const row of rows){
+  const group=seriesIndex.byItemId.get(row.item.id);
+  const key=group?'series:'+group.key:itemKey(row.item);
+  if(seen.has(key))continue;
+  seen.add(key);result.push({...row,title:group?.title||row.item.displayName||row.item.name});
+  if(result.length>=(options.limit||6))break;
+ }
+ return result;
+}

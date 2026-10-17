@@ -51,12 +51,22 @@ const assert=require('node:assert/strict');
   await page.clock.install();
   await page.evaluate(async()=>{
    const {createEpisodeContinuation}=await import('/episode-continuation.js');
-   window.testContinuationCalls=[];window.testContinuation=createEpisodeContinuation({host:document.body,onPlay:item=>window.testContinuationCalls.push(item.id),onReturn:()=>{}});
+   window.testContinuationCalls=[];window.testContinuation=createEpisodeContinuation({host:document.body,onPlay:item=>window.testContinuationCalls.push(item.id),onReturn:()=>{},onDetails:item=>window.testContinuationCalls.push(item.id)});
    window.testContinuation.show({item:{id:'next-existing-entry'},season:1,number:2,contiguous:true},true);
   });
   await page.clock.fastForward(10000);assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry']);
   await page.evaluate(()=>{window.testContinuation.show({item:{id:'cancelled'},season:1,number:3,contiguous:true},true);window.testContinuation.cancel()});
   await page.clock.fastForward(10000);assert.equal(await page.evaluate(()=>window.testContinuationCalls.length),1);
+  await page.evaluate(()=>window.testContinuation.showRecommendations([{item:{id:'suggested'},title:'Título <seguro> muito longo para verificar o celular'}]));
+  await page.setViewportSize({width:320,height:844});
+  const suggestion=page.getByRole('button',{name:'Ver detalhes de Título <seguro> muito longo para verificar o celular',exact:true});
+  await suggestion.scrollIntoViewIfNeeded();assert.equal(await suggestion.evaluate(el=>el.querySelector('seguro')===null&&el.getBoundingClientRect().right<=innerWidth),true);
+  await page.screenshot({path:'test-results/after-watch-mobile.png'});await suggestion.click();
+  assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry','suggested']);
+  await page.evaluate(()=>window.testContinuation.showRecommendations([],{enabled:false}));
+  await page.getByText('Filme concluído. As recomendações personalizadas estão desativadas.',{exact:true}).waitFor();
+  await page.evaluate(()=>window.testContinuation.cancel());
+  await page.setViewportSize({width:390,height:844});
   await page.evaluate(async()=>{
    const now=Date.now();const response=await fetch('/api/editorial/guide',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({programs:[{channel:'sportv',title:'Programa de teste',start:now-60000,end:now+3600000},{channel:'sportv',title:'Próximo de teste',start:now+3600000,end:now+7200000}]})});
    if(!response.ok)throw Error('Fixture guide failed');
