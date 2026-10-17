@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
+import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
 
 const STORAGE = 'luxzero:home:';
 const $ = id => document.getElementById(id);
@@ -102,6 +103,17 @@ export function createHome({ play } = {}) {
   }
 
   const railsRoot = $('home-rails');
+  const browseRoot = $('cinema-browse');
+  const browseGrid = $('browse-grid');
+  const browseGroupSelect = $('browse-group');
+  const browsePageInput = $('browse-page-input');
+  let browseRole = null;
+  let browsePage = 1;
+  let browseSearch = '';
+  let browseGroup = '';
+  let browseLastGroupSource = null;
+  let browseLastGroupRole = null;
+
 
   function openDialog(dialog) {
     if (dialog && !dialog.open) dialog.showModal();
@@ -145,6 +157,12 @@ export function createHome({ play } = {}) {
   navSearch?.addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
+      if (browseRole) {
+        browseSearch = navSearch.value;
+        browsePage = 1;
+        renderBrowse();
+        return;
+      }
       const search = $('search');
       if (search) { search.value = navSearch.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
     }, 260);
@@ -153,6 +171,12 @@ export function createHome({ play } = {}) {
     if (event.key === 'Enter') {
       event.preventDefault();
       clearTimeout(searchTimer);
+      if (browseRole) {
+        browseSearch = navSearch.value;
+        browsePage = 1;
+        renderBrowse();
+        return;
+      }
       const search = $('search');
       if (search) { search.value = navSearch.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
       $('biblioteca')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -160,12 +184,20 @@ export function createHome({ play } = {}) {
   });
   const navLinks = [...document.querySelectorAll('.cinema-nav-link')];
   navLinks.forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', event => {
+      const hash = link.getAttribute('href');
+      if (hash === '#inicio' || browseRoleFromHash(hash)) {
+        event.preventDefault();
+        activateBrowse(browseRoleFromHash(hash), { push: true });
+        return;
+      }
       navLinks.forEach(el => { el.classList.remove('is-active'); el.removeAttribute('aria-current'); });
       link.classList.add('is-active');
       link.setAttribute('aria-current', 'page');
     });
   });
+  window.addEventListener('popstate', () => activateBrowse(browseRoleFromHash(location.hash), { scroll: false }));
+  window.addEventListener('hashchange', () => activateBrowse(browseRoleFromHash(location.hash), { scroll: false }));
 
   $('open-admin')?.addEventListener('click', () => {
     for (const key of Object.keys(DEFAULT_SETTINGS)) {
