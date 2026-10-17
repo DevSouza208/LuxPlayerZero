@@ -17,6 +17,15 @@ jobs:
           node --check public/login.js
           node --check public/login-logic.js
           node --check public/playlist.js
+          node --check public/cinema-app.js
+          node --check public/cinema-title.js
+          node --check public/cinema-browse.js
+          node --check public/media-taxonomy.js
+          node --check public/tv-normalizer.js
+          node --check public/lux-tag-palette.js
+          node --check src/auth-core.js
+          node --check src/library-core.js
+          node --check functions/_middleware.js
           node --check src/worker.js
       - name: Testes unitários
         run: npm test

@@ -21,9 +21,9 @@ test('recuperação valida e-mail', () => {
   assert.equal(validateRecoveryEmail('conta@exemplo.com'), '');
 });
 
-test('tela inicial aponta para ativos e mantém laboratório de demonstração', () => {
+test('tela inicial mantém interface de autenticação sem link de demonstração', () => {
   const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-  for (const marker of ['login-form', 'login-identity', 'login-password', 'toggle-password', 'recovery-form', '/player.html', 'login-google', 'login-discord', 'Lux ID']) {
+  for (const marker of ['login-form', 'login-identity', 'login-password', 'toggle-password', 'recovery-form', 'login-google', 'login-discord', 'Lux ID']) {
     assert.ok(html.includes(marker), 'Elemento ausente: ' + marker);
   }
   for (const name of ['lux-logo.png','lux-icon.png','login-scene.png','luxite.png']) {
@@ -33,11 +33,11 @@ test('tela inicial aponta para ativos e mantém laboratório de demonstração',
   assert.equal(existsSync(new URL('../public/player.html', import.meta.url)), true);
 });
 
-test('login não faz autenticação falsa nem armazena segredos', () => {
-  const js = readFileSync(new URL('../public/login.js', import.meta.url), 'utf8');
-  assert.equal(/\bfetch\s*\(/.test(js), false);
-  assert.equal(/localStorage|sessionStorage/.test(js), false);
-  assert.ok(js.includes('nenhuma credencial foi enviada'.replace(/^n/, 'N')) || js.includes('Nenhuma credencial foi enviada'));
+test('login comunica-se com backend real sem armazenar senha no navegador',()=>{
+ const js=readFileSync(new URL('../public/login.js',import.meta.url),'utf8');
+ assert.ok(js.includes("fetch('/api/auth/login'"));
+ assert.ok(js.includes("fetch('/api/auth/session'"));
+ assert.equal(/localStorage|sessionStorage/.test(js),false);
 });
 
 test('logins sociais continuam apenas como interface, sem autenticação simulada', () => {
