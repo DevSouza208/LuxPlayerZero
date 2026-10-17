@@ -630,8 +630,8 @@ export function createHome({ play } = {}) {
       (configRaw.hideEmpty === false || !items.length || rails[key].list.length));
     railsRoot.replaceChildren(...visible.map(key => rails[key].draw()));
     document.querySelector('.cinema-shell')?.classList.toggle('is-compact', config.density === 'compact');
-    $('nav-movies').textContent = settingsTitle('movies');
-    $('nav-series').textContent = settingsTitle('series');
+    $('nav-movies').textContent = configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes';
+    $('nav-series').textContent = configRaw.seriesTitle ? settingsTitle('series') : 'Séries';
     if (items.length && metadataNeeded(config, 'auto')) {
       // Priorizar o banner e as primeiras capas realmente visíveis.
       // Os demais títulos recebem metadados se o usuário abrir Detalhes.
@@ -643,6 +643,7 @@ export function createHome({ play } = {}) {
       }
     }
     $('catalog-total').textContent = items.length ? items.length.toLocaleString('pt-BR') + ' títulos na biblioteca' : 'Sua biblioteca, seu universo';
+    if (browseRole) renderBrowse();
   }
 
   railsRoot.addEventListener('click', event => {
@@ -720,6 +721,7 @@ export function createHome({ play } = {}) {
   });
   function start(item) {
     if (!item) return;
+    if (browseRole) activateBrowse(null, { push: true, scroll: false });
     void play(item);
     $('reproduzir').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -847,6 +849,8 @@ export function createHome({ play } = {}) {
   });
 
   render();
+  // Links diretos /cinema/#destaques-filmes etc. também abrem a página completa.
+  activateBrowse(browseRoleFromHash(location.hash), { scroll: false });
   return {
     setItems(next) {
       // Descarta buscas automáticas pendentes da biblioteca anterior.
