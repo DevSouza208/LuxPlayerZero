@@ -20,9 +20,11 @@ const assert=require('node:assert/strict');
   mkdirSync('test-results',{recursive:true});await page.screenshot({path:'test-results/account-desktop.png',fullPage:true});
   await page.getByRole('button',{name:'Principal',exact:true}).click();await page.waitForURL('**/cinema/');
   await page.locator('#lux-boot').waitFor({state:'hidden',timeout:20000});
-  const fixture='#EXTM3U\n#EXTINF:-1 group-title="Filmes | Ação",Filme de teste (2024)\nhttps://example.com/movie/1.mp4\n#EXTINF:-1 group-title="Séries",Jornada S01E01\nhttps://example.com/series/1.mp4\n#EXTINF:-1 group-title="Séries",Jornada S02E01\nhttps://example.com/series/2.mp4\n#EXTINF:-1 tvg-id="sportv" group-title="TV Esportes",SporTV HD\nhttps://example.com/live/1.m3u8\n#EXTINF:-1 tvg-id="sportv" group-title="TV Esportes",SporTV FHD\nhttps://example.com/live/2.m3u8';
+  const fixture='#EXTM3U\n#EXTINF:-1 group-title="Filmes | Ação",Filme de teste (2024)\nhttps://example.com/movie/1.mp4\n#EXTINF:-1 group-title="Filmes | Drama",Outra obra (2022)\nhttps://example.com/movie/2.mp4\n#EXTINF:-1 group-title="Séries",Jornada S01E01\nhttps://example.com/series/1.mp4\n#EXTINF:-1 group-title="Séries",Jornada S02E01\nhttps://example.com/series/2.mp4\n#EXTINF:-1 tvg-id="sportv" group-title="TV Esportes",SporTV HD\nhttps://example.com/live/1.m3u8\n#EXTINF:-1 tvg-id="sportv" group-title="TV Esportes",SporTV FHD\nhttps://example.com/live/2.m3u8';
   await page.locator('input[type=file]').setInputFiles({name:'fixture.m3u',mimeType:'audio/x-mpegurl',buffer:Buffer.from(fixture)});
-  await page.locator('#nav-movies').click();await page.selectOption('#browse-year','2024');await page.selectOption('#browse-sort','title');
+  await page.locator('#nav-movies').click();
+  const cardButtons=page.locator('#browse-grid button[data-details]');await cardButtons.first().focus();await page.keyboard.press('ArrowRight');assert.equal(await cardButtons.nth(1).evaluate(el=>el===document.activeElement),true);
+  await page.selectOption('#browse-year','2024');await page.selectOption('#browse-sort','title');
   assert.equal(await page.locator('#browse-grid .media-card').count(),1);
   for(const width of [390,320]){
    await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
