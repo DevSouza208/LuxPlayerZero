@@ -1,3 +1,4 @@
+import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
 import { recommendationIndex, recommend } from './recommendations.js';
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
@@ -95,6 +96,7 @@ export function createHome({ play } = {}) {
     onWatched:entry=>markWatched(entry)
 
   });
+  const quickGuide=createQuickGuide($('reproduzir'));
   const continuation=createEpisodeContinuation({host:$('reproduzir'),onPlay:start,onReturn:()=>fullDetails.resume()});
   const returnButton=document.createElement('button');returnButton.type='button';returnButton.className='lux-return-details';returnButton.textContent='Voltar aos detalhes';returnButton.hidden=true;
   returnButton.addEventListener('click',()=>{continuation.cancel();fullDetails.resume()});$('reproduzir')?.append(returnButton);
@@ -1041,7 +1043,7 @@ export function createHome({ play } = {}) {
     resumeDetails(){return fullDetails.resume()},
     backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||entry?.logo)},
     setItems(next) {
-      continuation.cancel();
+      quickGuide.select(null);continuation.cancel();
       // Descarta buscas automáticas pendentes da biblioteca anterior.
       tmdbEpoch++;
       tmdbQueue.length = 0;
@@ -1059,13 +1061,13 @@ export function createHome({ play } = {}) {
       tmdbQueue.length = 0;
       tmdbQueued.clear();
       autoEnriched = 0;
-      continuation.cancel();returnButton.hidden=true;
+      quickGuide.select(null);continuation.cancel();returnButton.hidden=true;
       items=[];seriesIndex=buildSeriesIndex([]);tvIndex=groupTvEntries([]);
       active = null;
       rebuild();
       render();
     },
-    onSelect(item) { continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },
+    onSelect(item) { quickGuide.select(classifyRole(item)==='tv'?item:null);continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },
     onPlaying(item) {
       if (!item) return;
       active = item;

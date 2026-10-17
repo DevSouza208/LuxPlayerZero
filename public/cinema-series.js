@@ -33,7 +33,11 @@ export function buildSeriesIndex(items){
   const groups=new Map(),byItemId=new Map();
   for(const item of items||[]){
     // Only explicit episode markers. The caller must supply the series catalog, not movies/TV.
-    const parsed=parseEpisodeLabel(item.displayName||item.name);
+    const label=parseEpisodeLabel(item.displayName||item.name);
+    const explicit=Number.isInteger(item.seasonNumber)&&item.seasonNumber>=0&&item.seasonNumber<=99&&
+      Number.isInteger(item.episodeNumber)&&item.episodeNumber>0&&item.episodeNumber<=999;
+    const title=item.seriesName||label?.showTitle;
+    const parsed=explicit&&title?{showTitle:title,season:item.seasonNumber,episode:item.episodeNumber,episodeTitle:item.episodeTitle||label?.episodeTitle||''}:label;
     if(!parsed)continue;
     const key=item.seriesId?'id:'+String(item.seriesId):normalizeSearchText(parsed.showTitle)+(item.catalogYear?':'+item.catalogYear:'');
     if(!key)continue;
@@ -42,7 +46,7 @@ export function buildSeriesIndex(items){
       group={key,title:parsed.showTitle,representative:item,episodes:[],seasonMap:new Map()};
       groups.set(key,group);
     }
-    const row={item,season:parsed.season,number:parsed.episode,title:parsed.episodeTitle};
+    const row={item,season:parsed.season,number:parsed.episode,title:parsed.episodeTitle,episodeId:item.episodeId||null};
     group.episodes.push(row);
     let episodes=group.seasonMap.get(row.season);
     if(!episodes){episodes=[];group.seasonMap.set(row.season,episodes)}

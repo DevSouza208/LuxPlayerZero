@@ -35,6 +35,19 @@ function attrs(value) {
   return result;
 }
 
+// Optional provider-declared episode metadata; never infer IDs from a stream URL.
+function episodeAttrs(properties){
+  const result={};
+  for(const [attribute,key] of [['series-id','seriesId'],['episode-id','episodeId']]){
+    const value=properties[attribute];if(typeof value==='string'&&/^[a-z0-9_.:-]{1,160}$/i.test(value))result[key]=value;
+  }
+  if(properties['series-name'])result.seriesName=properties['series-name'].trim().slice(0,240);
+  if(properties['episode-title'])result.episodeTitle=properties['episode-title'].trim().slice(0,240);
+  if(/^\d{1,2}$/.test(properties['season-number']||''))result.seasonNumber=Number(properties['season-number']);
+  if(/^\d{1,3}$/.test(properties['episode-number']||'')&&Number(properties['episode-number'])>0)result.episodeNumber=Number(properties['episode-number']);
+  return result;
+}
+
 export function parseM3u(text, baseUrl) {
   if (typeof text !== 'string') throw new Error('Playlist deve ser um texto.');
   const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/);
@@ -54,7 +67,7 @@ export function parseM3u(text, baseUrl) {
       const properties = attrs(header);
       const title = idx >= 0 ? line.slice(idx + 1).trim() : '';
       meta = { title: title || properties['tvg-name'] || 'Sem nome', group: properties['group-title'] || group,
-        epgId: properties['tvg-id'] || '', logo: properties['tvg-logo'] || '', radio: properties.radio === 'true' };
+        episode:episodeAttrs(properties), epgId: properties['tvg-id'] || '', logo: properties['tvg-logo'] || '', radio: properties.radio === 'true' };
     } else if (line.startsWith('#EXTGRP:')) {
       group = line.slice(8).trim();
       if (meta) meta.group = group;
@@ -72,7 +85,8 @@ export function parseM3u(text, baseUrl) {
         group: meta?.group || 'Sem categoria',
         kind: inferKind(title, url, meta?.radio),
         logo: meta?.logo || '',
-        epgId: meta?.epgId || ''
+        epgId: meta?.epgId || '',
+        ...(meta?.episode||{})
       });
       meta = null;
     }

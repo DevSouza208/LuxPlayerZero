@@ -57,6 +57,13 @@ const assert=require('node:assert/strict');
   await page.clock.fastForward(10000);assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry']);
   await page.evaluate(()=>{window.testContinuation.show({item:{id:'cancelled'},season:1,number:3,contiguous:true},true);window.testContinuation.cancel()});
   await page.clock.fastForward(10000);assert.equal(await page.evaluate(()=>window.testContinuationCalls.length),1);
+  await page.evaluate(async()=>{
+   const now=Date.now();const response=await fetch('/api/editorial/guide',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({programs:[{channel:'sportv',title:'Programa de teste',start:now-60000,end:now+3600000},{channel:'sportv',title:'Próximo de teste',start:now+3600000,end:now+7200000}]})});
+   if(!response.ok)throw Error('Fixture guide failed');
+   const {createQuickGuide}=await import('/quick-guide.js');const guide=createQuickGuide(document.body);guide.select({name:'Canal de teste',epgId:'sportv'});
+  });
+  await page.getByRole('button',{name:'Guia do canal',exact:true}).click();await page.getByRole('heading',{name:'Agora · Programa de teste',exact:true}).waitFor();
+  await page.getByRole('heading',{name:'A seguir · Próximo de teste',exact:true}).waitFor();await page.screenshot({path:'test-results/quick-guide-mobile.png'});await page.getByRole('button',{name:'Fechar guia'}).click();
   const luxId=await page.evaluate(async()=>{const r=await fetch('/api/account/session');return (await r.json()).luxId});
   await page.goto('http://localhost:4173/account/');await page.locator('#logout').click();await page.waitForURL('http://localhost:4173/');
   await page.fill('#login-identity',luxId);await page.fill('#login-password','local-test-only-bootstrap-password');

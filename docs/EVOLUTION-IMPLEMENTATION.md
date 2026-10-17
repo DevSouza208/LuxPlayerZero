@@ -42,7 +42,7 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Validação executada
 - Baseline: 113 testes existentes aprovados.
-- Após os módulos novos: 144 testes aprovados (atualizar este número ao adicionar testes).
+- Após os módulos novos: 145 testes aprovados (atualizar este número ao adicionar testes).
 - Testes usam SQLite real para SQL, transações, isolamento, convites, estado, sessões, PIN e MFA. Simulações de R2 só nos testes; nenhum stream privado utilizado.
 - Teste de índice: 10 mil entradas por chunks; teste de integração de publicação/paginação com SQLite e R2 simulado.
 - Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Segunda execução 38999705743 aprovada com 138 testes e verificação de geometria/modal em desktop e mobile. Capturas da conta, detalhes desktop e mobile revisadas; o modal cobre a viewport. Reprodução real e PWA instalado ainda não testados.
@@ -72,3 +72,9 @@ Validação final do código desta rodada: GitHub Actions 38999939859 aprovado, 
 CI 39000617956 aprovou 142 testes e fluxos de perfil padrão, diagnóstico, filtros mobile e rede offline/online. Lux ID acrescentado em seguida: identificador LUX:UUID sem colisão com nomes de usuário, exibido na conta; aliases compartilham limite de tentativas. Teste local de login/rate limit aprovado; smoke ampliado para sair e entrar pelo Lux ID no perfil padrão. E-mail segue indisponível.
 
 CI 39000764614 aprovou 143 testes, login pelo Lux ID com abertura do perfil padrão e controles do catálogo em 320/390 px. Screenshot 320 px revisada após correção da sobreposição e paginação. Navegação espacial adicionada em seguida, restrita aos botões de cards/episódios, sem interceptar inputs, selects ou comandos do player; teste geométrico aprovado. Android TV/Smart TV reais continuam pendentes.
+
+
+## Guia rápido e identidade de episódios
+- Guia rápido em dialog sobre a página de reprodução, aberto sob demanda. Consulta os programas cadastrados pelo tvg-id exato, mostra agora/próximo/progresso e explica ausência ou falha. Cancela a consulta ao trocar canal/fechar. Não altera vídeo, áudio, URLs ou fullscreen nativo do navegador; o overlay é da página.
+- Metadados opcionais M3U: series-id, episode-id, series-name, season-number, episode-number, episode-title. São usados somente quando declarados e válidos; IDs não são inferidos de URLs. IDs de séries separam homônimos, episódio mantém ID declarado e vínculo com a entrada original. Item sem metadados/padrão válido permanece disponível. Parser de URL, tipo, download e grupos mantido.
+- Testes cobrem homônimos, IDs, episódio declarado, número inválido, preservação de URL e contagem. Smoke do guia usa dados fictícios cadastrados no SQLite local pelo endpoint real e verifica agora/próximo; nenhum EPG é simulado em produção.

@@ -42,3 +42,12 @@ test('próximo episódio preserva fontes, ignora duplicatas e identifica lacunas
  assert.equal(nextEpisode(index,rows[3]).item,rows[4]);assert.equal(nextEpisode(index,rows[4]),null);assert.equal(nextEpisode(index,{id:'unknown'}),null);
  assert.equal(index.groups[0].episodes.length,rows.length);
 });
+
+test('IDs e numeração explicitamente declarados separam séries homônimas sem alterar URLs',()=>{
+ const source='#EXTM3U\n#EXTINF:-1 group-title="Séries" series-id="show-a" episode-id="ep-8" series-name="Jornada" season-number="2" episode-number="8" episode-title="Chegada",Episódio especial\nhttp://example.org/series/a.mp4\n#EXTINF:-1 group-title="Séries" series-id="show-b" series-name="Jornada" season-number="1" episode-number="1",Outro episódio\nhttp://example.org/series/b.mp4';
+ const items=parseM3u(source),index=buildSeriesIndex(items);
+ assert.equal(index.groups.length,2);assert.equal(index.groups[0].episodes[0].number,8);assert.equal(index.groups[0].episodes[0].episodeId,'ep-8');
+ assert.equal(index.groups[0].episodes[0].title,'Chegada');assert.equal(index.groups[0].episodes[0].item,items[0]);assert.equal(items[0].url,'http://example.org/series/a.mp4');
+ const invalid=parseM3u(source.replace('season-number="2"','season-number="999"'));
+ assert.equal(buildSeriesIndex(invalid).representatives.length,2);assert.equal(buildSeriesIndex(invalid).byItemId.has(invalid[0].id),false);
+});
