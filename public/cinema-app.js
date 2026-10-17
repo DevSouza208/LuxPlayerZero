@@ -6,6 +6,29 @@ import { createHome } from './home.js';
 import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot } from './saved-catalog.js';
 
 const $ = id => document.getElementById(id);
+// Não exibir Home vazia antes de recuperar o catálogo no R2.
+const bootSplash = $('lux-boot');
+const bootMessage = $('lux-boot-status');
+const bootSkip = $('lux-boot-skip');
+let bootFinished = false;
+function bootProgress(message) {
+  if (bootMessage && !bootFinished) bootMessage.textContent = message;
+}
+function finishBoot() {
+  if (bootFinished) return;
+  bootFinished = true;
+  clearTimeout(slowBootTimer);
+  if (!bootSplash) return;
+  bootSplash.classList.add('is-leaving');
+  setTimeout(() => { bootSplash.hidden = true; }, 300);
+}
+bootSkip?.addEventListener('click', finishBoot);
+const slowBootTimer = setTimeout(() => {
+  if (!bootFinished) {
+    bootProgress('Sua biblioteca está demorando mais que o esperado.');
+    if (bootSkip) bootSkip.hidden = false;
+  }
+}, 16000);
 const els = {
   form: $('source-form'), type: $('source-type'), url: $('source-url'), urlLabel: $('source-url-label'),
   creds: $('credentials-fields'), user: $('xc-user'), pass: $('xc-pass'), files: $('file-fields'),
@@ -512,6 +535,7 @@ async function restoreSavedLibrary() {
     return;
   }
   const generation = sourceLoad;
+  bootProgress('Recuperando sua biblioteca do R2…');
   note('Restaurando sua biblioteca privada do R2…', 'info');
   try {
     const result = await readSavedSnapshot(id);
@@ -529,6 +553,7 @@ async function restoreSavedLibrary() {
       note('Não foi possível recuperar a playlist do R2. A referência foi preservada para tentar novamente.', 'info');
       return;
     }
+    bootProgress('Organizando seus títulos…');
     const entries = parseM3u(result.content);
     if (!entries.length) throw new Error('O snapshot salvo não tem mídias válidas.');
     if (generation === sourceLoad) {
@@ -577,6 +602,15 @@ $('restore-library')?.addEventListener('click', async () => {
 });
 updateForm();
 void (async () => {
-  await refreshBridgeStatus();
-  await restoreSavedLibrary();
+  try {
+    bootProgress('Verificando sua biblioteca…');
+    await refreshBridgeStatus();
+    await restoreSavedLibrary();
+  } catch {
+    // Erros de boot não impedem abrir o formulário manual de conexão.
+    bootProgress('Não foi possível restaurar automaticamente.');
+  } finally {
+    // Somente mostra a Home após tentar a restauração, nunca o catálogo em branco primeiro.
+    finishBoot();
+  }
 })();
