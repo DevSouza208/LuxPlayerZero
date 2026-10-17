@@ -98,6 +98,25 @@ test('Busca diretamente por ID com um pedido remoto, e guarda D1 sem segredo', a
   assert.doesNotMatch(JSON.stringify(payload),/test-secret|api_key/);
 });
 
+test('Pesquisa localizada remove artigo inicial sem consulta extra e valida o título completo', async () => {
+  const db = fakeDB();
+  let searches = 0;
+  const result = await lookupTmdb(
+    request({type:'movie',title:'A Odisseia',year:2026}),
+    {DB:db,TMDB_API_KEY:'fake-test-key'},
+    async url => {
+      searches++;
+      const parsed = new URL(url);
+      assert.equal(parsed.searchParams.get('query'),'Odisseia');
+      assert.equal(parsed.searchParams.get('language'),'pt-BR');
+      return Response.json({results:[actor('Odisseia',2026,333)]});
+    },
+    () => Date.UTC(2026,9,17)
+  );
+  assert.equal(searches,1);
+  assert.equal((await result.json()).tmdbId,333);
+});
+
 test('Imagens M3U são fallback sempre; dados TMDB só com correspondência confirmada', () => {
   const original = 'https://source.example/image.jpg';
   assert.equal(chooseArtwork(original, null, 'tmdb'), original);
