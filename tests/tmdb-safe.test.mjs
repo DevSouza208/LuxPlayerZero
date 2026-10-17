@@ -85,7 +85,8 @@ test('Busca diretamente por ID com um pedido remoto, e guarda D1 sem segredo', a
   const fetcher = async url => {
     calls++;
     assert.match(url,/\/3\/movie\/456\?/);
-    return Response.json({...actor('The Odyssey',2026,456), genres:[{id:12}]});
+    const { genre_ids, ...details } = actor('The Odyssey',2026,456);
+    return Response.json({...details, genres:[{id:12}]});
   };
   const env = {DB:db,TMDB_API_KEY:'test-secret-only'};
   const result = await lookupTmdb(request({type:'movie',title:'A Odisseia',year:2026,tmdbId:456}),env,fetcher,()=>Date.UTC(2026,9,16));
