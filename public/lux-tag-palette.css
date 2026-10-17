@@ -1,0 +1,6 @@
+.lux-tag-strip{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;align-items:center}
+.lux-media-tag{display:inline-flex;align-items:center;max-width:100%;font:600 9px/1.2 'Outfit',system-ui,sans-serif;letter-spacing:.02em;
+border:1px solid;border-radius:999px;padding:4px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.media-info .lux-tag-strip{max-height:46px;overflow:hidden}
+#details-tags{margin:13px 0 4px;gap:7px}
+#details-tags .lux-media-tag{font-size:11px;padding:6px 10px}
