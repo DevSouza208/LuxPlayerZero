@@ -30,7 +30,7 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 - EPG automático, EPG Xtream e feeds esportivos dependem de fontes autorizadas configuradas. A importação XMLTV e curadoria manual estão preparadas.
 - Sem consulta real ao Cloudflare, a branch implantada e seus bindings não foram confirmados. A documentação antiga cita Workers Static Assets; os endpoints de bridge existentes usam Pages Functions. Validar qual arquitetura está realmente implantada antes de qualquer deploy. Não substituir a atual para fazer os módulos novos funcionarem.
 - Contas do PR14 não são migradas automaticamente para account_users. Revisão e migração de dados existentes precisam de inventário real; não executar ambos os sistemas de login em produção por acidente.
-- Enriquecimento avançado implementado para elenco, direção, trailers oficiais, certificação brasileira e nome da coleção, usando endpoint autenticado e cache de 24h. Recomendações TMDB ainda não são vinculadas ao catálogo. Próximo episódio automático, controle remoto completo, revisão de correspondências e automações continuam no CSV, sem alegação de conclusão.
+- Enriquecimento avançado implementado para elenco, direção, trailers oficiais, certificação brasileira e nome da coleção, usando endpoint autenticado e cache de 24h. Recomendações TMDB ainda não são vinculadas ao catálogo. Próximo episódio automático opt-in usa o callback público de reprodução, com cancelamento e suspensão ao ocultar a página. Controle remoto completo, revisão de correspondências e automações continuam no CSV, sem alegação de conclusão.
 
 ## Configuração para ambiente isolado de revisão
 1. Usar uma cópia de teste do D1, não o banco de produção.
@@ -42,10 +42,10 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Validação executada
 - Baseline: 113 testes existentes aprovados.
-- Após os módulos novos: 138 testes aprovados (atualizar este número ao adicionar testes).
+- Após os módulos novos: 139 testes aprovados (atualizar este número ao adicionar testes).
 - Testes usam SQLite real para SQL, transações, isolamento, convites, estado, sessões, PIN e MFA. Simulações de R2 só nos testes; nenhum stream privado utilizado.
 - Teste de índice: 10 mil entradas por chunks; teste de integração de publicação/paginação com SQLite e R2 simulado.
-- Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Captura da conta revisada. Capturas fullPage de um dialog fixo incluem áreas fora da viewport; teste reforçado para verificar geometria/modal e salvar somente a viewport na próxima execução. Reprodução real e PWA instalado ainda não testados.
+- Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Segunda execução 38999705743 aprovada com 138 testes e verificação de geometria/modal em desktop e mobile. Capturas da conta, detalhes desktop e mobile revisadas; o modal cobre a viewport. Reprodução real e PWA instalado ainda não testados.
 
 ## Referências usadas
 - AGENTS.md, DESIGN.md e PRODUCT.md do PR15, adaptados ao estado desta branch.
@@ -54,3 +54,6 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 - Ilm-Alan/frontend-design: SKILL.md lido; disciplina de conteúdo aplicada. A obrigação de escolher outra estética é subordinada ao pedido de manter Lux.
 - vercel-labs/agent-skills: regra js-index-maps e resumo de performance; sem introduzir React/Next.js.
 - awesome-codex-skills/webapp-testing: SKILL.md lido; validação em Playwright preparada, sem executar instaladores externos de skills.
+
+## Continuidade de episódios
+O módulo episode-continuation usa exclusivamente o callback público do player. Oferece próximo episódio realmente presente, ignora fontes duplicadas na sequência e desativa avanço automático diante de lacunas numéricas. Preferência privada por perfil, desligada inicialmente; espera 10 segundos, pode cancelar e não avança se a página ficar oculta. Botão de retorno reabre os detalhes suspensos. Teste de navegador verifica o callback com entrada fictícia, sem reproduzir mídia. Reprodução real segue pendente.

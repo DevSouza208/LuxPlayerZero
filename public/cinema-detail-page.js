@@ -115,5 +115,5 @@ export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onF
  document.addEventListener('keydown',e=>{if(opened&&e.key==='Escape'){e.stopPropagation();close()}});
  shell.addEventListener('cancel',event=>{event.preventDefault();close()});
  document.body.append(shell);
- return {open,close,resume,isOpen:()=>opened};
+ return {open,close,resume,canResume:()=>suspended,isOpen:()=>opened};
 }

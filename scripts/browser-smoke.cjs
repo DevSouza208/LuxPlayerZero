@@ -29,6 +29,15 @@ const assert=require('node:assert/strict');
   await page.keyboard.press('Escape');await page.locator('.lux-fullscreen-detail').waitFor({state:'hidden'});
   await page.getByRole('button',{name:/Ver detalhes de Jornada/}).first().click();
   assert.equal(await page.getByRole('tab',{name:'Temporada 2',exact:true}).getAttribute('aria-selected'),'true');
+  await page.clock.install();
+  await page.evaluate(async()=>{
+   const {createEpisodeContinuation}=await import('/episode-continuation.js');
+   window.testContinuationCalls=[];window.testContinuation=createEpisodeContinuation({host:document.body,onPlay:item=>window.testContinuationCalls.push(item.id),onReturn:()=>{}});
+   window.testContinuation.show({item:{id:'next-existing-entry'},season:1,number:2,contiguous:true},true);
+  });
+  await page.clock.fastForward(10000);assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry']);
+  await page.evaluate(()=>{window.testContinuation.show({item:{id:'cancelled'},season:1,number:3,contiguous:true},true);window.testContinuation.cancel()});
+  await page.clock.fastForward(10000);assert.equal(await page.evaluate(()=>window.testContinuationCalls.length),1);
   assert.deepEqual(errors,[]);
   console.log('Browser smoke passed: login → profile → catalog → series, focus, season memory and mobile. Playback not exercised.');
  }finally{await browser?.close();server.kill('SIGTERM')}

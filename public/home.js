@@ -4,7 +4,8 @@ import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemK
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
 import { titleForDisplay } from './cinema-title.js';
 import { tagColor } from './lux-tag-palette.js';
-import {buildSeriesIndex} from './cinema-series.js';
+import {createEpisodeContinuation} from './episode-continuation.js';
+import {buildSeriesIndex,nextEpisode} from './cinema-series.js';
 import {groupTvEntries,TV_CATEGORY_LABELS} from './cinema-tv-groups.js';
 import {createFullDetails} from './cinema-detail-page.js';
 import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
@@ -93,6 +94,9 @@ export function createHome({ play } = {}) {
     onWatched:entry=>markWatched(entry)
 
   });
+  const continuation=createEpisodeContinuation({host:$('reproduzir'),onPlay:start,onReturn:()=>fullDetails.resume()});
+  const returnButton=document.createElement('button');returnButton.type='button';returnButton.className='lux-return-details';returnButton.textContent='Voltar aos detalhes';returnButton.hidden=true;
+  returnButton.addEventListener('click',()=>{continuation.cancel();fullDetails.resume()});$('reproduzir')?.append(returnButton);
   const adminDialog = $('admin-dialog');
   let toastTimeout = null;
   function flash(message, warning = false) {
@@ -245,9 +249,9 @@ export function createHome({ play } = {}) {
       counts.series.toLocaleString('pt-BR') + ' Séries/Módulos · ' +
       showcase.groups.length + ' grupos em destaque' :
       'Conecte uma fonte para visualizar as estatísticas.';
-    for (const flag of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty','personalization']) {
+    for (const flag of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty','personalization','autoNext']) {
       const checkbox = $('admin-' + flag);
-      if (checkbox) checkbox.checked = configRaw[flag] !== false;
+      if (checkbox) checkbox.checked = flag==='autoNext'?configRaw[flag]===true:configRaw[flag] !== false;
     }
     openDialog(adminDialog);
     void showTmdbStatus();
@@ -855,6 +859,7 @@ export function createHome({ play } = {}) {
   });
   function start(item) {
     if (!item) return;
+    continuation.cancel();returnButton.hidden=!fullDetails.canResume();
     if (browseRole) activateBrowse(null, { push: true, scroll: false });
     void play(item);
     $('reproduzir').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -903,7 +908,7 @@ export function createHome({ play } = {}) {
     for (const key of Object.keys(DEFAULT_SETTINGS)) {
       next[key] = String($('admin-' + key)?.value || '').trim();
     }
-    for (const key of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty','personalization']) {
+    for (const key of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty','personalization','autoNext']) {
       next[key] = Boolean($('admin-' + key)?.checked);
     }
     // Salvar deve realmente funcionar; em caso de storage bloqueado, não fingir sucesso.
@@ -915,7 +920,7 @@ export function createHome({ play } = {}) {
     }
     const imageModeChanged = next.imageEngine !== configRaw.imageEngine ||
       next.summaryEngine !== configRaw.summaryEngine;
-    configRaw = next;
+    continuation.cancel();configRaw = next;
     config = normalizeSettings(next);
     if (imageModeChanged) {
       tmdbCalls = 0;
@@ -1012,6 +1017,7 @@ export function createHome({ play } = {}) {
     resumeDetails(){return fullDetails.resume()},
     backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||entry?.logo)},
     setItems(next) {
+      continuation.cancel();
       // Descarta buscas automáticas pendentes da biblioteca anterior.
       tmdbEpoch++;
       tmdbQueue.length = 0;
@@ -1029,12 +1035,13 @@ export function createHome({ play } = {}) {
       tmdbQueue.length = 0;
       tmdbQueued.clear();
       autoEnriched = 0;
+      continuation.cancel();returnButton.hidden=true;
       items=[];seriesIndex=buildSeriesIndex([]);tvIndex=groupTvEntries([]);
       active = null;
       rebuild();
       render();
     },
-    onSelect(item) { active = item; },
+    onSelect(item) { continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },
     onPlaying(item) {
       if (!item) return;
       active = item;
@@ -1055,7 +1062,9 @@ export function createHome({ play } = {}) {
       void write('recent', recent).catch(error => flash(error.message, true));
       updateRecommendations();
       render();
-      flash('Concluído. Veja outras sugestões na Home.');
+      const group=seriesIndex.byItemId.get(item.id);
+      if(group)continuation.show(nextEpisode(seriesIndex,item),configRaw.autoNext===true);
+      else flash('Concluído. Veja outras sugestões na Home.');
     },
     resumePosition(item) {
       const value = recent.find(x => x.key === itemKey(item));

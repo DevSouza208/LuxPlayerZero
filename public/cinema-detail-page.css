@@ -50,3 +50,5 @@
 .guide-link{display:block;color:#cbb9ff;padding:20px;min-height:44px}
 
 .lux-full-credits{font-size:14px;color:#c1b9d1;line-height:1.6;max-width:700px}.lux-full-credits a{display:inline-block;color:#cbb9ff;min-height:44px;padding:10px 0}
+
+.lux-continuation{padding:20px;margin-top:16px;border:1px solid #63497b;border-radius:14px;background:#1a1128;color:#f7f4ff}.lux-continuation[hidden],.lux-return-details[hidden]{display:none}.lux-continuation button,.lux-return-details{min-height:44px;padding:10px 16px;margin:5px;border:1px solid #80619b;border-radius:9px;background:#28183b;color:#fff;font:inherit;cursor:pointer}.lux-continuation :focus-visible,.lux-return-details:focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}

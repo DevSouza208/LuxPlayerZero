@@ -21,7 +21,7 @@ function validateState(value) {
   const strings=['heroTitle','heroSubtitle','tvTitle','moviesTitle','seriesTitle','continueTitle','favoritesTitle',
     'tvKeywords','moviesKeywords','seriesKeywords','heroMode','pinnedName','railOrder','density','imageEngine','summaryEngine'];
   for(const key of strings)if(typeof settings[key]==='string')output.settings[key]=settings[key].slice(0,220);
-  for(const key of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty','personalization'])
+  for(const key of ['showContinue','showFavorites','showTv','showMovies','showSeries','hideEmpty','personalization','autoNext'])
     if(typeof settings[key]==='boolean')output.settings[key]=settings[key];
   for(const key of ['favorites','recent']){
     if(!Array.isArray(value[key]||[]))throw new HttpError(400,'Lista inválida.');

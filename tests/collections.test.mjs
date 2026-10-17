@@ -32,3 +32,13 @@ test('normalização não perde fonte e mantém HDR, idiomas e ano declarados',(
  assert.equal(meta.displayName,'Duna');assert.equal(meta.catalogYear,2021);assert.deepEqual(row,before);
  assert.deepEqual(mediaFeatures('Original HDR 4K'),['Original','4K','HDR']);
 });
+
+import {nextEpisode} from '../public/cinema-series.js';
+test('próximo episódio preserva fontes, ignora duplicatas e identifica lacunas',()=>{
+ const rows=[{id:'a',name:'Série S01E01'},{id:'b',name:'Série S01E01'},{id:'c',name:'Série S01E02'},{id:'d',name:'Série S01E04'},{id:'e',name:'Série S02E01'}];
+ const index=buildSeriesIndex(rows);
+ assert.equal(nextEpisode(index,rows[0]).item,rows[2]);assert.equal(nextEpisode(index,rows[0]).contiguous,true);
+ assert.equal(nextEpisode(index,rows[2]).item,rows[3]);assert.equal(nextEpisode(index,rows[2]).contiguous,false);
+ assert.equal(nextEpisode(index,rows[3]).item,rows[4]);assert.equal(nextEpisode(index,rows[4]),null);assert.equal(nextEpisode(index,{id:'unknown'}),null);
+ assert.equal(index.groups[0].episodes.length,rows.length);
+});

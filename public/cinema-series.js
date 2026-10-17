@@ -64,3 +64,15 @@ export function buildSeriesIndex(items){
   }
   return {groups:ordered,representatives,byItemId};
 }
+
+/** Advance only among real provider entries, skipping alternate sources of the same episode. */
+export function nextEpisode(index,item){
+ const group=index.byItemId.get(item?.id);
+ const current=group?.episodes.find(row=>row.item.id===item.id);
+ if(!current)return null;
+ const next=group.episodes.find(row=>row.season>current.season||(row.season===current.season&&row.number>current.number));
+ if(!next)return null;
+ const contiguous=(next.season===current.season&&next.number===current.number+1)||
+  (current.season>0&&next.season===current.season+1&&next.number===1);
+ return {...next,contiguous};
+}

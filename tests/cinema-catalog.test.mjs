@@ -71,7 +71,7 @@ test('Ambas as versões Cinema exibem telas separadas sem tocar no player legado
   assert.ok(!original.includes('cinema-browse.css'));
   assert.ok(!original.includes('id="cinema-browse"'));
   const sw=read('cinema/sw.js');
-  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-7'"));
+  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-8'"));
   assert.ok(sw.includes("'/cinema-browse.css'"));
   assert.ok(sw.includes("'/cinema-browse.js'"));
   assert.ok(!sw.includes("'/api/bridge/playlist'"));

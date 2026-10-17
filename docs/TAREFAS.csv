@@ -65,7 +65,7 @@ LUX-063;FASE 3 — HOME PREMIUM;Tratamento de falhas de imagens.;em construção
 LUX-064;FASE 3 — HOME PREMIUM;Responsividade para desktop, celular e TV.;pendente;;;2026-10-17
 LUX-065;FASE 3 — HOME PREMIUM;Estados vazios úteis.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-066;FASE 3 — HOME PREMIUM;Preferências de personalização da Home.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-067;FASE 4 — FILMES;Página de detalhes em tela cheia.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
+LUX-067;FASE 4 — FILMES;Página de detalhes em tela cheia.;concluído;"Detalhes em dialog nativo tela cheia; geometria desktop/mobile validada no CI 38999705743 e screenshots revisadas.";;2026-10-17
 LUX-068;FASE 4 — FILMES;Banner e pôster priorizando correspondência correta no TMDB.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-069;FASE 4 — FILMES;Nome normalizado.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-070;FASE 4 — FILMES;Ano de lançamento.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
@@ -84,8 +84,8 @@ LUX-082;FASE 4 — FILMES;Marcar como assistido.;em construção;"Código e/ou t
 LUX-083;FASE 4 — FILMES;Histórico persistente por perfil.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-084;FASE 4 — FILMES;Retomar de outro dispositivo.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-085;FASE 4 — FILMES;Recomendações após assistir.;pendente;;;2026-10-17
-LUX-086;FASE 4 — FILMES;Navegação correta ao voltar do player.;pendente;;;2026-10-17
-LUX-087;FASE 5 — SÉRIES;Página de série em tela cheia.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
+LUX-086;FASE 4 — FILMES;Navegação correta ao voltar do player.;em construção;"Próximo episódio real pelo índice existente; autoplay opt-in 10s cancelável via callback público; retorno aos detalhes. Testes de sequenciamento aprovados; playback real pendente.";;2026-10-17
+LUX-087;FASE 5 — SÉRIES;Página de série em tela cheia.;concluído;"Detalhes em dialog nativo tela cheia; geometria desktop/mobile validada no CI 38999705743 e screenshots revisadas.";;2026-10-17
 LUX-088;FASE 5 — SÉRIES;Pôster e backdrop.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-089;FASE 5 — SÉRIES;Título, sinopse e metadados.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-090;FASE 5 — SÉRIES;Agrupamento correto por série.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
@@ -93,16 +93,16 @@ LUX-091;FASE 5 — SÉRIES;Identificação de temporadas.;concluído;"Verificado
 LUX-092;FASE 5 — SÉRIES;Identificação de episódios.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-093;FASE 5 — SÉRIES;Suporte aos padrões `S01E01`, `T1:E1`, `1x01` e demais formatos conhecidos.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-094;FASE 5 — SÉRIES;Utilizar IDs de séries e episódios quando existirem.;pendente;;;2026-10-17
-LUX-095;FASE 5 — SÉRIES;Seletor visual de temporadas.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
+LUX-095;FASE 5 — SÉRIES;Seletor visual de temporadas.;concluído;Playwright no CI 38999705743: troca da temporada altera episódios e mantém seleção após fechar/reabrir detalhes.;;2026-10-17
 LUX-096;FASE 5 — SÉRIES;Cards individuais de episódios.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-097;FASE 5 — SÉRIES;Miniatura de cada episódio, quando disponível.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-098;FASE 5 — SÉRIES;Título e sinopse de episódio quando disponíveis.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-099;FASE 5 — SÉRIES;Marcar episódios assistidos.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-100;FASE 5 — SÉRIES;Barra de progresso individual.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-101;FASE 5 — SÉRIES;Lembrar a temporada selecionada.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
+LUX-101;FASE 5 — SÉRIES;Lembrar a temporada selecionada.;concluído;Playwright no CI 38999705743: troca da temporada altera episódios e mantém seleção após fechar/reabrir detalhes.;;2026-10-17
 LUX-102;FASE 5 — SÉRIES;Botão para continuar a série.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-103;FASE 5 — SÉRIES;Indicação do próximo episódio.;pendente;;;2026-10-17
-LUX-104;FASE 5 — SÉRIES;Próximo episódio automático usando apenas a interface pública do player existente, se possível.;pendente;;;2026-10-17
+LUX-103;FASE 5 — SÉRIES;Indicação do próximo episódio.;em construção;"Próximo episódio real pelo índice existente; autoplay opt-in 10s cancelável via callback público; retorno aos detalhes. Testes de sequenciamento aprovados; playback real pendente.";;2026-10-17
+LUX-104;FASE 5 — SÉRIES;Próximo episódio automático usando apenas a interface pública do player existente, se possível.;em construção;"Próximo episódio real pelo índice existente; autoplay opt-in 10s cancelável via callback público; retorno aos detalhes. Testes de sequenciamento aprovados; playback real pendente.";;2026-10-17
 LUX-105;FASE 5 — SÉRIES;Recomendações no final da série.;pendente;;;2026-10-17
 LUX-106;FASE 5 — SÉRIES;Indicador de temporadas ou episódios recém-adicionados.;pendente;;;2026-10-17
 LUX-107;FASE 5 — SÉRIES;Histórico sincronizado pelo D1.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
@@ -244,7 +244,7 @@ LUX-242;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar normalização sem
 LUX-243;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar agrupamento de canais e fontes.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-244;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar EPG.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-245;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar persistência do histórico e favoritos.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
-LUX-246;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar responsividade com screenshots.;em construção;"Playwright aprovado no CI; capturas obtidas e revisadas. Reforçando geometria do modal e captura da viewport; auditoria completa de acessibilidade pendente.";;2026-10-17
+LUX-246;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar responsividade com screenshots.;concluído;"Capturas de conta desktop e detalhes desktop/mobile revisadas; GitHub Actions 38999705743 verifica modal cobrindo viewport e ausência de overflow horizontal.";;2026-10-17
 LUX-247;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Testar acessibilidade e navegação por teclado.;em construção;"Playwright aprovado no CI; capturas obtidas e revisadas. Reforçando geometria do modal e captura da viewport; auditoria completa de acessibilidade pendente.";;2026-10-17
 LUX-248;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Verificar o PWA instalado.;bloqueado;"Smoke de navegador preparado; teste local não executou";"Chromium ausente; download falhou. Aguardar Actions e teste em dispositivos reais";2026-10-17
 LUX-249;FASE 14 — QUALIDADE, TESTES E REVISÃO FINAL;Garantir que os arquivos e comportamentos protegidos não sofreram modificações.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
