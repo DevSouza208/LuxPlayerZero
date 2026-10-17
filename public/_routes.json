@@ -2,6 +2,10 @@
   "version": 1,
   "include": [
     "/api/*",
+    "/api/bridge/*",
+    "/api/metadata/*",
+    "/api/auth/*",
+    "/api/library/*",
     "/cinema/*",
     "/cinema.html",
     "/player.html"

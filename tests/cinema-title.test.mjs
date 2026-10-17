@@ -73,7 +73,7 @@ test('Limpeza acontece no carregamento e não por card ou parse bruto', ()=>{
   assert.ok(!file('app.js').includes('cinema-title.js'));
   assert.ok(home.includes("titleForDisplay(item)"));
   assert.ok(home.includes("titleForDisplay(heroItem)"));
-  assert.ok(file('cinema-browse.js').includes("item.displayName || item.name"));
+  assert.match(file('cinema-browse.js'), /item\.displayName\s*\|\|\s*item\.name/);
 });
 test('Limpeza de 260 mil títulos não exige materializar segundo catálogo',()=>{
   // Representativo e leve; cada entrada recebe só campos derivados opcionais.
