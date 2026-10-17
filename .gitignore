@@ -3,5 +3,5 @@ node_modules/
 .dev.vars
 .env
 .env.*
-.DS_Store
-coverage/
+test-results/
+playwright-report/

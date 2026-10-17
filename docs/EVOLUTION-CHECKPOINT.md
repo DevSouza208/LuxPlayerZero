@@ -52,3 +52,6 @@ Não alterar src/bridge-core.js, src/catalog-snapshot.js, public/gateway.js, pub
 7. Prosseguir por blocos revisáveis e abrir PRs quando houver mudanças prontas para revisão; não mesclar nem publicar produção.
 
 Nenhuma fase funcional foi marcada como concluída. OAuth, e-mail, EPG e esportes requerem verificar configuração/fontes reais, sem inventar credenciais ou dados.
+
+## Atualização — execução retomada
+O usuário autorizou continuar todo o prompt com acompanhamento por CSV. O checkpoint inicial acima é histórico. Consulte agora `TAREFAS.csv` e `EVOLUTION-IMPLEMENTATION.md`. A implementação não parou no planejamento; módulos de contas, perfis, catálogo, guia e recomendações foram adicionados em revisão. Nenhum deploy ou merge foi feito.

@@ -37,7 +37,7 @@
   </style>
   <script type="module" src="/cinema-app.js"></script>
   <script defer src="/cinema/install.js"></script>
-</head>
+<link rel="stylesheet" href="/cinema-detail-page.css"><link rel="stylesheet" href="/lux-tag-palette.css"></head>
 <body>
 <div id="lux-boot" class="lux-boot" role="status" aria-live="polite" aria-label="Carregando Lux Player">
   <div class="lux-boot-title"><span class="lux-boot-symbol" aria-hidden="true">✧</span><span>Abrindo seu Lux Player...</span></div>
@@ -150,7 +150,7 @@
         <label class="browse-group-label" for="browse-group">GRUPO
           <select id="browse-group" aria-label="Filtrar por grupo"><option value="">Todos os grupos</option></select>
         </label>
-        <span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
+        <label class="browse-group-label" hidden>CATEGORIA<select id="browse-tv-category"><option value="">Todas as categorias</option></select></label><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
       </div>
       <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
       <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button">Voltar ao topo ↑</button></div>
@@ -218,7 +218,7 @@
       <label><input id="admin-showTv" type="checkbox" checked> TV</label>
       <label><input id="admin-showMovies" type="checkbox" checked> Filmes / Cursos</label>
       <label><input id="admin-showSeries" type="checkbox" checked> Séries / Módulos</label>
-      <label><input id="admin-hideEmpty" type="checkbox" checked> Ocultar vitrines sem títulos</label>
+      <label><input id="admin-personalization" type="checkbox" checked> Recomendações pelo meu histórico</label><label><input id="admin-hideEmpty" type="checkbox" checked> Ocultar vitrines sem títulos</label>
     </div>
     <div class="admin-section-title">IMAGENS E SINOPSES · METADADOS</div>
     <div class="admin-field-row">
@@ -253,8 +253,8 @@
     <div class="admin-field"><label for="admin-seriesTitle">VITRINE 3 · NOME</label><input id="admin-seriesTitle" type="text" maxlength="90" placeholder="Séries ou Módulos"><label for="admin-seriesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-seriesKeywords" type="text" maxlength="220" placeholder="Séries, Temporadas, Módulos"></div>
     <div id="admin-stats" class="admin-stats" role="status">Conecte uma fonte para ver estatísticas do catálogo.</div>
     <div class="admin-groups"><strong>Grupos detectados na sua playlist</strong><p id="detected-groups">Conecte uma playlist para identificar os grupos disponíveis.</p></div>
-    <p class="admin-notice">Nesta versão, a personalização é salva apenas neste navegador. Não há autenticação de administrador ou sincronização com o D1.</p>
-    <p id="admin-save-status" class="admin-save-status" role="status" aria-live="polite">As alterações serão aplicadas na Home e salvas neste navegador.</p>
+    <p class="admin-notice">A personalização é privada do perfil selecionado e sincronizada entre dispositivos.</p>
+    <p id="admin-save-status" class="admin-save-status" role="status" aria-live="polite">As alterações serão aplicadas na Home e salvas no seu perfil.</p>
     <div class="admin-actions"><button type="button" id="admin-export" class="admin-reset" title="Copiar personalização como JSON">Copiar configuração</button><button type="button" id="admin-reset" class="admin-reset">Restaurar padrão</button><button type="submit" class="admin-save">Aplicar e salvar <span aria-hidden="true">↗</span></button></div>
   </form>
 </dialog>
@@ -272,13 +272,13 @@
     <div id="details-meta" class="details-meta" hidden></div>
     <p id="details-overview" class="details-overview" hidden></p>
     <p id="details-metadata-status" class="details-metadata-status" role="status" aria-live="polite"></p>
-    <div class="details-actions">
+    <div id="details-tags" class="lux-tag-strip"></div><label id="details-variants" hidden>Fonte do canal<select id="details-variant-select"></select></label><div class="details-actions">
       <button type="button" id="details-play" class="details-play"><span aria-hidden="true">▶</span> Assistir agora</button>
       <button type="button" id="details-favorite" class="details-favorite">＋ Minha lista</button>
     </div>
   </div>
 </dialog>
 <div id="cinema-feedback" class="cinema-feedback" role="status" aria-live="polite" hidden></div>
-<footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
+<a class="account-link" href="/account/">Perfis e conta</a><a class="guide-link" href="/guide/">Guia e esportes</a><footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
 </body>
 </html>

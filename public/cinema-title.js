@@ -1,3 +1,5 @@
+import {classifyMediaCategories,mediaFeatures,normalizeMediaGroup} from './media-taxonomy.js';
+import {canonicalTvName} from './tv-normalizer.js';
 /**
  * Apresentação editorial de M3U inspirada no Lux Player 2.0.
  *
@@ -46,10 +48,21 @@ export function deriveCatalogPresentation(raw, suppliedYear = null) {
  */
 export function presentationForEntry(item) {
   const result = deriveCatalogPresentation(item.name, item.catalogYear ?? item.year);
+  const classified=classifyMediaCategories([item.group||''],item.genres||[]);
+  const tags=[...new Set([...result.tags,...mediaFeatures(item.name),...classified.genres,
+    ...classified.platforms,...classified.collections])];
+  const rawGroup=String(item.group||'');
+  const normalizedGroup=rawGroup.split('|').map(normalizeMediaGroup).filter(Boolean).join(' | ');
+  const tvTitle=item.kind==='tv'&&/(\/live\/|canal|tv|esporte|sport|ao vivo)/i.test((item.url||'')+' '+rawGroup)
+    ?canonicalTvName(result.title):result.title;
   return {
-    ...(result.title && result.title !== item.name ? { displayName: result.title } : {}),
-    ...(result.year ? { catalogYear: result.year } : {}),
-    ...(result.tags.length ? { catalogTags: result.tags } : {})
+    ...(tvTitle&&tvTitle!==item.name?{displayName:tvTitle}:{}),
+    ...(result.year?{catalogYear:result.year}:{}),
+    ...(tags.length?{catalogTags:tags}:{}),
+    ...(normalizedGroup&&normalizedGroup!==rawGroup?{normalizedGroup}:{}),
+    ...(classified.genreIds.length?{catalogGenreIds:classified.genreIds}:{}),
+    ...(classified.platformIds.length?{catalogPlatformIds:classified.platformIds}:{}),
+    ...(classified.collectionIds.length?{catalogCollectionIds:classified.collectionIds}:{})
   };
 }
 

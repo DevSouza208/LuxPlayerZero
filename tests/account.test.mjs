@@ -83,3 +83,12 @@ test('rotas internas exigem sessão e perfil; bridge não é modificado',async()
  const cookie=await admin(ctx);
  assert.equal((await accountGate(new Request(origin+'/cinema/',{headers:{cookie}}),ctx.env)).headers.get('location'),'/account/');
 });
+test('PIN usa hash e bloqueia seleção sem PIN correto',async()=>{
+ const ctx=setup(),owner=await admin(ctx);
+ await ctx.call('profiles',{name:'Protegido',avatar:'luxite'},owner);
+ const p=(await (await ctx.call('profiles',null,owner)).json()).profiles[0];
+ assert.equal((await ctx.call('profile/pin',{id:p.id,password:ctx.env.LUX_ADMIN_BOOTSTRAP_PASSWORD,pin:'583047'},owner)).status,200);
+ assert.equal((await ctx.call('profile/select',{id:p.id,pin:'000000'},owner)).status,403);
+ assert.equal((await ctx.call('profile/select',{id:p.id,pin:'583047'},owner)).status,200);
+ assert.equal(ctx.env.DB.db.prepare('SELECT pin_hash FROM account_profiles').get().pin_hash.includes('583047'),false);
+});

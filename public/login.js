@@ -59,7 +59,7 @@ form.addEventListener('submit', async event => {
     const invite = document.getElementById('login-invite')?.value.trim();
     const response = await fetch('/api/account/' + (invite ? 'register' : 'login'), {
       method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ identity: username.value.trim(), password: password.value, invite })
+      body: JSON.stringify({ identity: username.value.trim(), password: password.value, invite, code: document.getElementById('login-code')?.value.trim() })
     });
     const data = await response.json();
     if (!response.ok) throw Error(data.error || 'Não foi possível entrar.');

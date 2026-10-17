@@ -35,9 +35,10 @@ test('tela inicial aponta para ativos e mantém laboratório de demonstração',
 
 test('login não faz autenticação falsa nem armazena segredos', () => {
   const js = readFileSync(new URL('../public/login.js', import.meta.url), 'utf8');
-  assert.equal(/\bfetch\s*\(/.test(js), false);
+  assert.equal(/\bfetch\s*\(/.test(js), true);
+  assert.ok(js.includes('/api/account/'));
   assert.equal(/localStorage|sessionStorage/.test(js), false);
-  assert.ok(js.includes('nenhuma credencial foi enviada'.replace(/^n/, 'N')) || js.includes('Nenhuma credencial foi enviada'));
+  assert.ok(js.includes('if (!response.ok) throw Error'));
 });
 
 test('logins sociais continuam apenas como interface, sem autenticação simulada', () => {

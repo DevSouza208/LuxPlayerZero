@@ -41,7 +41,7 @@ test('Modelos rápidos de admin não aplicam alterações antes de salvar', () =
   }
   assert.ok(home.includes('presets[button.dataset.adminPreset]'));
   assert.ok(home.includes("field.value = value"));
-  assert.ok(home.includes("write('settings', configRaw)"));
+  assert.ok(home.includes("await write('settings', {})"));
   assert.ok(!home.slice(home.indexOf("  const presets = {"), home.indexOf("  $('admin-reset')?.")).includes("write('settings'"));
 });
 

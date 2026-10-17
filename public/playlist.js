@@ -54,7 +54,7 @@ export function parseM3u(text, baseUrl) {
       const properties = attrs(header);
       const title = idx >= 0 ? line.slice(idx + 1).trim() : '';
       meta = { title: title || properties['tvg-name'] || 'Sem nome', group: properties['group-title'] || group,
-        logo: properties['tvg-logo'] || '', radio: properties.radio === 'true' };
+        epgId: properties['tvg-id'] || '', logo: properties['tvg-logo'] || '', radio: properties.radio === 'true' };
     } else if (line.startsWith('#EXTGRP:')) {
       group = line.slice(8).trim();
       if (meta) meta.group = group;
@@ -71,7 +71,8 @@ export function parseM3u(text, baseUrl) {
         url,
         group: meta?.group || 'Sem categoria',
         kind: inferKind(title, url, meta?.radio),
-        logo: meta?.logo || ''
+        logo: meta?.logo || '',
+        epgId: meta?.epgId || ''
       });
       meta = null;
     }

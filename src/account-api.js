@@ -1,3 +1,4 @@
+import { verifyMfa, mfaAction } from './account-mfa.js';
 import { HttpError, reply, requireConfig, randomToken, digest, equal, validPassword, hashPassword,
   bodyJson, cookie, session, requiredSession, limit, audit, SESSION_SECONDS } from './account-security.js';
 const usernameOf = raw => typeof raw==='string'?raw.trim().toLowerCase():'';
@@ -33,6 +34,11 @@ function validateState(value) {
         duration:Math.max(0,Math.min(604800,Number(row.duration)||0))};
     });
   }
+  output.seasons = {};
+  if(value.seasons && typeof value.seasons==='object') for(const [key,season] of Object.entries(value.seasons).slice(0,100)) {
+    if(key.length<=200 && Number.isSafeInteger(season) && season>=0 && season<=99) output.seasons[key]=season;
+  }
+  output.watched = Array.isArray(value.watched) ? [...new Set(value.watched.filter(key=>typeof key==='string'&&/^[a-z0-9:_-]{1,80}$/i.test(key)))].slice(0,500) : [];
   return output;
 }
 export async function accountApi(request,env) {
@@ -75,12 +81,13 @@ export async function accountApi(request,env) {
       }
       const hash=await hashPassword(password,user?.salt||'00000000000000000000000000000000',env);
       if(!user||user.disabled||!equal(hash,user.password_hash))throw new HttpError(401,'Usuário ou senha inválidos.');
+      if(!await verifyMfa(env,user.id,body.code))throw new HttpError(401,'Informe o código de autenticação ou recuperação.');
       await env.DB.prepare('DELETE FROM account_limits WHERE key=?').bind(key).run();
       return await openSession(request,env,user);
     }
     const user=await requiredSession(request,env);
     if(request.method==='GET') {
-      if(path==='/api/account/profiles')return reply({profiles:await results(env.DB.prepare('SELECT id,name,avatar FROM account_profiles WHERE user_id=? ORDER BY created_at,id').bind(user.user_id))});
+      if(path==='/api/account/profiles')return reply({profiles:await results(env.DB.prepare('SELECT id,name,avatar,(pin_hash IS NOT NULL) AS protected FROM account_profiles WHERE user_id=? ORDER BY created_at,id').bind(user.user_id))});
       if(path==='/api/account/devices')return reply({devices:await results(env.DB.prepare('SELECT id,device,created_at,expires_at FROM account_sessions WHERE user_id=? AND expires_at>? ORDER BY created_at DESC').bind(user.user_id,Date.now())),current:user.session_id});
       if(path==='/api/account/state'){
         if(!user.profile_id)throw new HttpError(409,'Escolha um perfil.');
@@ -99,6 +106,10 @@ export async function accountApi(request,env) {
     }
     if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
     const body=await bodyJson(request);
+    if(path==='/api/account/mfa'){
+      await limit(env,await digest('mfa:'+user.user_id),10);
+      return reply(await mfaAction(env,user,body));
+    }
     if(path==='/api/account/logout'){
       await env.DB.prepare('DELETE FROM account_sessions WHERE id=? AND user_id=?').bind(user.session_id,user.user_id).run();
       return cookie(reply({authenticated:false}));
@@ -131,13 +142,28 @@ export async function accountApi(request,env) {
       }
       return reply({ok:true});
     }
+    if(path==='/api/account/profile/pin'){
+      await limit(env,await digest('pin-setting:'+user.user_id),5);
+      const account=await env.DB.prepare('SELECT * FROM account_users WHERE id=?').bind(user.user_id).first();
+      if(typeof body.password!=='string'||body.password.length>256||!equal(await hashPassword(body.password,account.salt,env),account.password_hash))throw new HttpError(403,'Confirme a senha da conta.');
+      if(body.pin!==''&&!/^\d{6}$/.test(body.pin||''))throw new HttpError(400,'Use PIN de seis números ou deixe vazio para remover.');
+      const salt=body.pin?randomToken():null,hash=body.pin?await hashPassword(body.pin,salt,env):null;
+      const changed=await env.DB.prepare('UPDATE account_profiles SET pin_hash=?,pin_salt=? WHERE id=? AND user_id=?').bind(hash,salt,String(body.id||''),user.user_id).run();
+      if(!changed.meta.changes)throw new HttpError(404,'Perfil não encontrado.');
+      await env.DB.prepare('UPDATE account_sessions SET profile_id=NULL WHERE profile_id=? AND user_id=?').bind(body.id,user.user_id).run();
+      return reply({ok:true});
+    }
     if(path==='/api/account/profile/delete'){
       const result=await env.DB.prepare('DELETE FROM account_profiles WHERE id=? AND user_id=?').bind(String(body.id||''),user.user_id).run();
       if(!result.meta.changes)throw new HttpError(404,'Perfil não encontrado.');return reply({ok:true});
     }
     if(path==='/api/account/profile/select'){
-      const row=await env.DB.prepare('SELECT id FROM account_profiles WHERE id=? AND user_id=?').bind(String(body.id||''),user.user_id).first();
+      const row=await env.DB.prepare('SELECT id,pin_hash,pin_salt FROM account_profiles WHERE id=? AND user_id=?').bind(String(body.id||''),user.user_id).first();
       if(!row)throw new HttpError(404,'Perfil não encontrado.');
+      if(row.pin_hash){
+        await limit(env,await digest('pin:'+user.user_id+':'+row.id),5);
+        if(!/^\d{6}$/.test(body.pin||'')||!equal(await hashPassword(body.pin,row.pin_salt,env),row.pin_hash))throw new HttpError(403,'PIN inválido.');
+      }
       await env.DB.prepare('UPDATE account_sessions SET profile_id=? WHERE id=? AND user_id=?').bind(row.id,user.session_id,user.user_id).run();
       return reply({ok:true});
     }

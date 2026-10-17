@@ -6,7 +6,10 @@
     "/api/account/*",
     "/account*",
     "/cinema*",
-    "/player.html"
+    "/player.html",
+    "/api/editorial/*",
+    "/guide/*",
+    "/api/catalog/search"
   ],
   "exclude": []
 }
