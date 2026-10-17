@@ -33,8 +33,9 @@ export const metadataNeeded = (config, mode) => mode === 'details'
 export function chooseArtwork(original, matched, imageEngine) {
   const playlistImage = original || '';
   if (!matched || matched.status !== 'matched') return playlistImage;
-  if (imageEngine === 'tmdb') return matched.poster || playlistImage;
-  if (imageEngine === 'hybrid') return playlistImage || matched.poster || '';
+  if (imageEngine === 'playlist') return playlistImage;
+  // TMDB é a prioridade visual quando ligado; M3U sempre entra como reserva.
+  if (imageEngine === 'tmdb' || imageEngine === 'hybrid') return matched.poster || playlistImage;
   return playlistImage;
 }
 

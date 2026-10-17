@@ -52,14 +52,20 @@ export function createHome({ play } = {}) {
   let pinnedItem = null;
   let drawerReturnFocus = null;
   let searchTimer = null;
-  // Nunca consultar em massa: até 10 títulos por aba e no máximo 4 automáticos
-  // para toda a Home; nenhum lookup é disparado durante o parsing da M3U.
+  // Enriquecer somente títulos visíveis: 10 automáticos por sessão, não os 262 mil.
+  // Limite de 3 buscas simultâneas e 8 adicionais reservadas aos detalhes.
   const tmdbResolved = new Map();
   const tmdbPending = new Map();
+  const tmdbQueued = new Set();
+  const tmdbQueue = [];
   let tmdbCalls = 0;
   let autoEnriched = 0;
-  const MAX_TMDB_CALLS = 10;
-  const MAX_AUTO_ENRICH = 4;
+  let tmdbInFlight = 0;
+  let tmdbEpoch = 0;
+  let tmdbReadiness = null;
+  const MAX_TMDB_CALLS = 18;
+  const MAX_AUTO_ENRICH = 10;
+  const MAX_SIMULTANEOUS_TMDB = 3;
 
   const adminDialog = $('admin-dialog');
   let toastTimeout = null;
@@ -227,6 +233,11 @@ export function createHome({ play } = {}) {
     const key = keyForQuery(query);
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
     if (tmdbPending.has(key)) return tmdbPending.get(key);
+    // Não consultar servidor sem chave/D1: evita uma sequência de erros 503.
+    if (!tmdbReadiness) tmdbReadiness = tmdbConfigured();
+    if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') return null;
+    if (tmdbResolved.has(key)) return tmdbResolved.get(key);
+    if (tmdbPending.has(key)) return tmdbPending.get(key);
     if (tmdbCalls >= MAX_TMDB_CALLS) return null;
     tmdbCalls++;
     const controller = new AbortController();
@@ -243,17 +254,32 @@ export function createHome({ play } = {}) {
     tmdbPending.set(key, promise);
     return promise;
   }
+  function pumpTmdbQueue() {
+    while (tmdbInFlight < MAX_SIMULTANEOUS_TMDB && tmdbQueue.length) {
+      const { item, epoch } = tmdbQueue.shift();
+      if (epoch !== tmdbEpoch) continue;
+      tmdbInFlight++;
+      void metadataFor(item).then(data => {
+        if (!data || epoch !== tmdbEpoch) return;
+        const index = Number(String(item.id || '').slice(1));
+        if (items[index] === item) render();
+      }).finally(() => {
+        tmdbInFlight--;
+        pumpTmdbQueue();
+      });
+    }
+  }
   function autoArtRequest(item) {
     if (!item || autoEnriched >= MAX_AUTO_ENRICH ||
       config.imageEngine === 'playlist') return;
-    if (config.imageEngine === 'hybrid' && safeImage(item.logo)) return;
     const query = queryFor(item);
-    if (!query || tmdbPending.has(keyForQuery(query)) || tmdbResolved.has(keyForQuery(query))) return;
+    if (!query) return;
+    const key = keyForQuery(query);
+    if (tmdbQueued.has(key) || tmdbPending.has(key) || tmdbResolved.has(key)) return;
+    tmdbQueued.add(key);
     autoEnriched++;
-    void metadataFor(item).then(data => {
-      const index = Number(String(item.id || '').slice(1));
-      if (data && items[index] === item) render();
-    });
+    tmdbQueue.push({ item, epoch: tmdbEpoch });
+    pumpTmdbQueue();
   }
   function itemFromKey(key) { return showcase.matches.get(key); }
   function savedKeys() { return [...new Set([...favorites, ...recent].map(x => x.key))]; }
@@ -418,10 +444,13 @@ export function createHome({ play } = {}) {
     $('nav-movies').textContent = settingsTitle('movies');
     $('nav-series').textContent = settingsTitle('series');
     if (items.length && metadataNeeded(config, 'auto')) {
+      // Priorizar o banner e as primeiras capas realmente visíveis.
+      // Os demais títulos recebem metadados se o usuário abrir Detalhes.
       autoArtRequest(heroItem);
-      if (autoEnriched < MAX_AUTO_ENRICH) {
-        autoArtRequest(showcase.rails.movies.find(item => !safeImage(item.logo)) || showcase.rails.movies[0]);
-        autoArtRequest(showcase.rails.series.find(item => !safeImage(item.logo)) || showcase.rails.series[0]);
+      const visible = [...showcase.rails.movies.slice(0, 7), ...showcase.rails.series.slice(0, 7)];
+      for (const item of visible) {
+        if (autoEnriched >= MAX_AUTO_ENRICH) break;
+        autoArtRequest(item);
       }
     }
     $('catalog-total').textContent = items.length ? items.length.toLocaleString('pt-BR') + ' títulos na biblioteca' : 'Sua biblioteca, seu universo';
@@ -466,8 +495,7 @@ export function createHome({ play } = {}) {
     if (state) state.textContent = '';
     $('details-favorite').textContent = favorites.some(x => x.key === itemKey(item)) ? '♥ Na minha lista' : '＋ Minha lista';
     openDialog(detailsDialog);
-    const needArt = config.imageEngine === 'tmdb' ||
-      (config.imageEngine === 'hybrid' && !safeImage(item.logo));
+    const needArt = config.imageEngine !== 'playlist';
     if (!needArt && config.summaryEngine !== 'tmdb') return;
     if (!queryFor(item)) return;
     if (state) state.textContent = 'Verificando metadados com segurança…';
@@ -478,7 +506,7 @@ export function createHome({ play } = {}) {
         if (state) state.textContent = 'Sem correspondência confirmada. Exibindo os dados da playlist.';
         return;
       }
-      if (art && data.backdrop) art.src = data.backdrop;
+      if (art && needArt && data.backdrop) art.src = data.backdrop;
       if (detailPoster && needArt && data.poster) { detailPoster.src = data.poster; detailPoster.hidden = false; if (detailPosterFallback) detailPosterFallback.hidden = true; }
       if (config.summaryEngine === 'tmdb') {
         const label = [data.year, ...(data.genres || []), data.rating ? '★ ' + data.rating : null]
@@ -550,6 +578,10 @@ export function createHome({ play } = {}) {
     if (imageModeChanged) {
       tmdbCalls = 0;
       autoEnriched = 0;
+      tmdbEpoch++;
+      tmdbQueued.clear();
+      tmdbQueue.length = 0;
+      tmdbReadiness = null;
       tmdbResolved.clear();
     }
     rebuild();
@@ -626,6 +658,11 @@ export function createHome({ play } = {}) {
   render();
   return {
     setItems(next) {
+      // Descarta buscas automáticas pendentes da biblioteca anterior.
+      tmdbEpoch++;
+      tmdbQueue.length = 0;
+      tmdbQueued.clear();
+      autoEnriched = 0;
       items = next;
       active = null;
       rebuild();
@@ -634,6 +671,10 @@ export function createHome({ play } = {}) {
       closeDrawer();
     },
     clear() {
+      tmdbEpoch++;
+      tmdbQueue.length = 0;
+      tmdbQueued.clear();
+      autoEnriched = 0;
       items = [];
       active = null;
       rebuild();

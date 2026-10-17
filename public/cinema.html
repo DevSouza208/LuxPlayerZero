@@ -14,9 +14,31 @@
   <link rel="stylesheet" href="/cinema-polish.css">
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
+  <style>
+    /* Primeiro paint: a biblioteca só aparece depois da recuperação do R2. */
+    .lux-boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;background:#030305;color:#e8d1ff;font-family:'Outfit',system-ui,sans-serif;opacity:1;transition:opacity .28s ease}
+    .lux-boot[hidden]{display:none!important}
+    .lux-boot.is-leaving{opacity:0;pointer-events:none}
+    .lux-boot-title{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(17px,2.4vw,22px);font-weight:400}
+    .lux-boot-symbol{font-size:32px;line-height:1;color:#c79aec;animation:lux-boot-breathe 1.7s ease-in-out infinite}
+    .lux-boot-status{font-size:12px;color:#90869e;letter-spacing:.035em;min-height:18px}
+    .lux-boot-skip{border:1px solid #4d405f;background:#1a1322;border-radius:9px;color:#d6b9f4;font:600 12px 'Outfit',system-ui,sans-serif;padding:10px 16px;cursor:pointer}
+    .lux-boot-skip[hidden]{display:none!important}
+    @keyframes lux-boot-breathe{0%,100%{opacity:.52;transform:scale(.93)}50%{opacity:1;transform:scale(1.07)}}
+    @media(prefers-reduced-motion:reduce){.lux-boot,.lux-boot-symbol{transition:none;animation:none}}
+  </style>
   <script type="module" src="/cinema-app.js"></script>
 </head>
 <body>
+<div id="lux-boot" class="lux-boot" role="status" aria-live="polite" aria-label="Carregando Lux Player">
+  <div class="lux-boot-title"><span class="lux-boot-symbol" aria-hidden="true">✧</span><span>Abrindo seu Lux Player...</span></div>
+  <span id="lux-boot-status" class="lux-boot-status">Preparando sua biblioteca</span>
+  <button id="lux-boot-skip" class="lux-boot-skip" type="button" hidden>Entrar mesmo assim</button>
+</div>
+<script>
+  // Garantia: nunca deixar a tela presa se o bundle falhar ou a rede parar.
+  window.setTimeout(() => { const screen = document.getElementById('lux-boot'); if (screen) screen.remove(); }, 75000);
+</script>
 <div class="shell cinema-shell">
   <header class="cinema-header" aria-label="Navegação Lux Player">
     <a class="cinema-brand" href="#inicio" aria-label="Lux Player — Início">
@@ -172,9 +194,9 @@
       <div class="admin-field">
         <label for="admin-imageEngine">MOTOR DAS IMAGENS</label>
         <select id="admin-imageEngine">
-          <option value="playlist">Playlist M3U (seguro · padrão)</option>
-          <option value="hybrid">Combinado · M3U + TMDB quando faltar</option>
-          <option value="tmdb">TMDB · Somente se confirmar o título</option>
+          <option value="tmdb">TMDB primeiro · capas e banners (padrão)</option>
+          <option value="hybrid">TMDB primeiro + imagens M3U de reserva</option>
+          <option value="playlist">Apenas imagens M3U · TMDB desativado</option>
         </select>
       </div>
       <div class="admin-field">

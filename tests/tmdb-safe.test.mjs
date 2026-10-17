@@ -14,15 +14,16 @@ const actor = (title, year, id) => ({
 });
 const movie = (title, year = null) => validateQuery({ type: 'movie', title, year });
 
-test('Admin tem dois motores independentes, desligados ou M3U por padrão', () => {
-  assert.equal(DEFAULT_SETTINGS.imageEngine, 'playlist');
+test('TMDB é o padrão de imagens, sinopses continuam opcionais, e a M3U pode ser escolhida', () => {
+  assert.equal(DEFAULT_SETTINGS.imageEngine, 'tmdb');
   assert.equal(DEFAULT_SETTINGS.summaryEngine, 'off');
-  assert.deepEqual([normalizeSettings({ imageEngine: 'tmdb' }).imageEngine,
-    normalizeSettings({ summaryEngine: 'tmdb' }).summaryEngine], ['tmdb','tmdb']);
-  assert.equal(normalizeSettings({ imageEngine: 'javascript:wrong' }).imageEngine, 'playlist');
+  assert.deepEqual([normalizeSettings({ imageEngine: 'playlist' }).imageEngine,
+    normalizeSettings({ summaryEngine: 'tmdb' }).summaryEngine], ['playlist','tmdb']);
+  assert.equal(normalizeSettings({ imageEngine: 'javascript:wrong' }).imageEngine, 'tmdb');
   assert.equal(normalizeSettings({ summaryEngine: 'unknown' }).summaryEngine, 'off');
-  assert.equal(metadataNeeded(DEFAULT_SETTINGS, 'details'), false);
-  assert.equal(metadataNeeded(DEFAULT_SETTINGS, 'auto'), false);
+  assert.equal(metadataNeeded(DEFAULT_SETTINGS, 'details'), true);
+  assert.equal(metadataNeeded(DEFAULT_SETTINGS, 'auto'), true);
+  assert.equal(metadataNeeded(normalizeSettings({imageEngine:'playlist'}), 'auto'), false);
   for (const page of ['public/cinema/index.html', 'public/cinema.html']) {
     const html = read(page);
     assert.match(html, /id="admin-imageEngine"/);
@@ -56,7 +57,12 @@ test('Imagens M3U são fallback sempre; dados TMDB só com correspondência conf
   const original = 'https://source.example/image.jpg';
   assert.equal(chooseArtwork(original, null, 'tmdb'), original);
   assert.equal(chooseArtwork(original, {status:'unmatched'}, 'tmdb'), original);
-  assert.equal(chooseArtwork(original, {status:'matched', poster:'https://image.tmdb.org/t/p/w500/poster.jpg'}, 'hybrid'), original);
+  assert.equal(chooseArtwork(original, {status:'matched', poster:'https://image.tmdb.org/t/p/w500/poster.jpg'}, 'hybrid'),
+    'https://image.tmdb.org/t/p/w500/poster.jpg');
+  assert.equal(chooseArtwork(original, {status:'matched', poster:'https://image.tmdb.org/t/p/w500/poster.jpg'}, 'tmdb'),
+    'https://image.tmdb.org/t/p/w500/poster.jpg');
+  assert.equal(chooseArtwork(original, {status:'matched', poster:'https://image.tmdb.org/t/p/w500/poster.jpg'}, 'playlist'),
+    original);
   assert.equal(chooseArtwork('', {status:'matched', poster:'https://image.tmdb.org/t/p/w500/poster.jpg'}, 'hybrid'),
     'https://image.tmdb.org/t/p/w500/poster.jpg');
 });
