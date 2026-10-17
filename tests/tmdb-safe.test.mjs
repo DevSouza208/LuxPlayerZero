@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { chooseExactMatch, validateQuery, TMDB_LIMITS } from '../src/tmdb-safe.js';
+import { chooseExactMatch, chooseIdMatch, validateQuery, TMDB_LIMITS } from '../src/tmdb-safe.js';
 import { lookupTmdb } from '../src/tmdb-metadata.js';
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from '../public/tmdb-client.js';
 import { normalizeSettings, DEFAULT_SETTINGS } from '../public/home-model.js';
@@ -51,6 +51,70 @@ test('Correspondência EXATA: não confunde filmes de mesmo nome em anos diferen
   assert.equal(result.title, 'Duna');
   assert.ok(result.poster.startsWith('https://image.tmdb.org/t/p/'));
   assert.deepEqual(result.genres, ['Ação','Drama']);
+});
+
+test('Normaliza nomes M3U com prefixo +, artigos e pequenos erros sem perder o ano', () => {
+  const query = tmdbQueryForItem({name:'+ A Odisseia (2026)',group:'FILMES',url:'https://private.example/video.m3u8'},'movies');
+  assert.deepEqual(query,{type:'movie',title:'A Odisseia',year:2026});
+  assert.equal(chooseExactMatch(movie('A Odisseia',2026), [actor('Odisseia',2026,301)])?.tmdbId,301);
+  assert.equal(chooseExactMatch(movie('Odiseia',2026), [actor('Odisseia',2026,301)])?.tmdbId,301);
+  assert.equal(chooseExactMatch(movie('Odiseia',2025), [actor('Odisseia',2026,301)]),null);
+  assert.equal(chooseExactMatch(movie('Odiseia',null), [actor('Odisseia',2026,301)]),null);
+});
+
+test('Ano e ambiguidade protegem contra capas erradas', () => {
+  assert.equal(chooseExactMatch(movie('Odisseia',2026),[actor('Odisseia',2025,1)]), null);
+  assert.equal(chooseExactMatch(movie('Odisseia',2026),[actor('Odisseia',2026,1),actor('Odisseia',2026,2)]),null);
+  assert.equal(chooseExactMatch(movie('Duna',2021),[actor('Duna 2',2021,3)]),null);
+});
+
+test('tmdb-id explícito permite nome traduzido, mas não ano divergente', () => {
+  const query = validateQuery({type:'movie',title:'A Odisseia',year:2026,tmdbId:456});
+  const details = actor('The Odyssey',2026,456);
+  assert.equal(chooseIdMatch(query,details)?.tmdbId,456);
+  assert.equal(chooseIdMatch(query,actor('The Odyssey',2025,456)),null);
+  assert.equal(chooseIdMatch(query,actor('The Odyssey',2026,457)),null);
+  assert.equal(validateQuery({type:'movie',title:'A Odisseia',tmdbId:'hack'}),null);
+  assert.ok(query.key.startsWith('v2:'), 'A nova versão não deve ler misses antigos do cache');
+  assert.equal(tmdbQueryForItem({name:'A Odisseia (2026)',group:'Filmes',tmdbId:456},'movies').tmdbId,456);
+});
+
+test('Busca diretamente por ID com um pedido remoto, e guarda D1 sem segredo', async () => {
+  const db = fakeDB();
+  let calls = 0;
+  const fetcher = async url => {
+    calls++;
+    assert.match(url,/\/3\/movie\/456\?/);
+    const { genre_ids, ...details } = actor('The Odyssey',2026,456);
+    return Response.json({...details, genres:[{id:12}]});
+  };
+  const env = {DB:db,TMDB_API_KEY:'test-secret-only'};
+  const result = await lookupTmdb(request({type:'movie',title:'A Odisseia',year:2026,tmdbId:456}),env,fetcher,()=>Date.UTC(2026,9,16));
+  assert.equal(result.status,200);
+  const payload = await result.json();
+  assert.equal(payload.tmdbId,456);
+  assert.deepEqual(payload.genres,['Aventura']);
+  assert.equal(calls,1);
+  assert.doesNotMatch(JSON.stringify(payload),/test-secret|api_key/);
+});
+
+test('Pesquisa localizada remove artigo inicial sem consulta extra e valida o título completo', async () => {
+  const db = fakeDB();
+  let searches = 0;
+  const result = await lookupTmdb(
+    request({type:'movie',title:'A Odisseia',year:2026}),
+    {DB:db,TMDB_API_KEY:'fake-test-key'},
+    async url => {
+      searches++;
+      const parsed = new URL(url);
+      assert.equal(parsed.searchParams.get('query'),'Odisseia');
+      assert.equal(parsed.searchParams.get('language'),'pt-BR');
+      return Response.json({results:[actor('Odisseia',2026,333)]});
+    },
+    () => Date.UTC(2026,9,17)
+  );
+  assert.equal(searches,1);
+  assert.equal((await result.json()).tmdbId,333);
 });
 
 test('Imagens M3U são fallback sempre; dados TMDB só com correspondência confirmada', () => {

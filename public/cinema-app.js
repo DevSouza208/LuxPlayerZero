@@ -3,6 +3,7 @@ import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
 import { createHome } from './home.js';
+import { attachCinemaTmdbIds } from './cinema-tmdb-tags.js';
 import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot } from './saved-catalog.js';
 
 const $ = id => document.getElementById(id);
@@ -438,7 +439,7 @@ async function importSource(event) {
       if (generation === sourceLoad) setChannels([{ name: 'Mídia conectada', group: 'URL direta', kind: inferKind('Mídia conectada', input), url: input }], 'URL direta');
     } else if (mode === 'm3u') {
       const text = await request(input);
-      const entries = parseM3u(text, input);
+      const entries = attachCinemaTmdbIds(text, parseM3u(text, input), input);
       if (!entries.length) throw new Error('A lista não contém mídias HTTP/HTTPS válidas.');
       if (generation === sourceLoad) setChannels(entries, 'M3U', lastSnapshotId);
     } else {
@@ -452,7 +453,7 @@ async function importSource(event) {
       let entries;
       try {
         const playlistText = await request(m3uUrl);
-        entries = parseM3u(playlistText, m3uUrl);
+        entries = attachCinemaTmdbIds(playlistText, parseM3u(playlistText, m3uUrl), m3uUrl);
         if (!entries.length) throw new Error('M3U vazia.');
         log('Xtream', 'M3U original importada; links preservados');
       } catch (m3uError) {
@@ -490,7 +491,8 @@ els.file.addEventListener('change', async () => {
   if (!file) return;
   try {
     if (file.size > 20 * 1024 * 1024) throw new Error('Arquivo excede 20 MB.');
-    const entries = parseM3u(await file.text());
+    const contents = await file.text();
+    const entries = attachCinemaTmdbIds(contents, parseM3u(contents));
     if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
     if (generation === sourceLoad) {
       setChannels(entries, file.name);
@@ -509,7 +511,7 @@ els.demo.addEventListener('click', async () => {
   note('Importando playlist de demonstração...', 'info');
   try {
     const text = await request(url);
-    const entries = parseM3u(text, url);
+    const entries = attachCinemaTmdbIds(text, parseM3u(text, url), url);
     if (!entries.length) throw new Error('A playlist de demonstração não possui fontes válidas.');
     if (generation === sourceLoad) setChannels(entries, 'playlist M3U de demonstração');
   } catch (error) {
@@ -554,7 +556,7 @@ async function restoreSavedLibrary() {
       return;
     }
     bootProgress('Organizando seus títulos…');
-    const entries = parseM3u(result.content);
+    const entries = attachCinemaTmdbIds(result.content, parseM3u(result.content));
     if (!entries.length) throw new Error('O snapshot salvo não tem mídias válidas.');
     if (generation === sourceLoad) {
       setChannels(entries, 'R2 (biblioteca restaurada)', id);

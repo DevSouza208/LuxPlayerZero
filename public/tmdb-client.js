@@ -11,7 +11,10 @@ export function tmdbQueryForItem(item, role) {
   if (course.test(String(item.group || '')) || String(item.kind || '') === 'radio') return null;
   let name = String(item.name || '').trim();
   if (!name || name.length > 160) return null;
-  name = name.replace(quality, '');
+  // Alguns provedores acrescentam +, ★, tags [FILME] ou qualidade antes do nome.
+  name = name.replace(/^[\s+*•▪▶►★☆✓✔!#]+/u, '')
+    .replace(/^(?:\[(?:FILMES?|MOVIES?|S[EÉ]RIES?|TV)\]\s*)+/i, '')
+    .replace(quality, '');
   for (let i = 0; i < 3; i++) name = name.replace(tailQuality, '');
   const yearMatch = name.match(/(?:\(|\[|\s)(19\d\d|20[0-3]\d)(?:\)|\]|\s|$)/);
   const year = yearMatch ? Number(yearMatch[1]) : null;
@@ -23,7 +26,9 @@ export function tmdbQueryForItem(item, role) {
   }
   name = name.replace(/\s*[|\-]\s*$/, '').replace(/\s+/g, ' ').trim();
   if (name.length < 3 || name.length > 130 || /^\d+$/.test(name)) return null;
-  return { type: role === 'movies' ? 'movie' : 'tv', title: name, year };
+  const tmdbId = Number(item.tmdbId);
+  return { type: role === 'movies' ? 'movie' : 'tv', title: name, year,
+    ...(Number.isSafeInteger(tmdbId) && tmdbId > 0 && tmdbId <= 999999999 ? { tmdbId } : {}) };
 }
 
 export const metadataNeeded = (config, mode) => mode === 'details'
