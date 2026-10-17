@@ -84,3 +84,12 @@ Código local ca81a76 / remoto f5bc77837993d41af79882456619c7244cb7ef27, CI 3900
 CSV: 67 concluídas, 142 em construção, 31 pendentes, 15 bloqueadas. LUX-085/105/163/164 permanecem em construção até validar o callback de término com mídia autorizada real. CI usa callbacks simulados, sem reprodução. Nenhum deploy, merge ou migração remota.
 
 Ponto exato: recomendações pós-reprodução implementadas e verificadas no PR #16. Coleções/franquias (LUX-058/165), revisão TMDB, comparação de snapshots e preferências continuam pendentes; não foram implementadas neste bloco. Antes de continuar, consultar CSV e preservar os mesmos 13 arquivos protegidos. Produção, mídias reais, PWA instalado, TV física e configurações externas continuam sem validação.
+
+## Retomada — coleções e semelhantes
+Código local 3e599be / remoto e5c5e6b7e3406ce82fc1a7487945402b3343e0ad: coleções TMDB e sugestões semelhantes agora se ligam a entradas reais por ID explícito ou título/ano exatos, sem busca aproximada. Conflitos de ID bloqueiam fallback. Botões abrem os detalhes; falha de coleção preserva créditos e demais metadados. Índices são criados sob demanda e invalidados ao reconstruir o catálogo. Cache de detalhes v2, shell PWA 13, sem nova migração.
+
+149 testes locais aprovados; captura de coleção em 320px revisada na rodada 39002461721. Reprodução real e TMDB com catálogo autorizado continuam pendentes. LUX-058/078/165 permanecem em construção: navegação em detalhes implementada, prateleira global de franquias não implementada. CSV: 67 concluídas, 145 em construção, 28 pendentes, 15 bloqueadas.
+
+Próximos blocos: revisão de correspondências TMDB, comparação de versões de snapshots e preferências. Preservar os 13 arquivos protegidos. Nenhuma publicação, merge, migração remota ou criação de admin de produção realizada.
+
+Validação final do código 3e599be: CI 39002501073 aprovado em sintaxe, 149 testes e navegador. Após esta rodada, somente documentação e CSV atualizados.
