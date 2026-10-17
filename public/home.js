@@ -506,7 +506,7 @@ export function createHome({ play } = {}) {
         if (state) state.textContent = 'Sem correspondência confirmada. Exibindo os dados da playlist.';
         return;
       }
-      if (art && data.backdrop) art.src = data.backdrop;
+      if (art && needArt && data.backdrop) art.src = data.backdrop;
       if (detailPoster && needArt && data.poster) { detailPoster.src = data.poster; detailPoster.hidden = false; if (detailPosterFallback) detailPosterFallback.hidden = true; }
       if (config.summaryEngine === 'tmdb') {
         const label = [data.year, ...(data.genres || []), data.rating ? '★ ' + data.rating : null]
@@ -658,6 +658,11 @@ export function createHome({ play } = {}) {
   render();
   return {
     setItems(next) {
+      // Descarta buscas automáticas pendentes da biblioteca anterior.
+      tmdbEpoch++;
+      tmdbQueue.length = 0;
+      tmdbQueued.clear();
+      autoEnriched = 0;
       items = next;
       active = null;
       rebuild();
@@ -666,6 +671,10 @@ export function createHome({ play } = {}) {
       closeDrawer();
     },
     clear() {
+      tmdbEpoch++;
+      tmdbQueue.length = 0;
+      tmdbQueued.clear();
+      autoEnriched = 0;
       items = [];
       active = null;
       rebuild();
