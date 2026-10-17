@@ -1,8 +1,10 @@
 {
   "version": 1,
   "include": [
-    "/api/bridge/*",
-    "/api/metadata/*"
+    "/api/*",
+    "/cinema/*",
+    "/cinema.html",
+    "/player.html"
   ],
   "exclude": []
 }
