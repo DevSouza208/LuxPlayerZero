@@ -57,3 +57,5 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Continuidade de episódios
 O módulo episode-continuation usa exclusivamente o callback público do player. Oferece próximo episódio realmente presente, ignora fontes duplicadas na sequência e desativa avanço automático diante de lacunas numéricas. Preferência privada por perfil, desligada inicialmente; espera 10 segundos, pode cancelar e não avança se a página ficar oculta. Botão de retorno reabre os detalhes suspensos. Teste de navegador verifica o callback com entrada fictícia, sem reproduzir mídia. Reprodução real segue pendente.
+
+Validação final do código desta rodada: GitHub Actions 38999939859 aprovado, 139 testes e smoke com setas de temporadas e continuação por callback simulado. Não equivale a teste de reprodução real.

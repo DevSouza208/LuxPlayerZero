@@ -66,3 +66,6 @@ O usuário autorizou continuar todo o prompt com acompanhamento por CSV. O check
 - Retomada técnica: verificar CI do head atual, seguir linhas pendentes do CSV; priorizar preferências/default profile, filtros, revisão de correspondências, diagnóstico de catálogo e navegação TV. Não confundir recursos já implementados com os ainda pendentes.
 - Dependências externas: descobrir branch/bindings de produção por acesso Cloudflare autorizado; configurar provedores OAuth/e-mail e fontes de EPG autorizadas; validar mídia real, PWA instalado e Smart TV. Não contornar proteção do bridge para implementar controle parental.
 - Antes de qualquer publicação: aplicar migrações 0003–0008 em D1 isolado, configurar secrets fora do git, testar fontes autorizadas e revisar o PR. O baseline não tem a 0002 do PR14; não aplicar automaticamente a cadeia de outro PR.
+
+### Última validação confirmada
+GitHub Actions 38999939859 aprovado: 139 testes e smoke de navegador incluindo setas de temporadas, geometria do modal e temporizador/cancelamento do próximo episódio por callback simulado. Código local 76cce96. Após essa validação, somente documentação/CSV foram atualizados.
