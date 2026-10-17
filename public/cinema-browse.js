@@ -15,7 +15,7 @@ export function browsePageData(entries, { page = 1, query = '', group = '', page
   const requestedGroup = String(group || '').trim();
   const matched = !search && !requestedGroup ? source : source.filter(item => {
     if (requestedGroup && String(item.group || '') !== requestedGroup) return false;
-    return !search || (String(item.name || '') + ' ' + String(item.group || ''))
+    return !search || (String(item.displayName || item.name || '') + ' ' + String(item.name || '') + ' ' + String(item.group || ''))
       .toLocaleLowerCase('pt-BR').includes(search);
   });
   const size = Math.max(1, Math.min(72, Math.floor(Number(pageSize) || CATALOG_PAGE_SIZE)));
