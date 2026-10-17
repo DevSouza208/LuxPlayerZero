@@ -2,6 +2,8 @@ import { session, reply } from './account-security.js';
 /** Page/API access only. Existing bridge authorization stays untouched. */
 export async function accountGate(request, env) {
   const url=new URL(request.url),path=url.pathname;
+  // Public PWA assets contain no user data.
+  if(['GET','HEAD'].includes(request.method)&&['/cinema/install.js','/cinema/sw.js','/cinema/manifest.webmanifest'].includes(path))return null;
   // Public interface only. Private APIs retain their own authorization.
   if(['GET','HEAD'].includes(request.method)&&/^\/cinema\/?$/.test(path)&&url.searchParams.get('guest')==='1')return null;
   const cinema=/^\/(cinema(?:\/|\.html|$)|player\.html$)/.test(path);

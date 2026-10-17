@@ -6,6 +6,7 @@ test('visitor shell works without bindings but does not unlock private paths',as
  assert.equal(isGuestMode('https://lux.test/cinema/?guest=1'),true);
  assert.equal(isGuestMode('https://lux.test/account/?guest=1'),false);
  assert.equal(await accountGate(new Request('https://lux.test/cinema/?guest=1'),{}),null);
+ for(const path of ['/cinema/install.js','/cinema/sw.js','/cinema/manifest.webmanifest'])assert.equal(await accountGate(new Request('https://lux.test'+path),{}),null);
  for(const path of ['/account/?guest=1','/api/metadata/details?guest=1','/cinema/private?guest=1']){
   assert.notEqual(await accountGate(new Request('https://lux.test'+path),{}),null);
  }
