@@ -61,7 +61,10 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
   url.searchParams.set('api_key', env.TMDB_API_KEY);
   url.searchParams.set('language', 'pt-BR');
   if (!query.tmdbId) {
-    url.searchParams.set('query', query.title);
+    // Artigos iniciais comuns atrapalham pesquisas de títulos localizados;
+    // o matcher ainda confere título/ano, então isso não cria associações cegas.
+    const withoutArticle = query.title.replace(/^(?:(?:a|o|os|as|the|an|el|la|los|las|um|uma|un|une)\s+)+/i, '').trim();
+    url.searchParams.set('query', withoutArticle.length >= 3 ? withoutArticle : query.title);
     url.searchParams.set('include_adult', 'false');
   }
   let result;
