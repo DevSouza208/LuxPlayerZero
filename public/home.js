@@ -527,7 +527,8 @@ export function createHome({ play } = {}) {
     heart.setAttribute('aria-label', heart.title);
     labels.append(heart);
     info.append(labels);
-    appendText(info, 'span', 'media-group', item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'));
+    appendText(info, 'span', 'media-group', [item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'),
+      item.catalogYear, ...(item.catalogTags || [])].filter(Boolean).join(' · '));
     card.append(info);
     return card;
   }
@@ -669,7 +670,8 @@ export function createHome({ play } = {}) {
     if (!item || !detailsDialog) return;
     detailsItem = item;
     $('details-title').textContent = titleForDisplay(item);
-    $('details-group').textContent = item.group || 'Disponível na sua biblioteca';
+    $('details-group').textContent = [item.group || 'Disponível na sua biblioteca',
+      item.catalogYear, ...(item.catalogTags || [])].filter(Boolean).join(' · ');
     $('details-kicker').textContent = 'LUX PLAYER · ' + (item.group || 'SUA BIBLIOTECA').slice(0, 62);
     const art = $('details-art');
     const logo = safeImage(item.logo);
