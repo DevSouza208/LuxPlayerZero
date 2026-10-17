@@ -1,3 +1,4 @@
+import {isGuestMode} from './guest-mode.js';
 /**
  * Restauro seguro do catálogo: guarda APENAS o identificador aleatório do R2.
  * Não armazenar em storage URL M3U/Xtream, cookies, tokens ou linhas EXTINF.
@@ -11,6 +12,7 @@ export function validSnapshotId(value) {
 }
 
 export function rememberSnapshot(catalogId, storage = null) {
+  if(!storage&&isGuestMode())return false;
   if (!validSnapshotId(catalogId)) return false;
   try {
     (storage || localStorage).setItem(KEY, JSON.stringify({ id: catalogId, savedAt: Date.now() }));
@@ -19,6 +21,7 @@ export function rememberSnapshot(catalogId, storage = null) {
 }
 
 export function savedSnapshot(storage = null) {
+  if(!storage&&isGuestMode())return null;
   try {
     const value = JSON.parse((storage || localStorage).getItem(KEY));
     if (!validSnapshotId(value?.id)) return null;
@@ -27,6 +30,7 @@ export function savedSnapshot(storage = null) {
 }
 
 export function forgetSnapshot(storage = null) {
+  if(!storage&&isGuestMode())return true;
   try { (storage || localStorage).removeItem(KEY); return true; } catch { return false; }
 }
 

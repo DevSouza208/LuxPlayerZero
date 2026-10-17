@@ -1,7 +1,9 @@
 import { session, reply } from './account-security.js';
 /** Page/API access only. Existing bridge authorization stays untouched. */
 export async function accountGate(request, env) {
-  const path=new URL(request.url).pathname;
+  const url=new URL(request.url),path=url.pathname;
+  // Public interface only. Private APIs retain their own authorization.
+  if(['GET','HEAD'].includes(request.method)&&/^\/cinema\/?$/.test(path)&&url.searchParams.get('guest')==='1')return null;
   const cinema=/^\/(cinema(?:\/|\.html|$)|player\.html$)/.test(path);
   const privatePage=cinema||path.startsWith('/guide/')||/^\/account(?:\/|\.html|$)/.test(path);
   const privateApi=path.startsWith('/api/metadata/');

@@ -1,3 +1,4 @@
+import {isGuestMode,createGuestStore} from './guest-mode.js';
 import {relationIndex,resolveRelations} from './catalog-relations.js';
 import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
@@ -15,9 +16,18 @@ import { browseRoleFromHash, browsePageData, browseGroups, browseFacets } from '
 
 import { createProfileStore } from './profile-store.js';
 const $ = id => document.getElementById(id);
+const guest=isGuestMode();
 let personal;
-try { personal = await createProfileStore(); }
+try { personal = guest?createGuestStore():await createProfileStore(); }
 catch { location.replace('/account/'); throw Error('Perfil indisponível'); }
+if(guest){
+ document.querySelector('.account-link')?.setAttribute('href','/');
+ const link=document.querySelector('.account-link');if(link)link.textContent='Entrar na conta';
+ const guide=document.querySelector('.guide-link');if(guide)guide.hidden=true;
+ const notice=document.createElement('p');notice.className='guest-notice';notice.textContent='Modo visitante · Abra sua lista para explorar. Favoritos e preferências duram apenas enquanto esta página estiver aberta.';
+ document.querySelector('main')?.prepend(notice);
+ for(const el of document.querySelectorAll('.admin-notice,#admin-save-status'))el.textContent='No modo visitante, alterações ficam apenas nesta página e não são sincronizadas.';
+}
 const read = (key, fallback) => personal.read(key, fallback);
 const write = (key, value) => personal.write(key, value);
 function validEntries(value) {
@@ -307,7 +317,7 @@ export function createHome({ play } = {}) {
   }
   async function metadataFor(item) {
     const query = queryFor(item);
-    if (!query || !metadataNeeded(config, 'details')) return null;
+    if (guest || !query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
     if (tmdbPending.has(key)) return tmdbPending.get(key);
@@ -969,7 +979,7 @@ export function createHome({ play } = {}) {
     rebuild();
     render();
     closeDialog(adminDialog);
-    flash('✓ Personalização aplicada e salva no seu perfil.');
+    flash(guest?'✓ Personalização aplicada nesta página.':'✓ Personalização aplicada e salva no seu perfil.');
     const wantsTmdb = config.imageEngine !== 'playlist' || config.summaryEngine === 'tmdb';
     if (wantsTmdb) {
       void tmdbConfigured().then(ready => {

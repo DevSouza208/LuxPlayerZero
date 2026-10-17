@@ -5,7 +5,7 @@ Lux Player Zero is a Cloudflare-native, authenticated streaming player for autho
 ## User journey
 1. Loading checks session and, if available, restores the private catalog.
 2. Login verifies Lux ID using the D1-backed server API; do not simulate success or claim credentials were sent when they were not.
-3. Home opens only for a valid session. Absent catalog shows an honest setup or empty state.
+3. Account Home requires a valid session. Explicit visitor mode at /cinema/?guest=1 opens the public shell with page-memory state and user-loaded lists; it grants no private API access. Absent catalog shows an honest setup or empty state.
 4. TV/Movies/Series browsing supports pagination, source categories, tags and matching TMDB artwork as available.
 5. Movie and Series details open full-screen. Series expose only genuinely present seasons and episodes.
 6. Fullscreen player uses the existing HTML video engine. Back returns to the detail and preserves the selected season.

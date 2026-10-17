@@ -128,3 +128,5 @@ body,.nav-link,.primary-btn,.media-title{font-family:'Outfit',sans-serif}
 .hero-primary:hover{box-shadow:0 18px 35px #a15bef33}
 .sidebar{box-shadow:14px 0 45px #0003}
 .nav-link:focus-visible,.hero-primary:focus-visible,.hero-secondary:focus-visible,.media-visual:focus-visible,.media-favorite:focus-visible,.admin-close:focus-visible{outline:2px solid #cb9aff;outline-offset:3px}
+
+.guest-notice{margin:90px 20px 20px;padding:14px;border:1px solid #80619b;border-radius:10px;color:#f7f4ff;background:#28183b;font-size:14px;line-height:1.5}

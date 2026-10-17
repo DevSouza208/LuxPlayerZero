@@ -23,7 +23,7 @@ test('recuperação valida e-mail', () => {
 
 test('tela inicial aponta para ativos e mantém laboratório de demonstração', () => {
   const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
-  for (const marker of ['login-form', 'login-identity', 'login-password', 'toggle-password', 'recovery-form', '/player.html', 'login-google', 'login-discord', 'Lux ID']) {
+  for (const marker of ['login-form', 'login-identity', 'login-password', 'toggle-password', 'recovery-form', '/cinema/?guest=1', 'login-google', 'login-discord', 'Lux ID']) {
     assert.ok(html.includes(marker), 'Elemento ausente: ' + marker);
   }
   for (const name of ['lux-logo.png','lux-icon.png','login-scene.png','luxite.png']) {

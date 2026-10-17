@@ -93,3 +93,6 @@ Código local 3e599be / remoto e5c5e6b7e3406ce82fc1a7487945402b3343e0ad: coleç�
 Próximos blocos: revisão de correspondências TMDB, comparação de versões de snapshots e preferências. Preservar os 13 arquivos protegidos. Nenhuma publicação, merge, migração remota ou criação de admin de produção realizada.
 
 Validação final do código 3e599be: CI 39002501073 aprovado em sintaxe, 149 testes e navegador. Após esta rodada, somente documentação e CSV atualizados.
+
+## Publicação autorizada e visitante — 17/10/2026
+Usuário autorizou levar o PR #16 à produção e direcionar visitante à Home. Implementado /cinema/?guest=1: shell público, preferências em memória, sem restauração automática do snapshot da conta. APIs privadas, conta e bridge continuam com suas autorizações. 151 testes locais aprovados; smoke inclui visitante sem sessão carregando M3U, Home e rejeição de API privada. Publicação e teste remoto ainda em andamento. Nenhuma credencial ou migração D1 remota configurada: a autenticação Cloudflare não foi concluída.

@@ -1,5 +1,6 @@
 // Run with Playwright installed. Uses the local in-memory integration server only.
 const {chromium}=require('playwright');
+require('node:fs').mkdirSync('test-results',{recursive:true});
 const {spawn}=require('node:child_process');
 const {mkdirSync}=require('node:fs');
 const assert=require('node:assert/strict');
@@ -10,6 +11,13 @@ const assert=require('node:assert/strict');
   await new Promise((resolve,reject)=>{server.stdout.on('data',data=>{if(String(data).includes('Local integration server'))resolve()});server.on('exit',code=>reject(Error('Test server exited: '+code)));setTimeout(()=>reject(Error('Test server timeout')),10000).unref()});
   browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1365,height:900}}),errors=[];
   page.on('pageerror',e=>errors.push(e.message));await page.route('https://**/*',r=>r.abort());
+  await page.goto('http://localhost:4173/');
+  await page.getByRole('link',{name:'Entrar como visitante',exact:false}).click();await page.waitForURL('**/cinema/?guest=1');
+  await page.locator('#lux-boot').waitFor({state:'hidden',timeout:20000});await page.getByText('Modo visitante · Abra sua lista', {exact:false}).waitFor();
+  assert.equal(await page.evaluate(async()=>{const r=await fetch('/api/account/state');return r.status}),401);
+  await page.locator('input[type=file]').setInputFiles({name:'guest.m3u',mimeType:'audio/x-mpegurl',buffer:Buffer.from('#EXTM3U\n#EXTINF:-1 group-title="Filmes",Filme visitante (2024)\nhttps://example.com/movie/guest.mp4')});
+  await page.locator('#nav-movies').click();assert.equal(await page.locator('#browse-grid .media-card').count(),1);
+  await page.screenshot({path:'test-results/guest-home.png'});
   await page.goto('http://localhost:4173/');await page.fill('#login-identity','admin');await page.fill('#login-password','local-test-only-bootstrap-password');
   await page.click('#login-form button[type=submit]');await page.waitForURL('**/account/');
   await page.locator('summary').filter({hasText:'Criar ou editar perfil'}).click();await page.fill('#profile-name','Principal');
