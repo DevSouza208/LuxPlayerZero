@@ -4,7 +4,7 @@
  * Não manipula mídia, catálogos, playlist, R2 ou rotas /api/bridge.
  */
 import { apiError, apiOk, sameOriginPost } from './bridge-core.js';
-import { TMDB_LIMITS, validateQuery, chooseExactMatch } from './tmdb-safe.js';
+import { TMDB_LIMITS, validateQuery, chooseExactMatch, chooseIdMatch } from './tmdb-safe.js';
 
 const MAX_BODY = 400;
 const SCHEMA = [
@@ -54,11 +54,16 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
     return fail(503, 'Cache de metadados indisponível. Usando os dados originais.');
   }
 
-  const url = new URL('https://api.themoviedb.org/3/search/' + query.type);
+  // Um único pedido remoto por título: pesquisa normalizada OU ID explícito.
+  const url = query.tmdbId
+    ? new URL('https://api.themoviedb.org/3/' + query.type + '/' + query.tmdbId)
+    : new URL('https://api.themoviedb.org/3/search/' + query.type);
   url.searchParams.set('api_key', env.TMDB_API_KEY);
   url.searchParams.set('language', 'pt-BR');
-  url.searchParams.set('query', query.title);
-  url.searchParams.set('include_adult', 'false');
+  if (!query.tmdbId) {
+    url.searchParams.set('query', query.title);
+    url.searchParams.set('include_adult', 'false');
+  }
   let result;
   try {
     const response = await fetcher(url.href, {
@@ -68,7 +73,7 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
     });
     if (!response.ok) return fail(503, 'TMDB indisponível no momento. Usando os dados originais.');
     const data = await response.json();
-    result = chooseExactMatch(query, data?.results);
+    result = query.tmdbId ? chooseIdMatch(query, data) : chooseExactMatch(query, data?.results);
   } catch {
     return fail(503, 'Consulta TMDB falhou. Usando os dados originais.');
   }
