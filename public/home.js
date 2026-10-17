@@ -927,6 +927,12 @@ export function createHome({ play } = {}) {
   activateBrowse(browseRoleFromHash(location.hash), { scroll: false });
   return {
     tvVariants(entry){return tvIndex.byItemId.get(entry?.id)?.variants||[]},
+    playbackTitle(entry){
+      const group=seriesIndex.byItemId.get(entry?.id);
+      const row=group?.episodes.find(value=>value.item===entry);
+      return row?group.title+' · T'+row.season+':E'+row.number:
+        (entry?.displayName||entry?.name||'');
+    },
     backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||entry?.logo)},
     setItems(next) {
       // Descarta buscas automáticas pendentes da biblioteca anterior.

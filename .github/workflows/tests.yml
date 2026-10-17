@@ -20,6 +20,10 @@ jobs:
           node --check public/cinema-app.js
           node --check public/cinema-title.js
           node --check public/cinema-browse.js
+          node --check public/cinema-series.js
+          node --check public/cinema-tv-groups.js
+          node --check public/cinema-detail-page.js
+          node --check public/cinema-player-ui.js
           node --check public/media-taxonomy.js
           node --check public/tv-normalizer.js
           node --check public/lux-tag-palette.js
