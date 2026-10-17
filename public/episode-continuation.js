@@ -13,7 +13,7 @@ export function createEpisodeContinuation({host,onPlay,onReturn,onDetails}){
  function play(){const selected=candidate;stop();if(selected)onPlay(selected.item);}
  next.addEventListener('click',play);cancel.addEventListener('click',stop);
  back.addEventListener('click',()=>{stop();onReturn()});
- document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);timer=null;label.textContent='Reprodução automática pausada. Escolha quando continuar.';}});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&timer!==null){clearTimeout(timer);timer=null;label.textContent='Reprodução automática pausada. Escolha quando continuar.';}});
  return {cancel:stop,showRecommendations(rows,{series=false,enabled=true}={}){
   stop();panel.hidden=false;next.hidden=true;
   panel.setAttribute('aria-label','Depois de assistir');
@@ -24,7 +24,7 @@ export function createEpisodeContinuation({host,onPlay,onReturn,onDetails}){
    button.addEventListener('click',()=>{stop();onDetails?.(row.item)});suggestions.append(button);
   }
  },show(row,automatic){
-  stop();candidate=row;panel.hidden=false;next.hidden=!row;
+  stop();candidate=row;panel.hidden=false;next.hidden=!row;panel.setAttribute('aria-label','Depois do episódio');
   next.textContent=row?'Assistir T'+row.season+':E'+row.number:'';
   label.textContent=row?'Próximo episódio disponível no seu catálogo.':'Você chegou ao último episódio disponível. Veja as sugestões na Home.';
   if(row&&row.contiguous&&automatic&&!document.hidden){
