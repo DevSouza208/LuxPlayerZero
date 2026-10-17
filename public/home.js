@@ -967,6 +967,7 @@ export function createHome({ play } = {}) {
       return row?group.title+' · T'+row.season+':E'+row.number:
         (entry?.displayName||entry?.name||'');
     },
+    resumeDetails(){return fullDetails.resume()},
     backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||entry?.logo)},
     setItems(next) {
       // Descarta buscas automáticas pendentes da biblioteca anterior.

@@ -2,7 +2,7 @@
  * Fullscreen Lux player UI using the EXISTING <video> element, Hls.js and Mpegts.js.
  * No stream URL rewriting, decoding changes or new proxy.
  */
-export function createImmersivePlayer({video,onStop,getHls,onVariant}){
+export function createImmersivePlayer({video,onStop,onClose,getHls,onVariant}){
  const originalParent=video.parentElement;
  const originalNext=video.nextSibling;
  const overlay=document.createElement('div');
@@ -87,6 +87,7 @@ export function createImmersivePlayer({video,onStop,getHls,onVariant}){
   if(originalNext&&originalNext.parentNode===originalParent)originalParent.insertBefore(video,originalNext);
   else originalParent.append(video);
   current=null;fromSource=false;
+  if(typeof onClose==='function')onClose();
  }
  function error(message){if(!opened)return;loading(true);loader.querySelector('p').textContent=String(message||'Falha na reprodução').slice(0,160)}
  overlay.addEventListener('click',event=>{

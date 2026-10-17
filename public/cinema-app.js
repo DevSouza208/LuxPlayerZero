@@ -301,6 +301,7 @@ function streamType(url) {
 const immersive=createImmersivePlayer({
   video:els.video,
   onStop:()=>stop(),
+  onClose:()=>homeCall('resumeDetails'),
   getHls:()=>hls,
   onVariant:item=>{void playItem(item)}
 });

@@ -19,9 +19,9 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite}){
  '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section></section>';
  const page=shell.firstElementChild, $=selector=>shell.querySelector(selector);
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
- let item=null,series=null,season=0,opened=false,epoch=0,oldOverflow='';
+ let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='';
  const setPhoto=(target,value)=>{const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
- const play=entry=>{if(!entry)return;close();onPlay?.(entry)};
+ const play=entry=>{if(!entry)return;suspend();onPlay?.(entry)};
  function renderSeason(){
   if(!series?.seasons?.length)return;
   const selected=series.seasons.find(s=>s.number===season)||series.seasons[0];season=selected.number;
@@ -47,7 +47,7 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite}){
   if(!next)return;const first=!opened;item=next;series=opts.series||null;season=series?.seasons[0]?.number||0;
   epoch++;const currentEpoch=epoch;
   if(first){oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden'}
-  opened=true;shell.hidden=false;page.scrollTop=0;
+  opened=true;suspended=false;shell.hidden=false;page.scrollTop=0;
   $('#lux-full-kind').textContent=series?'SÉRIE':'FILME';
   $('#lux-full-title').textContent=series?.title||next.displayName||next.name||'Título sem nome';
   const count=series?.episodes?.length||0;
@@ -74,7 +74,22 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite}){
    }catch{/* Metadata never affects playback. */}
   })();
  }
- function close(){if(!opened)return;opened=false;epoch++;shell.hidden=true;document.body.style.overflow=oldOverflow;series=null;item=null}
+ function suspend(){
+   if(!opened)return;
+   opened=false;suspended=true;shell.hidden=true;
+   document.body.style.overflow=oldOverflow;
+ }
+ function resume(){
+   if(!suspended||!item)return false;
+   oldOverflow=document.body.style.overflow;
+   document.body.style.overflow='hidden';suspended=false;opened=true;
+   shell.hidden=false;page.focus({preventScroll:true});return true;
+ }
+ function close(){
+   if(!opened&&!suspended)return;
+   opened=false;suspended=false;epoch++;shell.hidden=true;
+   document.body.style.overflow=oldOverflow;series=null;item=null;
+ }
  shell.addEventListener('click',event=>{
   if(event.target.closest('[data-full-close]'))close();
   else if(event.target.closest('[data-full-play]'))play(series?.episodes?.[0]?.item||item);
@@ -82,5 +97,5 @@ export function createFullDetails({onPlay,metadataFor,isFavorite,onFavorite}){
  });
  document.addEventListener('keydown',e=>{if(opened&&e.key==='Escape'){e.stopPropagation();close()}});
  document.body.append(shell);
- return {open,close,isOpen:()=>opened};
+ return {open,close,resume,isOpen:()=>opened};
 }
