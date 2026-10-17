@@ -221,7 +221,7 @@ export function createHome({ play } = {}) {
     return classifyItem(item, config);
   }
   function keyForQuery(query) {
-    return query ? [query.type, query.title.toLocaleLowerCase('pt-BR'), query.year || ''].join('|') : '';
+    return query ? [query.type, query.title.toLocaleLowerCase('pt-BR'), query.year || '', query.tmdbId || ''].join('|') : '';
   }
   function cachedMetadata(item) {
     const query = queryFor(item);
@@ -503,7 +503,9 @@ export function createHome({ play } = {}) {
       // Evita exibir metadados de outro título se o modal foi trocado/fechado.
       if (detailsItem !== item || !detailsDialog.open) return;
       if (!data || data.status !== 'matched') {
-        if (state) state.textContent = 'Sem correspondência confirmada. Exibindo os dados da playlist.';
+        if (state) state.textContent = await tmdbReadiness === false
+          ? 'TMDB indisponível: verifique a chave no painel de administração. Mantendo a capa da playlist.'
+          : 'Nenhuma correspondência segura por título, ano ou ID. Mantendo a capa da playlist.';
         return;
       }
       if (art && needArt && data.backdrop) art.src = data.backdrop;
