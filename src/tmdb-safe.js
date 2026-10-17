@@ -1,7 +1,8 @@
 /**
- * Correspondência estrita com TMDB. Nunca determina o item de reprodução.
- * Uma consulta = no máximo uma busca na API, sem pesquisa fuzzy, detalhes ou
- * varredura do catálogo. Falha/ambiguidade => dados da M3U sem mudanças.
+ * TMDB: títulos normalizados e correspondência aproximada conservadora.
+ * Ano é obrigatório para aproximação textual; títulos ambíguos não são usados.
+ * tmdb-id explícito da M3U permite consulta direta; nunca confundir tvg-id EPG.
+ * Metadados jamais mudam URL de vídeo ou identificação do item.
  */
 export const TMDB_LIMITS = Object.freeze({
   dailyRemoteLookups: 120,
@@ -11,6 +12,8 @@ export const TMDB_LIMITS = Object.freeze({
 const normalize = value => String(value || '').normalize('NFD')
   .replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR')
   .replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, ' ');
+const canonical = value => normalize(value)
+  .replace(/^(?:(?:a|o|os|as|the|an|el|la|los|las|um|uma|un|une)\s+)+/, '');
 
 export function validateQuery(value) {
   const type = value?.type;
@@ -21,7 +24,12 @@ export function validateQuery(value) {
     (year !== null && (!Number.isInteger(year) || year < 1900 || year > 2035))) return null;
   const normalized = normalize(title);
   if (normalized.length < 3 || /^(filme|serie|movie|video|episodio|canal|aula)\s*\d*$/i.test(normalized)) return null;
-  return { type, title, year, key: type + ':' + (year || '-') + ':' + normalized };
+  const hasId = value?.tmdbId !== undefined && value?.tmdbId !== null && value?.tmdbId !== '';
+  const tmdbId = hasId ? Number(value.tmdbId) : null;
+  if (hasId && (!Number.isSafeInteger(tmdbId) || tmdbId < 1 || tmdbId > 999999999)) return null;
+  // Versionamento: resultados "unmatched" do algoritmo rígido antigo não bloqueiam o novo.
+  return { type, title, year, tmdbId,
+    key: 'v2:' + type + ':' + (year || '-') + ':' + normalized + ':' + (tmdbId || '-') };
 }
 
 const publishedYear = row => {
@@ -44,32 +52,78 @@ const GENRES = Object.freeze({
   10768: 'Guerra e política', 10770: 'Telefilme', 878: 'Ficção científica'
 });
 
-export function chooseExactMatch(query, results) {
-  const candidates = Array.isArray(results) ? results : [];
-  const lookup = normalize(query.title);
-  const exact = candidates.filter(row => {
-    if (!row || !Number.isInteger(row.id) || row.id < 1) return false;
-    const names = query.type === 'movie' ?
-      [row.title, row.original_title] : [row.name, row.original_name];
-    if (!names.some(title => normalize(title) === lookup)) return false;
-    const year = publishedYear(row);
-    if (query.year !== null && year !== query.year) return false;
-    return true;
-  });
-  const unique = [...new Map(exact.map(row => [row.id, row])).values()];
-  // Mesmo título em vários anos, quando a M3U não dá ano? Não arriscar.
-  if (unique.length !== 1) return null;
-  const row = unique[0];
+function formatMatch(query, row) {
+  const genres = Array.isArray(row.genre_ids) ? row.genre_ids :
+    Array.isArray(row.genres) ? row.genres.map(entry => entry?.id) : [];
   return {
     status: 'matched',
-    title: query.title, // O nome do catálogo nunca é substituído.
+    title: query.title, // Preserva a identidade M3U.
     year: publishedYear(row),
+    tmdbId: row.id,
     overview: typeof row.overview === 'string' ? row.overview.slice(0, 1400) : '',
     poster: officialImage(row.poster_path, 'w500'),
     backdrop: officialImage(row.backdrop_path, 'w1280'),
     rating: Number.isFinite(row.vote_average) ? Math.round(row.vote_average * 10) / 10 : null,
-    genres: Array.isArray(row.genre_ids) ? row.genre_ids
-      .filter(id => Number.isInteger(id) && GENRES[id])
-      .slice(0, 3).map(id => GENRES[id]) : []
+    genres: genres.filter(id => Number.isInteger(id) && GENRES[id]).slice(0, 3).map(id => GENRES[id])
   };
+}
+
+function namesOf(query, row) {
+  return query.type === 'movie' ? [row.title, row.original_title] : [row.name, row.original_name];
+}
+
+/** Similaridade textual limitada para evitar "Duna" => "Duna 2" e outros homônimos. */
+function similarity(first, second) {
+  if (first === second) return 1;
+  if (!first || !second || Math.min(first.length, second.length) < 6) return 0;
+  if (Math.abs(first.length - second.length) / Math.max(first.length, second.length) > .16) return 0;
+  const previous = Array.from({ length: second.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= first.length; i++) {
+    let prior = previous[0];
+    previous[0] = i;
+    for (let j = 1; j <= second.length; j++) {
+      const old = previous[j];
+      previous[j] = Math.min(
+        previous[j] + 1,
+        previous[j - 1] + 1,
+        prior + (first[i - 1] === second[j - 1] ? 0 : 1)
+      );
+      prior = old;
+    }
+  }
+  return 1 - previous[second.length] / Math.max(first.length, second.length);
+}
+
+export function chooseExactMatch(query, results) {
+  const candidates = Array.isArray(results) ? results : [];
+  const literal = normalize(query.title);
+  const normalized = canonical(query.title);
+  const scored = [];
+  for (const row of candidates) {
+    if (!row || !Number.isInteger(row.id) || row.id < 1 || row.adult === true) continue;
+    const year = publishedYear(row);
+    // Quando a M3U traz ano, nunca associar outro ano.
+    if (query.year !== null && year !== query.year) continue;
+    const names = namesOf(query, row).filter(Boolean);
+    const exact = names.some(name => normalize(name) === literal);
+    const canonicalExact = names.some(name => canonical(name) === normalized);
+    // Sem ano: aceitar só texto igual (inclusive artigos); não adivinhar por semelhança.
+    const proximity = query.year === null ? 0 :
+      Math.max(0, ...names.map(name => similarity(normalized, canonical(name))));
+    const score = exact ? 1 : canonicalExact ? .99 : proximity;
+    if (score >= .88) scored.push({ row, score });
+  }
+  const unique = [...new Map(scored.map(entry => [entry.row.id, entry])).values()]
+    .sort((a, b) => b.score - a.score);
+  if (!unique.length) return null;
+  // Dois filmes/séries parecidos? Sem segurança, mantém a capa da playlist.
+  if (unique.length > 1 && unique[0].score - unique[1].score < .07) return null;
+  return formatMatch(query, unique[0].row);
+}
+
+/** ID explícito vence diferenças de idioma; ano da M3U continua obrigatório se presente. */
+export function chooseIdMatch(query, row) {
+  if (!row || !Number.isInteger(row.id) || row.id !== query.tmdbId || row.adult === true) return null;
+  if (query.year !== null && publishedYear(row) !== query.year) return null;
+  return formatMatch(query, row);
 }
