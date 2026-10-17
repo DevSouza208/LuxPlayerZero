@@ -53,7 +53,7 @@ export function createHome({ play } = {}) {
   let showcase = buildShowcase([], config);
   let seriesIndex=buildSeriesIndex([]),tvIndex=groupTvEntries([]);
   let recommendationMap = new Map(), recommendations = [];
-  let movieRelations=relationIndex([]),seriesRelations=relationIndex([],'series');
+  let movieRelations=null,seriesRelations=null;
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
@@ -89,7 +89,9 @@ export function createHome({ play } = {}) {
       if(config.summaryEngine!=='tmdb'||data?.status!=='matched'||!data.tmdbId)return null;
       const response=await fetch('/api/metadata/details',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({tmdbId:data.tmdbId,type:queryFor(target)?.type}),signal:AbortSignal.timeout(8000)});
       if(!response.ok)return null;
-      const details=await response.json(),index=queryFor(target)?.type==='movie'?movieRelations:seriesRelations;
+      const details=await response.json(),index=queryFor(target)?.type==='movie'
+        ?(movieRelations??=relationIndex(showcase.catalogs.movies))
+        :(seriesRelations??=relationIndex(seriesIndex.representatives,'series'));
       const options={excludeId:data.tmdbId,excludeItem:target};
       return {...details,collectionItems:resolveRelations(index,details.collection?.parts,options),similarItems:resolveRelations(index,details.similar,options)};
     },
@@ -363,7 +365,7 @@ export function createHome({ play } = {}) {
     showcase = buildShowcase(items, config, savedKeys());
     seriesIndex=buildSeriesIndex(showcase.catalogs.series);
     tvIndex=groupTvEntries(showcase.catalogs.tv);
-    movieRelations=relationIndex(showcase.catalogs.movies);seriesRelations=relationIndex(seriesIndex.representatives,'series');
+    movieRelations=null;seriesRelations=null;
     tvCategorySource=null;tvCategoryCache=null;
     recommendationMap = recommendationIndex(items);
     updateRecommendations();
