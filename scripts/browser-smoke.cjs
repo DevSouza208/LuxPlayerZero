@@ -74,6 +74,18 @@ const assert=require('node:assert/strict');
   });
   await page.getByRole('button',{name:'Guia do canal',exact:true}).click();await page.getByRole('heading',{name:'Agora · Programa de teste',exact:true}).waitFor();
   await page.getByRole('heading',{name:'A seguir · Próximo de teste',exact:true}).waitFor();await page.screenshot({path:'test-results/quick-guide-mobile.png'});await page.getByRole('button',{name:'Fechar guia'}).click();
+  await page.evaluate(async()=>{
+   const {createFullDetails}=await import('/cinema-detail-page.js');
+   window.relatedCalls=[];
+   window.relatedTest=createFullDetails({onRelated:item=>window.relatedCalls.push(item.id),metadataFor:async()=>({status:'matched',tmdbId:10}),extendedFor:async()=>({collection:{name:'Coleção de teste',status:'ready'},collectionItems:[{item:{id:'local-sequel'},title:'Continuação presente no catálogo',year:'2024'}],similarItems:[]})});
+   window.relatedTest.open({id:'fixture',name:'Filme de teste'});
+  });
+  await page.setViewportSize({width:320,height:844});
+  const related=page.getByRole('button',{name:'Continuação presente no catálogo (2024)',exact:true});await related.click();
+  assert.deepEqual(await page.evaluate(()=>window.relatedCalls),['local-sequel']);
+  assert.equal(await related.evaluate(el=>el.getBoundingClientRect().right<=innerWidth),true);
+  await page.screenshot({path:'test-results/collection-mobile.png'});
+  await page.keyboard.press('Escape');
   const luxId=await page.evaluate(async()=>{const r=await fetch('/api/account/session');return (await r.json()).luxId});
   await page.goto('http://localhost:4173/account/');await page.locator('#logout').click();await page.waitForURL('http://localhost:4173/');
   await page.fill('#login-identity',luxId);await page.fill('#login-password','local-test-only-bootstrap-password');

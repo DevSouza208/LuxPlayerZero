@@ -1,3 +1,4 @@
+import {relationIndex,resolveRelations} from './catalog-relations.js';
 import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
 import { recommendationIndex, recommend, afterWatchRecommendations } from './recommendations.js';
@@ -52,6 +53,7 @@ export function createHome({ play } = {}) {
   let showcase = buildShowcase([], config);
   let seriesIndex=buildSeriesIndex([]),tvIndex=groupTvEntries([]);
   let recommendationMap = new Map(), recommendations = [];
+  let movieRelations=relationIndex([]),seriesRelations=relationIndex([],'series');
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
@@ -81,11 +83,15 @@ export function createHome({ play } = {}) {
 
   const fullDetails=createFullDetails({
     onPlay:entry=>start(entry),
+    onRelated:showDetails,
     metadataFor:entry=>metadataFor(entry),
     extendedFor:async (data,target)=>{
       if(config.summaryEngine!=='tmdb'||data?.status!=='matched'||!data.tmdbId)return null;
       const response=await fetch('/api/metadata/details',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({tmdbId:data.tmdbId,type:queryFor(target)?.type}),signal:AbortSignal.timeout(8000)});
-      return response.ok?response.json():null;
+      if(!response.ok)return null;
+      const details=await response.json(),index=queryFor(target)?.type==='movie'?movieRelations:seriesRelations;
+      const options={excludeId:data.tmdbId,excludeItem:target};
+      return {...details,collectionItems:resolveRelations(index,details.collection?.parts,options),similarItems:resolveRelations(index,details.similar,options)};
     },
     isFavorite:entry=>favorites.some(row=>row.key===itemKey(entry)),
     onFavorite:entry=>toggleFavorite(entry),
@@ -357,6 +363,7 @@ export function createHome({ play } = {}) {
     showcase = buildShowcase(items, config, savedKeys());
     seriesIndex=buildSeriesIndex(showcase.catalogs.series);
     tvIndex=groupTvEntries(showcase.catalogs.tv);
+    movieRelations=relationIndex(showcase.catalogs.movies);seriesRelations=relationIndex(seriesIndex.representatives,'series');
     tvCategorySource=null;tvCategoryCache=null;
     recommendationMap = recommendationIndex(items);
     updateRecommendations();

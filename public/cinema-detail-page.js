@@ -3,7 +3,7 @@
  */
 const make=(tag,klass,label)=>{const el=document.createElement(tag);el.className=klass||'';if(label!==undefined)el.textContent=String(label);return el};
 const photo=raw=>{try{const url=new URL(String(raw||''));return url.protocol==='https:'?url.href:''}catch{return''}};
-export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
+export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
  const shell=make('dialog','lux-fullscreen-detail');shell.hidden=true;shell.id='lux-fullscreen-detail';
  shell.innerHTML=
  '<section class="lux-full-detail-page" role="dialog" aria-modal="true" aria-label="Detalhes do conteúdo" tabindex="-1">'+
@@ -83,7 +83,19 @@ export function createFullDetails({onPlay,metadataFor,extendedFor,isFavorite,onF
     if(extended.directors?.length)credits.append(make('p','','Direção: '+extended.directors.join(', ')));
     if(extended.creators?.length)credits.append(make('p','','Criação: '+extended.creators.join(', ')));
     if(extended.cast?.length)credits.append(make('p','','Elenco: '+extended.cast.map(row=>row.name).join(', ')));
-    if(extended.collection?.name)credits.append(make('p','','Coleção: '+extended.collection.name));
+    if(extended.collection?.name){
+      credits.append(make('h2','','Coleção: '+extended.collection.name));
+      if(!extended.collectionItems?.length)credits.append(make('p','',extended.collection.status==='unavailable'?'Não foi possível consultar os títulos desta coleção agora.':'Nenhum outro título desta coleção foi identificado com segurança no catálogo.'));
+    }
+    const appendRelations=(rows,label)=>{
+      if(!rows?.length)return;
+      const section=make('section','lux-related');section.setAttribute('aria-label',label);
+      section.append(make('h3','',label));
+      for(const row of rows){const button=make('button','',row.title+(row.year?' ('+row.year+')':''));button.type='button';button.addEventListener('click',()=>onRelated?.(row.item));section.append(button)}
+      credits.append(section);
+    };
+    appendRelations(extended.collectionItems,'Da mesma coleção no seu catálogo');
+    appendRelations(extended.similarItems,'Títulos semelhantes no seu catálogo');
     if(extended.trailer&&/^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/.test(extended.trailer)){
       const link=make('a','','Ver trailer oficial');link.href=extended.trailer;link.target='_blank';link.rel='noopener noreferrer';credits.append(link);
     }
