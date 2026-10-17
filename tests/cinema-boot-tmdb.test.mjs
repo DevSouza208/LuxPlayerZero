@@ -43,6 +43,17 @@ test('Consultas TMDB apenas para títulos visíveis e com limite de concorrênci
   assert.ok(html.includes('TMDB primeiro · capas e banners (padrão)'));
 });
 
+test('A versão PWA instala o mesmo splash e mantém cache restrito ao shell', () => {
+  const pwa = file('cinema/index.html'), sw = file('cinema/sw.js');
+  assert.ok(pwa.includes('id="lux-boot"'));
+  assert.ok(pwa.includes('Abrindo seu Lux Player...'));
+  assert.ok(pwa.includes('TMDB primeiro · capas e banners (padrão)'));
+  assert.ok(pwa.includes('src="/cinema/install.js"'));
+  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-3'"));
+  assert.ok(sw.includes("'/saved-catalog.js'"));
+  assert.ok(!sw.includes("'/api/bridge/playlist'"));
+});
+
 test('Player original e sua importação não recebem loader ou integração extra', () => {
   const original = file('player.html');
   const app = file('app.js');
