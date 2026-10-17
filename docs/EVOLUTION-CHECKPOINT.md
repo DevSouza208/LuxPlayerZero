@@ -69,3 +69,11 @@ O usuário autorizou continuar todo o prompt com acompanhamento por CSV. O check
 
 ### Última validação confirmada
 GitHub Actions 38999939859 aprovado: 139 testes e smoke de navegador incluindo setas de temporadas, geometria do modal e temporizador/cancelamento do próximo episódio por callback simulado. Código local 76cce96. Após essa validação, somente documentação/CSV foram atualizados.
+
+
+## Retomada mais recente — bloco ampliado
+Código validado localmente em 053c003; CI 39001246313 aprovado com 145 testes e smoke de navegador. Novidades: perfil padrão com PIN preservado, Lux ID com limite compartilhado, diagnóstico admin, aviso offline/online, último canal, filtros ano/gênero/áudio e cache, paginação 320px, setas nos cards, guia rápido por tvg-id e IDs explícitos de episódios. CSV: 67 concluídas, 138 em construção, 35 pendentes e 15 bloqueadas.
+
+A configuração de revisão agora requer 0009_account_defaults.sql além de 0003–0008 e do schema original. Nenhuma migração remota, deploy ou merge foi feito. Os 13 arquivos protegidos continuam idênticos. O parser recebeu somente metadados opcionais de episódios, mantendo URLs, ordem, contagem, download e inferência de tipo.
+
+Próximas pendências concretas: recomendações no fim da reprodução, coleções/franquias vinculadas ao catálogo, revisão de correspondências TMDB, comparação de versões de snapshots e preferências de idioma/legendas/aparência. Validar separadamente mídias autorizadas, PWA instalado e TV real. E-mail/OAuth, feeds periódicos de EPG e controle parental permanecem dependentes de configuração/contrato seguro; não simular disponibilidade.
