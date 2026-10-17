@@ -79,7 +79,8 @@ export function mediaFeatures(raw) {
   if(/\b(hevc|h265|x265)\b/.test(key))tags.push('HEVC');
   return tags;
 }
-export const normalizeSearchText=value=>normalizeKey(value).replace(/\+/g,' ').replace(/\s+/g,' ').trim();
+export const normalizeSearchText=value=>normalizeKey(value).replace(/\+/g,' ')
+  .replace(/\bdois\b/g,'2').replace(/\btres\b/g,'3').replace(/\s+/g,' ').trim();
 function editDistance(a,b){
   const before=Array.from({length:b.length+1},(_,i)=>i),after=new Array(b.length+1);
   for(let i=1;i<=a.length;i++){after[0]=i;for(let j=1;j<=b.length;j++)after[j]=Math.min(
