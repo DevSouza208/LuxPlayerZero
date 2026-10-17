@@ -499,7 +499,7 @@ export function createHome({ play } = {}) {
     if (!needArt && config.summaryEngine !== 'tmdb') return;
     if (!queryFor(item)) return;
     if (state) state.textContent = 'Verificando metadados com segurança…';
-    void metadataFor(item).then(data => {
+    void metadataFor(item).then(async data => {
       // Evita exibir metadados de outro título se o modal foi trocado/fechado.
       if (detailsItem !== item || !detailsDialog.open) return;
       if (!data || data.status !== 'matched') {
