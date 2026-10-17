@@ -730,11 +730,16 @@ export function createHome({ play } = {}) {
 
   function toggleFavorite(item) {
     const key = itemKey(item);
-    if (favorites.some(x => x.key === key)) favorites = favorites.filter(x => x.key !== key);
-    else favorites.unshift(record(item));
+    if (favorites.some(x => x.key === key)) {
+      favorites = favorites.filter(x => x.key !== key);
+      if (!recent.some(entry => entry.key === key)) showcase.matches.delete(key);
+    } else {
+      favorites.unshift(record(item));
+      // Favoritar não requer reclassificar os 262 mil registros.
+      showcase.matches.set(key, item);
+    }
     favorites = favorites.slice(0, 60);
     write('favorites', favorites);
-    rebuild();
     render();
   }
   function remember(item, position = 0, duration = 0) {
