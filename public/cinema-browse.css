@@ -46,3 +46,6 @@
 @media(prefers-reduced-motion:reduce){.browse-grid .media-card{transition:none!important}}
 
 .browse-group-label[hidden]{display:none!important}
+
+/* O mesmo seletor do grupo exibe categorias estruturais do Lux TV 2.0. */
+.browse-toolbar:has(#browse-tv-category:not([hidden])){flex-wrap:wrap}

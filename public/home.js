@@ -3,7 +3,7 @@ import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './
 import { titleForDisplay } from './cinema-title.js';
 import { tagColor } from './lux-tag-palette.js';
 import {buildSeriesIndex} from './cinema-series.js';
-import {groupTvEntries} from './cinema-tv-groups.js';
+import {groupTvEntries,TV_CATEGORY_LABELS} from './cinema-tv-groups.js';
 import {createFullDetails} from './cinema-detail-page.js';
 import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
 
@@ -118,11 +118,13 @@ export function createHome({ play } = {}) {
   const browseRoot = $('cinema-browse');
   const browseGrid = $('browse-grid');
   const browseGroupSelect = $('browse-group');
+  const tvCategorySelect = $('browse-tv-category');
   const browsePageInput = $('browse-page-input');
   let browseRole = null;
   let browsePage = 1;
   let browseSearch = '';
   let browseGroup = '';
+  let tvCategory = '', tvCategorySource = null, tvCategoryCache = null;
   let browseLastGroupSource = null;
   let browseLastGroupRole = null;
 
@@ -331,6 +333,7 @@ export function createHome({ play } = {}) {
     showcase = buildShowcase(items, config, savedKeys());
     seriesIndex=buildSeriesIndex(showcase.catalogs.series);
     tvIndex=groupTvEntries(showcase.catalogs.tv);
+    tvCategorySource=null;tvCategoryCache=null;
     pinnedItem = config.heroMode === 'pinned' && config.pinnedName
       ? items.find(item => item.name === config.pinnedName || titleForDisplay(item) === config.pinnedName) || null : null;
   }
@@ -340,7 +343,14 @@ export function createHome({ play } = {}) {
   function browseSource(role) {
     if (role === 'favorites') return favorites.map(entry => itemFromKey(entry.key)).filter(Boolean);
     if(role==='series')return seriesIndex.representatives;
-    if(role==='tv')return tvIndex.representatives;
+    if(role==='tv'){
+      if(!tvCategory)return tvIndex.representatives;
+      if(tvCategoryCache?.groups===tvIndex.groups&&tvCategoryCache.category===tvCategory)
+        return tvCategoryCache.items;
+      const selected=tvIndex.groups.filter(row=>row.category===tvCategory).map(row=>row.primary);
+      tvCategoryCache={groups:tvIndex.groups,category:tvCategory,items:selected};
+      return selected;
+    }
     return showcase.catalogs?.[role] || [];
   }
   function activateBrowse(nextRole, options = {}) {
@@ -349,6 +359,7 @@ export function createHome({ play } = {}) {
     if (valid !== browseRole) {
       browseSearch = '';
       browseGroup = '';
+      tvCategory = '';
       browsePage = 1;
       browseLastGroupSource = null;
       browseLastGroupRole = null;
@@ -372,7 +383,24 @@ export function createHome({ play } = {}) {
     if (options.scroll !== false) window.scrollTo(0, 0);
   }
   function renderBrowse() {
-    if (!browseRole || !browseGrid) return;
+    if(!browseRole||!browseGrid)return;
+    if(tvCategorySelect){
+      tvCategorySelect.parentElement.hidden=browseRole!=='tv';
+      if(browseRole==='tv'&&tvCategorySource!==tvIndex.groups){
+        tvCategorySource=tvIndex.groups;
+        const counts=new Map();
+        for(const channel of tvIndex.groups)counts.set(channel.category,(counts.get(channel.category)||0)+1);
+        const all=document.createElement('option');all.value='';all.textContent='Todas as categorias';
+        const options=[all];
+        for(const [name,label] of Object.entries(TV_CATEGORY_LABELS)){
+          if(!counts.get(name))continue;
+          const option=document.createElement('option');option.value=name;
+          option.textContent=label+' ('+counts.get(name).toLocaleString('pt-BR')+')';options.push(option);
+        }
+        tvCategorySelect.replaceChildren(...options);
+        tvCategorySelect.value=tvCategory;
+      }
+    }
     const source = browseSource(browseRole);
     const title = browseRole === 'tv' ? (configRaw.tvTitle ? settingsTitle('tv') : 'Ao vivo')
       : browseRole === 'movies' ? (configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes')
@@ -452,6 +480,10 @@ export function createHome({ play } = {}) {
       for (const item of page.entries.slice(0, 2)) autoArtRequest(item);
     }
   }
+  tvCategorySelect?.addEventListener('change',()=>{
+    tvCategory=tvCategorySelect.value;browseGroup='';browsePage=1;
+    browseLastGroupSource=null;renderBrowse();
+  });
   browseGroupSelect?.addEventListener('change', () => {
     browseGroup = browseGroupSelect.value;
     browsePage = 1;
