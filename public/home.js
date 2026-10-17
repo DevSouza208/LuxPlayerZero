@@ -2,6 +2,9 @@ import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemK
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
 import { titleForDisplay } from './cinema-title.js';
 import { tagColor } from './lux-tag-palette.js';
+import {buildSeriesIndex} from './cinema-series.js';
+import {groupTvEntries} from './cinema-tv-groups.js';
+import {createFullDetails} from './cinema-detail-page.js';
 import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
 
 const STORAGE = 'luxzero:home:';
@@ -43,6 +46,7 @@ export function createHome({ play } = {}) {
   let favorites = validEntries(read('favorites', []));
   let recent = validEntries(read('recent', []));
   let showcase = buildShowcase([], config);
+  let seriesIndex=buildSeriesIndex([]),tvIndex=groupTvEntries([]);
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
@@ -70,6 +74,12 @@ export function createHome({ play } = {}) {
   const MAX_AUTO_ENRICH = 10;
   const MAX_SIMULTANEOUS_TMDB = 3;
 
+  const fullDetails=createFullDetails({
+    onPlay:entry=>start(entry),
+    metadataFor:entry=>metadataFor(entry),
+    isFavorite:entry=>favorites.some(row=>row.key===itemKey(entry)),
+    onFavorite:entry=>toggleFavorite(entry)
+  });
   const adminDialog = $('admin-dialog');
   let toastTimeout = null;
   function flash(message, warning = false) {
@@ -327,6 +337,8 @@ export function createHome({ play } = {}) {
   // (zero novo parsing e só 48 elementos DOM por página).
   function browseSource(role) {
     if (role === 'favorites') return favorites.map(entry => itemFromKey(entry.key)).filter(Boolean);
+    if(role==='series')return seriesIndex.representatives;
+    if(role==='tv')return tvIndex.representatives;
     return showcase.catalogs?.[role] || [];
   }
   function activateBrowse(nextRole, options = {}) {
@@ -541,6 +553,11 @@ export function createHome({ play } = {}) {
         badge.style.borderColor=color.solid;
       }
     }
+    if(classifyRole(item)==='tv'){
+      const group=tvIndex.byItemId.get(item.id);
+      if(group?.variantCount>1)appendText(info,'span','lux-tv-variant-count',
+        group.variantCount+' fontes disponíveis');
+    }
     card.append(info);
     return card;
   }
@@ -629,12 +646,14 @@ export function createHome({ play } = {}) {
         createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap) },
       favorites: { enabled: 'showFavorites', list: availableFav.map(([item]) => item), draw: () =>
         createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SUA SELEÇÃO') },
-      tv: { enabled: 'showTv', list: showcase.rails.tv, draw: () =>
-        createRail('destaques-tv', settingsTitle('tv'), showcase.rails.tv, 'AO VIVO · ' + showcase.counts.tv.toLocaleString('pt-BR') + ' TÍTULOS') },
+      tv: { enabled: 'showTv', list: tvIndex.representatives.slice(0,16), draw: () =>
+        createRail('destaques-tv', settingsTitle('tv'), tvIndex.representatives.slice(0,16),
+          'AO VIVO · ' + tvIndex.representatives.length.toLocaleString('pt-BR') + ' CANAIS') },
       movies: { enabled: 'showMovies', list: showcase.rails.movies, draw: () =>
         createRail('destaques-filmes', settingsTitle('movies'), showcase.rails.movies, 'PARA DESCOBRIR · ' + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
-      series: { enabled: 'showSeries', list: showcase.rails.series, draw: () =>
-        createRail('destaques-series', settingsTitle('series'), showcase.rails.series, 'PARA MARATONAR · ' + showcase.counts.series.toLocaleString('pt-BR') + ' TÍTULOS') }
+      series: { enabled: 'showSeries', list: seriesIndex.representatives.slice(0,16), draw: () =>
+        createRail('destaques-series', settingsTitle('series'), seriesIndex.representatives.slice(0,16),
+          'PARA MARATONAR · ' + seriesIndex.representatives.length.toLocaleString('pt-BR') + ' SÉRIES') }
     };
     const order = config.railOrder === 'favorites' ? ['favorites','continue','tv','movies','series']
       : config.railOrder === 'discovery' ? ['tv','movies','series','continue','favorites']
@@ -650,7 +669,7 @@ export function createHome({ play } = {}) {
       // Priorizar o banner e as primeiras capas realmente visíveis.
       // Os demais títulos recebem metadados se o usuário abrir Detalhes.
       autoArtRequest(heroItem);
-      const visible = [...showcase.rails.movies.slice(0, 7), ...showcase.rails.series.slice(0, 7)];
+      const visible = [...showcase.rails.movies.slice(0, 7), ...seriesIndex.representatives.slice(0, 7)];
       for (const item of visible) {
         if (autoEnriched >= MAX_AUTO_ENRICH) break;
         autoArtRequest(item);
@@ -679,8 +698,28 @@ export function createHome({ play } = {}) {
     return item?.id === id ? item : null;
   }
   function showDetails(item) {
-    if (!item || !detailsDialog) return;
-    detailsItem = item;
+    if(!item)return;
+    const role=classifyRole(item);
+    if(role==='movies'||role==='series'){
+      const found=role==='series'?seriesIndex.byItemId.get(item.id):null;
+      const metadata=cachedMetadata(item);
+      fullDetails.open(item,{series:found,
+        poster:metadata?.poster||safeImage(item.logo),
+        backdrop:metadata?.backdrop||''});
+      return;
+    }
+    if(!detailsDialog)return;
+    detailsItem=item;
+    const variants=tvIndex.byItemId.get(item.id)?.variants||[];
+    const picker=$('details-variants'),select=$('details-variant-select');
+    if(picker&&select){
+      picker.hidden=variants.length<2;select.replaceChildren();
+      for(const variant of variants){
+        const option=document.createElement('option');option.value=variant.item.id;
+        option.textContent=variant.label+' · '+variant.item.name;select.append(option);
+      }
+      select.value=tvIndex.byItemId.get(item.id)?.primary?.id||item.id;
+    }
     $('details-title').textContent = titleForDisplay(item);
     $('details-group').textContent = [item.normalizedGroup || item.group || 'Disponível na sua biblioteca',
       item.catalogYear].filter(Boolean).join(' · ');
@@ -738,7 +777,12 @@ export function createHome({ play } = {}) {
   }
   $('details-close')?.addEventListener('click', () => closeDialog(detailsDialog));
   detailsDialog?.addEventListener('click', event => { if (event.target === detailsDialog) closeDialog(detailsDialog); });
-  $('details-play')?.addEventListener('click', () => { const item = detailsItem; closeDialog(detailsDialog); start(item); });
+  $('details-play')?.addEventListener('click',()=>{
+    const item=detailsItem,variants=item?tvIndex.byItemId.get(item.id)?.variants:null;
+    const selectedId=$('details-variant-select')?.value;
+    const selected=variants?.find(row=>row.item.id===selectedId)?.item||item;
+    closeDialog(detailsDialog);start(selected);
+  });
   $('details-favorite')?.addEventListener('click', () => {
     if (!detailsItem) return;
     toggleFavorite(detailsItem);
@@ -882,15 +926,19 @@ export function createHome({ play } = {}) {
   // Links diretos /cinema/#destaques-filmes etc. também abrem a página completa.
   activateBrowse(browseRoleFromHash(location.hash), { scroll: false });
   return {
+    tvVariants(entry){return tvIndex.byItemId.get(entry?.id)?.variants||[]},
+    backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||entry?.logo)},
     setItems(next) {
       // Descarta buscas automáticas pendentes da biblioteca anterior.
       tmdbEpoch++;
       tmdbQueue.length = 0;
       tmdbQueued.clear();
       autoEnriched = 0;
-      items = next;
-      active = null;
-      rebuild();
+      items=next;
+      const grouped=buildShowcase(items,config);
+      seriesIndex=buildSeriesIndex(grouped.catalogs.series);
+      tvIndex=groupTvEntries(grouped.catalogs.tv);
+      active=null;rebuild();
       render();
       // O formulário original permanece na gaveta; só fecha ao importar com sucesso.
       closeDrawer();
@@ -900,7 +948,7 @@ export function createHome({ play } = {}) {
       tmdbQueue.length = 0;
       tmdbQueued.clear();
       autoEnriched = 0;
-      items = [];
+      items=[];seriesIndex=buildSeriesIndex([]);tvIndex=groupTvEntries([]);
       active = null;
       rebuild();
       render();
