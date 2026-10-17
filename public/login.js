@@ -40,7 +40,7 @@ function updateMode(mode) {
   else username.focus();
 }
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   const result = validateLogin({ identity: username.value, password: password.value });
   setFieldError(username, 'identity-error', result.errors.identity);
@@ -52,12 +52,25 @@ form.addEventListener('submit', event => {
     return;
   }
 
-  // Intencional: não há POST, autenticação simulada ou armazenamento da senha.
-  announce(
-    feedback,
-    'A conexão do Lux ID ainda está sendo preparada. Nenhuma credencial foi enviada.',
-    'info'
-  );
+  const submit = form.querySelector('[type="submit"]');
+  submit.disabled = true;
+  announce(feedback, 'Validando seu Lux ID...', 'info');
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ identity: username.value.trim(), password: password.value })
+    });
+    const result = await response.json();
+    password.value = '';
+    if (!response.ok || !result.authenticated) {
+      announce(feedback, result.error || 'Não foi possível entrar.', 'error');
+      return;
+    }
+    location.replace('/cinema/');
+  } catch {
+    announce(feedback, 'Não foi possível conectar ao servidor de login.', 'error');
+  } finally { submit.disabled = false; }
 });
 
 for (const [input, errorId] of [[username, 'identity-error'], [password, 'password-error']]) {
@@ -114,3 +127,17 @@ document.addEventListener('keydown', event => {
 
 const year = $('current-year');
 if (year) year.textContent = String(new Date().getFullYear());
+
+
+// Loading → sessão ativa: Home; sem sessão: Login.
+void (async () => {
+  const splash = $('lux-auth-boot');
+  try {
+    const response = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' });
+    if (response.ok && (await response.json()).authenticated) {
+      location.replace('/cinema/');
+      return;
+    }
+  } catch { /* Login permanece disponível; erro tratado na autenticação. */ }
+  if (splash) splash.hidden = true;
+})();

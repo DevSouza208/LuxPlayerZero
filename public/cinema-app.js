@@ -603,15 +603,48 @@ $('restore-library')?.addEventListener('click', async () => {
     button.innerHTML = '↺ &nbsp; Reconectar e restaurar biblioteca';
   }
 });
+$('lux-logout')?.addEventListener('click', async () => {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    if (!response.ok) throw Error('Falha ao encerrar sessão');
+    forgetSnapshot();
+    location.replace('/');
+  } catch { note('Não foi possível encerrar a sessão. Tente novamente.', 'error'); }
+});
+async function restoreStarterCatalog() {
+  if (channels.length) return;
+  const check = await fetch('/api/library/status', { credentials: 'same-origin', cache: 'no-store' });
+  if (!check.ok) return;
+  let data = await check.json();
+  if (!data.configured) return;
+  if (!data.ready) {
+    bootProgress('Importando o catálogo da fonte privada para o R2…');
+    const response = await fetch('/api/library/sync', {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store',
+      headers: { 'content-type': 'application/json' }, body: '{}'
+    });
+    data = await response.json();
+    if (!response.ok) throw Error(data.error || 'Não foi possível sincronizar o catálogo.');
+  }
+  if (!data.catalogId) return;
+  bootProgress('Preparando a biblioteca normalizada…');
+  const result = await readSavedSnapshot(data.catalogId);
+  if (result.kind !== 'ok') throw Error('A cópia privada no R2 está indisponível.');
+  const entries = attachCinemaTmdbIds(result.content, parseM3u(result.content));
+  if (!entries.length) throw Error('A lista recebida está vazia.');
+  setChannels(entries, 'R2 · catálogo privado', data.catalogId);
+}
 updateForm();
 void (async () => {
   try {
     bootProgress('Verificando sua biblioteca…');
     await refreshBridgeStatus();
     await restoreSavedLibrary();
-  } catch {
-    // Erros de boot não impedem abrir o formulário manual de conexão.
+    await restoreStarterCatalog();
+  } catch (error) {
+    const message = String(error?.message || 'Falha na restauração');
     bootProgress('Não foi possível restaurar automaticamente.');
+    note(message, 'error');
   } finally {
     // Somente mostra a Home após tentar a restauração, nunca o catálogo em branco primeiro.
     finishBoot();
