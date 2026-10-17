@@ -28,7 +28,7 @@ export function normalizeSettings(value = {}) {
     const raw = typeof value?.[key] === 'string' ? value[key].trim() : '';
     safe[key] = raw ? raw.slice(0, key === 'heroBackdrop' ? 2048 : key.endsWith('Keywords') ? 220 : key === 'pinnedName' ? 130 : 90) : fallback;
   }
-  if (!['playlist', 'tmdb', 'hybrid'].includes(safe.imageEngine)) safe.imageEngine = 'playlist';
+  if (!['playlist', 'tmdb', 'hybrid'].includes(safe.imageEngine)) safe.imageEngine = DEFAULT_SETTINGS.imageEngine;
   if (!['off', 'tmdb'].includes(safe.summaryEngine)) safe.summaryEngine = 'off';
   return safe;
 }
