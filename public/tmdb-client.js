@@ -12,8 +12,8 @@ export function tmdbQueryForItem(item, role) {
   let name = String(item.name || '').trim();
   if (!name || name.length > 160) return null;
   // Alguns provedores acrescentam +, ★, tags [FILME] ou qualidade antes do nome.
-  name = name.replace(/^[\\s+*•▪▶►★☆✓✔!#]+/u, '')
-    .replace(/^(?:\\[(?:FILMES?|MOVIES?|S[EÉ]RIES?|TV)\\]\\s*)+/i, '')
+  name = name.replace(/^[\s+*•▪▶►★☆✓✔!#]+/u, '')
+    .replace(/^(?:\[(?:FILMES?|MOVIES?|S[EÉ]RIES?|TV)\]\s*)+/i, '')
     .replace(quality, '');
   for (let i = 0; i < 3; i++) name = name.replace(tailQuality, '');
   const yearMatch = name.match(/(?:\(|\[|\s)(19\d\d|20[0-3]\d)(?:\)|\]|\s|$)/);
