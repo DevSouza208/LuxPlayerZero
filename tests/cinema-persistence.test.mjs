@@ -62,8 +62,8 @@ test('Cinema persiste snapshot após importação e restaura somente com cookie 
 test('Aplicar e salvar realmente grava e mostra estado do TMDB', () => {
   const html = path('cinema.html'), js = path('home.js');
   for (const marker of ['Aplicar e salvar', 'id="cinema-feedback"', 'id="admin-tmdb-status"', 'id="admin-save-status"']) assert.ok(html.includes(marker));
-  assert.ok(js.includes("if (!write('settings', next))"));
-  assert.ok(js.includes("flash('✓ Personalização aplicada e salva neste navegador.')"));
+  assert.ok(js.includes("if (!await write('settings', next)"));
+  assert.ok(js.includes("'✓ Personalização aplicada e salva no seu perfil.'"));
   assert.ok(js.includes("fetch('/api/metadata/status'"));
   assert.ok(js.includes("tmdbCalls = 0"));
 });

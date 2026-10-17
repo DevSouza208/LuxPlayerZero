@@ -1,0 +1,98 @@
+# Evolução do Lux Zero — checkpoint 01
+Data: 2026-10-17. Auditoria inicial, não implementação concluída.
+
+## Limite de trabalho
+O usuário pediu blocos menores para economizar a franquia Plus e um ponto explícito de retomada. O agente não tem acesso ao saldo dessa franquia. Este checkpoint encerra somente o primeiro bloco de auditoria.
+
+## Baseline e branch
+- main inspecionada: 20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2.
+- Branch de trabalho: feat/streaming-evolution-20261017, criada diretamente nesse commit.
+- npm test na main: 113 testes aprovados, zero falhas.
+- Nenhum código funcional alterado; nenhum merge, deploy ou migração executado.
+- Esse SHA é a referência de recuperação; não se afirma que ele seja o deploy ativo.
+- Branch efetivamente implantada no Cloudflare: ainda NÃO verificada. docs/cloudflare.md menciona main, mas documentação não é evidência de implantação.
+
+## Revisão inicial dos PRs
+- #14 aberto e draft: feat/zero-auth-catalog-tags-20261016; head 6d9db864936fac99732103b4efb510c82bc3d52c; base main.
+- #15 aberto e draft: feat/cinema-fullscreen-tv-groups-20261017; head 02a3d2bde6eec33e8226513faf2ffe400aebd735; base da branch do #14.
+- #15 depende do #14. Não incorporar os dois cegamente.
+- Diff cumulativo revisado parcialmente: 48 arquivos, 1278 adições e 61 remoções.
+- #14 adiciona authenticatedUser à autorização em src/bridge-core.js e trustedCron em src/catalog-snapshot.js.
+- #15 introduz integração immersive em playItem de public/cinema-app.js e controles externos.
+- Essas mudanças preexistentes atingem áreas agora explicitamente protegidas pelo usuário. Não incorporá-las automaticamente à nova branch.
+- AGENTS.md, DESIGN.md e PRODUCT.md não estão na main examinada; foram lidos na branch do #15.
+
+## Matriz preliminar (não substitui auditoria completa)
+| Área | Evidência até agora | Próximo passo |
+| --- | --- | --- |
+| Reprodução e HTTPS | Baseline com testes verdes; módulos protegidos identificados | Registrar hashes e teste de imutabilidade antes de implementar |
+| Login | Main contém interface; #14 contém auth D1, cookie, bootstrap e limite de tentativas | Revisar segurança, testes e integração sem tocar na ponte |
+| Perfis e isolamento | Não auditados completamente | Mapear armazenamento e autorização por conta/perfil |
+| Home e metadados | Main tem home-model, TMDB seguro, busca e paginação com testes | Ler implementação e comparar com 2.0 |
+| Filmes/séries/TV | #15 contém módulos de detalhes, episódios e grupos | Revisar algoritmos e reaproveitar somente alterações compatíveis |
+| EPG, esportes, administração, OAuth e 2FA | Não auditados | Não afirmar inexistência nem conclusão sem leitura |
+| Escala | Teste existente de vitrines com 260 mil entradas passou | Investigar índices, backend e uso real de memória |
+| PWA e acessibilidade | Testes estáticos existentes passaram | Navegador, screenshots e dispositivos pendentes |
+
+## Referências
+- Páginas Impeccable, Ilm-Alan/frontend-design e awesome-codex-skills consultadas inicialmente; leitura dos SKILL.md originais ainda pendente.
+- A abertura web de react-best-practices falhou; tentar fonte oficial novamente.
+- Clone direto do LuxPlayer2.0 falhou por exigir autenticação. Próxima tentativa deve usar o conector GitHub já disponível; isto não prova indisponibilidade pelo conector.
+
+## Proteções obrigatórias
+Não alterar src/bridge-core.js, src/catalog-snapshot.js, public/gateway.js, public/direct-source.js, public/app.js, rotas de bridge, núcleo de public/cinema-app.js ou controles diretos de mídia. Não modificar download M3U, snapshots R2, registro D1 existente, seleção de URL, protocolos, buffers ou credenciais. Toda indexação nova deve consumir snapshots em etapa independente.
+
+## Retomada exata
+1. Revalidar heads de main/#14/#15 e consultar este checkpoint.
+2. Recuperar LuxPlayer2.0 pelo conector GitHub e ler referências internas do pedido.
+3. Concluir auditoria do Zero, CI e configuração disponível de implantação; não inferir produção.
+4. Registrar hashes do baseline protegido e checklist executável.
+5. Revisar auth-core do #14 (bootstrap, limitação, sessões, revogação, isolamento) e definir incorporação seletiva sem mudanças protegidas.
+6. Implementar primeiro bloco funcional com migrações não destrutivas e testes reais; atualizar esta matriz com evidências.
+7. Prosseguir por blocos revisáveis e abrir PRs quando houver mudanças prontas para revisão; não mesclar nem publicar produção.
+
+Nenhuma fase funcional foi marcada como concluída. OAuth, e-mail, EPG e esportes requerem verificar configuração/fontes reais, sem inventar credenciais ou dados.
+
+## Atualização — execução retomada
+O usuário autorizou continuar todo o prompt com acompanhamento por CSV. O checkpoint inicial acima é histórico. Consulte agora `TAREFAS.csv` e `EVOLUTION-IMPLEMENTATION.md`. A implementação não parou no planejamento; módulos de contas, perfis, catálogo, guia e recomendações foram adicionados em revisão. Nenhum deploy ou merge foi feito.
+
+
+## Ponto de retomada — 17/10/2026, revisão #16
+- Branch: feat/streaming-evolution-20261017. PR em rascunho: https://github.com/DevSouza208/LuxPlayerZero/pull/16.
+- Controle: 255 tarefas em docs/TAREFAS.csv, cada uma com evidência e bloqueio. Status não equivale a publicação.
+- Contas, perfis, MFA, guia, esportes manuais, indexação secundária, metadados detalhados e continuação de episódios implementados em revisão.
+- 139 testes locais aprovados; CI 38999705743 aprovou 138 testes e smoke anterior. Nova rodada inclui continuação de episódios. Screenshots desktop/mobile do modal e conta revisadas.
+- Arquivos protegidos seguem idênticos ao baseline. Nenhum merge, migração remota ou deploy executado.
+- Retomada técnica: verificar CI do head atual, seguir linhas pendentes do CSV; priorizar preferências/default profile, filtros, revisão de correspondências, diagnóstico de catálogo e navegação TV. Não confundir recursos já implementados com os ainda pendentes.
+- Dependências externas: descobrir branch/bindings de produção por acesso Cloudflare autorizado; configurar provedores OAuth/e-mail e fontes de EPG autorizadas; validar mídia real, PWA instalado e Smart TV. Não contornar proteção do bridge para implementar controle parental.
+- Antes de qualquer publicação: aplicar migrações 0003–0008 em D1 isolado, configurar secrets fora do git, testar fontes autorizadas e revisar o PR. O baseline não tem a 0002 do PR14; não aplicar automaticamente a cadeia de outro PR.
+
+### Última validação confirmada
+GitHub Actions 38999939859 aprovado: 139 testes e smoke de navegador incluindo setas de temporadas, geometria do modal e temporizador/cancelamento do próximo episódio por callback simulado. Código local 76cce96. Após essa validação, somente documentação/CSV foram atualizados.
+
+
+## Retomada mais recente — bloco ampliado
+Código validado localmente em 053c003; CI 39001246313 aprovado com 145 testes e smoke de navegador. Novidades: perfil padrão com PIN preservado, Lux ID com limite compartilhado, diagnóstico admin, aviso offline/online, último canal, filtros ano/gênero/áudio e cache, paginação 320px, setas nos cards, guia rápido por tvg-id e IDs explícitos de episódios. CSV: 67 concluídas, 138 em construção, 35 pendentes e 15 bloqueadas.
+
+A configuração de revisão agora requer 0009_account_defaults.sql além de 0003–0008 e do schema original. Nenhuma migração remota, deploy ou merge foi feito. Os 13 arquivos protegidos continuam idênticos. O parser recebeu somente metadados opcionais de episódios, mantendo URLs, ordem, contagem, download e inferência de tipo.
+
+Próximas pendências concretas: recomendações no fim da reprodução, coleções/franquias vinculadas ao catálogo, revisão de correspondências TMDB, comparação de versões de snapshots e preferências de idioma/legendas/aparência. Validar separadamente mídias autorizadas, PWA instalado e TV real. E-mail/OAuth, feeds periódicos de EPG e controle parental permanecem dependentes de configuração/contrato seguro; não simular disponibilidade.
+
+## Retomada — sugestões após assistir
+Código local ca81a76 / remoto f5bc77837993d41af79882456619c7244cb7ef27, CI 39002084031 aprovado: sintaxe, 146 testes e browser smoke. Implementado painel ao terminar filme ou último episódio disponível, com botões de detalhes, gêneros declarados, exclusão da série finalizada, agrupamento de sugestões de séries, opt-out e estado vazio. A captura de 320px do mesmo recurso em cab6ed6 foi revisada; a correção subsequente apenas preserva a mensagem ao ocultar a aba. Shell PWA 12. Arquivos protegidos continuam idênticos.
+
+CSV: 67 concluídas, 142 em construção, 31 pendentes, 15 bloqueadas. LUX-085/105/163/164 permanecem em construção até validar o callback de término com mídia autorizada real. CI usa callbacks simulados, sem reprodução. Nenhum deploy, merge ou migração remota.
+
+Ponto exato: recomendações pós-reprodução implementadas e verificadas no PR #16. Coleções/franquias (LUX-058/165), revisão TMDB, comparação de snapshots e preferências continuam pendentes; não foram implementadas neste bloco. Antes de continuar, consultar CSV e preservar os mesmos 13 arquivos protegidos. Produção, mídias reais, PWA instalado, TV física e configurações externas continuam sem validação.
+
+## Retomada — coleções e semelhantes
+Código local 3e599be / remoto e5c5e6b7e3406ce82fc1a7487945402b3343e0ad: coleções TMDB e sugestões semelhantes agora se ligam a entradas reais por ID explícito ou título/ano exatos, sem busca aproximada. Conflitos de ID bloqueiam fallback. Botões abrem os detalhes; falha de coleção preserva créditos e demais metadados. Índices são criados sob demanda e invalidados ao reconstruir o catálogo. Cache de detalhes v2, shell PWA 13, sem nova migração.
+
+149 testes locais aprovados; captura de coleção em 320px revisada na rodada 39002461721. Reprodução real e TMDB com catálogo autorizado continuam pendentes. LUX-058/078/165 permanecem em construção: navegação em detalhes implementada, prateleira global de franquias não implementada. CSV: 67 concluídas, 145 em construção, 28 pendentes, 15 bloqueadas.
+
+Próximos blocos: revisão de correspondências TMDB, comparação de versões de snapshots e preferências. Preservar os 13 arquivos protegidos. Nenhuma publicação, merge, migração remota ou criação de admin de produção realizada.
+
+Validação final do código 3e599be: CI 39002501073 aprovado em sintaxe, 149 testes e navegador. Após esta rodada, somente documentação e CSV atualizados.
+
+## Publicação autorizada e visitante — 17/10/2026
+Usuário autorizou levar o PR #16 à produção e direcionar visitante à Home. Implementado /cinema/?guest=1: shell público, preferências em memória, sem restauração automática do snapshot da conta. APIs privadas, conta e bridge continuam com suas autorizações. 151 testes locais aprovados; smoke inclui visitante sem sessão carregando M3U, Home e rejeição de API privada. Publicação e teste remoto ainda em andamento. Nenhuma credencial ou migração D1 remota configurada: a autenticação Cloudflare não foi concluída.

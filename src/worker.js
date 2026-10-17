@@ -1,3 +1,8 @@
+import { detailMetadata } from './detail-metadata.js';
+import { catalogSearchApi } from './catalog-search.js';
+import { editorialApi } from './editorial-api.js';
+import { accountApi } from './account-api.js';
+import { accountGate } from './account-gate.js';
 /* Lux Player Zero — Worker mínimo: não retransmite conteúdo. */
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status,
@@ -11,6 +16,12 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/metadata/details') return detailMetadata(request, env);
+    if (url.pathname === '/api/catalog/search') return catalogSearchApi(request, env);
+    if (url.pathname.startsWith('/api/editorial/')) return editorialApi(request, env);
+    if (url.pathname.startsWith('/api/account/')) return accountApi(request, env);
+    const blocked = await accountGate(request, env);
+    if (blocked) return blocked;
     if (url.pathname === '/api/health' && request.method === 'GET') {
       return json({
         ok: true,

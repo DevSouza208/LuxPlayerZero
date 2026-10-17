@@ -40,7 +40,7 @@ function updateMode(mode) {
   else username.focus();
 }
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   const result = validateLogin({ identity: username.value, password: password.value });
   setFieldError(username, 'identity-error', result.errors.identity);
@@ -52,12 +52,22 @@ form.addEventListener('submit', event => {
     return;
   }
 
-  // Intencional: não há POST, autenticação simulada ou armazenamento da senha.
-  announce(
-    feedback,
-    'A conexão do Lux ID ainda está sendo preparada. Nenhuma credencial foi enviada.',
-    'info'
-  );
+  const submit = form.querySelector('[type="submit"]');
+  submit.disabled = true;
+  announce(feedback, 'Verificando seu acesso…');
+  try {
+    const invite = document.getElementById('login-invite')?.value.trim();
+    const response = await fetch('/api/account/' + (invite ? 'register' : 'login'), {
+      method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ identity: username.value.trim(), password: password.value, invite, code: document.getElementById('login-code')?.value.trim() })
+    });
+    const data = await response.json();
+    if (!response.ok) throw Error(data.error || 'Não foi possível entrar.');
+    password.value = '';
+    location.assign(data.profileId?'/cinema/':'/account/');
+  } catch (error) { announce(feedback, error.message || 'Não foi possível conectar.', 'error'); }
+  finally { submit.disabled = false; }
+
 });
 
 for (const [input, errorId] of [[username, 'identity-error'], [password, 'password-error']]) {
@@ -114,3 +124,9 @@ document.addEventListener('keydown', event => {
 
 const year = $('current-year');
 if (year) year.textContent = String(new Date().getFullYear());
+
+// Check the real server session; no browser token storage.
+void fetch('/api/account/session', { credentials: 'same-origin', cache: 'no-store' })
+  .then(response => response.ok ? response.json() : null)
+  .then(data => { if (data?.authenticated) location.replace(data.profileId?'/cinema/':'/account/'); })
+  .catch(() => {});

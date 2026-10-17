@@ -71,8 +71,21 @@ test('Ambas as versões Cinema exibem telas separadas sem tocar no player legado
   assert.ok(!original.includes('cinema-browse.css'));
   assert.ok(!original.includes('id="cinema-browse"'));
   const sw=read('cinema/sw.js');
-  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-6'"));
+  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-14'"));
   assert.ok(sw.includes("'/cinema-browse.css'"));
   assert.ok(sw.includes("'/cinema-browse.js'"));
   assert.ok(!sw.includes("'/api/bridge/playlist'"));
+});
+
+test('filtros combinados e ordenação não alteram itens, fontes ou catálogo original',()=>{
+ const source=[{name:'Zeta',catalogYear:2024,catalogGenreIds:['acao'],catalogTags:['Dublado'],url:'https://example.org/a'},
+ {name:'Álfa',catalogYear:2022,catalogGenreIds:['drama'],catalogTags:['Legendado']},
+ {name:'Alfa 2',catalogYear:2024,catalogGenreIds:['acao'],catalogTags:['Dublado']},{name:'Sem ano'}];
+ const original=structuredClone(source);
+ assert.deepEqual(browsePageData(source,{sort:'title'}).entries.map(x=>x.name),['Álfa','Alfa 2','Sem ano','Zeta']);
+ assert.deepEqual(browsePageData(source,{year:2024,genre:'acao',language:'Dublado',sort:'title'}).entries.map(x=>x.name),['Alfa 2','Zeta']);
+ assert.equal(browsePageData(source,{query:'Alfa',year:2024,genre:'drama'}).total,0);
+ assert.equal(browsePageData(source,{sort:'year'}).entries.at(-1).name,'Sem ano');
+ assert.deepEqual(source,original);assert.equal(browsePageData(source).entries[0],source[0]);
+ source.push({name:'Novo'});assert.equal(browsePageData(source).total,5);
 });

@@ -1,0 +1,94 @@
+# Evolução incremental — implementação e validação
+
+## Estado e retomada
+O controle granular é `docs/TAREFAS.csv` (255 itens do pedido original, UTF-8 com BOM, separador ponto e vírgula). `concluído` significa implementação verificada na evidência indicada, **não publicação em produção**. `em construção` inclui integração ou validação ainda incompleta. `bloqueado` explica a dependência externa ou o conflito com áreas protegidas. Itens pendentes não foram implicitamente aprovados nem implementados.
+
+A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `backup/pre-streaming-evolution-20261017`. Não houve merge dos PRs #14/#15, alteração da main, migração remota ou deploy.
+
+## Entregas em revisão
+- Contas D1 em tabelas `account_*`, independentes dos snapshots e das tabelas do PR14. Bootstrap somente em banco sem contas, segredo privado com pelo menos 20 caracteres, convites aleatórios de uso único e 24 horas, usuário, senha, papéis e desativação.
+- Sessões opacas com hash no banco, cookie `__Host-` HttpOnly/Secure/SameSite=Strict, sete dias, listagem e revogação por dispositivo. Troca de senha revoga todas as sessões; a desativação também.
+- Limites persistentes por IP e identificador; comparação de senhas com hash PBKDF2-HMAC-SHA256 de 100 mil iterações após HMAC com pepper privado. Hash versionado. O custo atende ao limite nativo considerado do Workers; avaliação de KDF memory-hard continua uma melhoria de segurança, não se afirma equivalência a 600 mil iterações.
+- 2FA TOTP de administrador, segredo cifrado com AES-GCM, verificação de replay, oito códigos de recuperação aleatórios de uso único e revogação das outras sessões ao ativar. Ativação é explícita na conta; não é obrigatória antes da primeira sessão de bootstrap.
+- Até seis perfis, avatares locais, edição, exclusão e PIN de seis dígitos com hash e limitação de tentativas. Mudar PIN exige senha da conta e invalida a seleção de perfil nas sessões.
+- Estado privado por perfil no D1: favoritos, histórico, progresso, preferências, temporada escolhida e assistidos. Escritas serializadas e versão otimista: conflito retorna 409, sem sobrescrever outro dispositivo silenciosamente. Preferências antigas do localStorage não são importadas, para evitar atribuir dados de outra pessoa ao perfil.
+- Port seletivo do PR15: detalhes full-screen, temporadas reais, aliases e grupos de TV, tags de 256 cores. O player imersivo do PR15 NÃO foi transportado. Agrupamento preserva inclusive URLs repetidas e mantém a primeira fonte na ordem do fornecedor.
+- Guia em `/guide/`: XMLTV local autorizado, horários com offset explícito, consulta por dia/canal/programa, agora, progresso, lembretes por perfil (alertas enquanto a página estiver aberta). Importações são idempotentes em lotes; falha informa quantos programas já foram salvos.
+- Esportes: cadastro manual de evento com fonte HTTPS pública e canais somente com confirmação explícita. Sem feed automático, logos ou programação inventados.
+- Recomendações determinísticas pelos gêneros declarados, com motivo, exclusão de assistidos e opção de desativar.
+- Busca secundária D1: lê snapshots existentes do R2, 512 KiB por leitura e no máximo 40 itens por avanço, sem gravar URL de mídia no índice. Publicação de uma geração só com contagem final igual à do snapshot. Consulta paginada; Home pode usar índice de filmes em pesquisas e mantém fallback local. Tanto conta quanto sessão existente da ponte são exigidas.
+
+## Arquivos protegidos
+`tests/protected-baseline.json` e `tests/protected-baseline.test.mjs` verificam SHA256 de 13 arquivos, incluindo app.js, cinema-app.js, bridge-core.js, catalog-snapshot.js, gateway.js, direct-source.js e todas as rotas de bridge. Permanecem byte a byte iguais à main-base. O parser recebeu **apenas** a anotação `epgId`; não foram alterados seleção de URL, inferKind, downloads, codecs, protocolos, buffer ou regras de reprodução.
+
+## Integração e limitações reais
+- **Login e ponte continuam autenticações separadas.** Fazer o cookie novo autorizar a ponte exigiria mexer no módulo protegido. Não foi feito. Após login/perfil, a fonte é conectada pelo fluxo existente.
+- O frontend ainda carrega o catálogo original pelo motor atual. O índice secundário reduz trabalho de busca, mas não elimina a memória desse carregamento. Alterar isso exige uma integração adicional compatível com o contrato protegido.
+- Sem IDs reais de séries no parser original, agrupamento usa marcadores explícitos e ano quando disponível; o módulo também aceita seriesId fornecido pelo chamador. Não inventa IDs nem episódios.
+- Perfis infantis/classificação restritiva NÃO são oferecidos: esconder cartões não protegeria o catálogo bruto entregue pela ponte existente. É necessário resolver o contrato de autorização da fonte antes de afirmar controle parental.
+- OAuth Google/Discord, verificação de e-mail e recuperação por e-mail permanecem indisponíveis: faltam configuração de aplicativos OAuth, redirects autorizados e serviço de envio. A tela informa a indisponibilidade; nada é simulado.
+- EPG automático, EPG Xtream e feeds esportivos dependem de fontes autorizadas configuradas. A importação XMLTV e curadoria manual estão preparadas.
+- Sem consulta real ao Cloudflare, a branch implantada e seus bindings não foram confirmados. A documentação antiga cita Workers Static Assets; os endpoints de bridge existentes usam Pages Functions. Validar qual arquitetura está realmente implantada antes de qualquer deploy. Não substituir a atual para fazer os módulos novos funcionarem.
+- Contas do PR14 não são migradas automaticamente para account_users. Revisão e migração de dados existentes precisam de inventário real; não executar ambos os sistemas de login em produção por acidente.
+- Enriquecimento avançado implementado para elenco, direção, trailers oficiais, certificação brasileira e nome da coleção, usando endpoint autenticado e cache de 24h. Recomendações TMDB ainda não são vinculadas ao catálogo. Próximo episódio automático opt-in usa o callback público de reprodução, com cancelamento e suspensão ao ocultar a página. Controle remoto completo, revisão de correspondências e automações continuam no CSV, sem alegação de conclusão.
+
+## Configuração para ambiente isolado de revisão
+1. Usar uma cópia de teste do D1, não o banco de produção.
+2. Aplicar migrações não destrutivas novas: 0003, 0004, 0005, 0006, 0007, 0008 e 0009, em ordem. 0006 adiciona colunas e deve ser executada uma vez pelo controle de migrações. A 0001 já pertence ao mecanismo existente. Esta branch não inclui a 0002 do PR14.
+3. Configurar DB e os bindings existentes de snapshot sem renomeá-los. Novos secrets: `LUX_AUTH_PEPPER` aleatório >=32 caracteres, `LUX_ADMIN_BOOTSTRAP_PASSWORD` aleatório >=20 caracteres. Não versionar valores reais.
+4. Entrar como `admin` somente no ambiente privado, alterar a senha, ativar 2FA, guardar códigos de recuperação e remover o secret de bootstrap.
+5. Verificar os testes, fluxos de convite, perfis e isolamento. Validar a reprodução real existente separadamente com fonte autorizada.
+6. Aprovar revisão antes de qualquer merge ou publicação.
+
+## Validação executada
+- Baseline: 113 testes existentes aprovados.
+- Após os módulos novos: 145 testes aprovados (atualizar este número ao adicionar testes).
+- Testes usam SQLite real para SQL, transações, isolamento, convites, estado, sessões, PIN e MFA. Simulações de R2 só nos testes; nenhum stream privado utilizado.
+- Teste de índice: 10 mil entradas por chunks; teste de integração de publicação/paginação com SQLite e R2 simulado.
+- Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Segunda execução 38999705743 aprovada com 138 testes e verificação de geometria/modal em desktop e mobile. Capturas da conta, detalhes desktop e mobile revisadas; o modal cobre a viewport. Reprodução real e PWA instalado ainda não testados.
+
+## Referências usadas
+- AGENTS.md, DESIGN.md e PRODUCT.md do PR15, adaptados ao estado desta branch.
+- LuxPlayer2.0: constituição visual; groupChannels, channelCatalog, displayTitle; documentação de EPG, recomendações e agrupamento de TV. EPG demonstrativo do 2.0 foi deliberadamente excluído.
+- Impeccable: audit/clarify/harden/adapt; preservar identidade existente, foco, erros e dados reais.
+- Ilm-Alan/frontend-design: SKILL.md lido; disciplina de conteúdo aplicada. A obrigação de escolher outra estética é subordinada ao pedido de manter Lux.
+- vercel-labs/agent-skills: regra js-index-maps e resumo de performance; sem introduzir React/Next.js.
+- awesome-codex-skills/webapp-testing: SKILL.md lido; validação em Playwright preparada, sem executar instaladores externos de skills.
+
+## Continuidade de episódios
+O módulo episode-continuation usa exclusivamente o callback público do player. Oferece próximo episódio realmente presente, ignora fontes duplicadas na sequência e desativa avanço automático diante de lacunas numéricas. Preferência privada por perfil, desligada inicialmente; espera 10 segundos, pode cancelar e não avança se a página ficar oculta. Botão de retorno reabre os detalhes suspensos. Teste de navegador verifica o callback com entrada fictícia, sem reproduzir mídia. Reprodução real segue pendente.
+
+Validação final do código desta rodada: GitHub Actions 38999939859 aprovado, 139 testes e smoke com setas de temporadas e continuação por callback simulado. Não equivale a teste de reprodução real.
+
+
+## Perfil padrão, diagnóstico e navegação — bloco seguinte
+- Migração 0009 cria preferência de perfil por conta. Login seleciona automaticamente apenas o perfil padrão sem PIN; com PIN mantém a seleção explícita. Exclusão limpa a referência. A atribuição é atômica com a leitura do PIN, e seleção manual rejeita proteção alterada durante a validação.
+- Diagnóstico exclusivo do administrador, limitado a 20 consultas por 15 minutos: contagens de contas/perfis/sessões, presença de tabelas, últimos 25 snapshots e estados dos índices. Não devolve secrets, URLs, nomes de bucket ou chaves R2. Configuração de R2/TMDB não é apresentada como conectividade testada.
+- Aviso de conectividade usa o sinal do navegador. Não interrompe mídia nem recarrega automaticamente; oferece recarregar após retorno da rede. Não promete persistência offline.
+- Último canal: atalho baseado no histórico do perfil e restrito a item ainda disponível no catálogo. Reprodução continua pelo callback público existente.
+- Filtros por ano, gênero e áudio declarado; ordenação por fornecedor, título ou ano. Sem classificação etária presumida, popularidade ou data de adição inventadas. Busca remota mantém ordem do fornecedor; filtros adicionais usam índice local reutilizado e paginação de 48 itens. Cache por array do catálogo evita renormalização e nova ordenação a cada página. O loader protegido ainda carrega o catálogo completo.
+- Novos testes cobrem padrão/PIN/isolamento, diagnóstico sem segredos, combinação de filtros e integridade das entradas. Smoke ampliado para padrão persistente, diagnóstico, filtros mobile e queda/retorno da rede.
+
+CI 39000617956 aprovou 142 testes e fluxos de perfil padrão, diagnóstico, filtros mobile e rede offline/online. Lux ID acrescentado em seguida: identificador LUX:UUID sem colisão com nomes de usuário, exibido na conta; aliases compartilham limite de tentativas. Teste local de login/rate limit aprovado; smoke ampliado para sair e entrar pelo Lux ID no perfil padrão. E-mail segue indisponível.
+
+CI 39000764614 aprovou 143 testes, login pelo Lux ID com abertura do perfil padrão e controles do catálogo em 320/390 px. Screenshot 320 px revisada após correção da sobreposição e paginação. Navegação espacial adicionada em seguida, restrita aos botões de cards/episódios, sem interceptar inputs, selects ou comandos do player; teste geométrico aprovado. Android TV/Smart TV reais continuam pendentes.
+
+
+## Guia rápido e identidade de episódios
+- Guia rápido em dialog sobre a página de reprodução, aberto sob demanda. Consulta os programas cadastrados pelo tvg-id exato, mostra agora/próximo/progresso e explica ausência ou falha. Cancela a consulta ao trocar canal/fechar. Não altera vídeo, áudio, URLs ou fullscreen nativo do navegador; o overlay é da página.
+- Metadados opcionais M3U: series-id, episode-id, series-name, season-number, episode-number, episode-title. São usados somente quando declarados e válidos; IDs não são inferidos de URLs. IDs de séries separam homônimos, episódio mantém ID declarado e vínculo com a entrada original. Item sem metadados/padrão válido permanece disponível. Parser de URL, tipo, download e grupos mantido.
+- Testes cobrem homônimos, IDs, episódio declarado, número inválido, preservação de URL e contagem. Smoke do guia usa dados fictícios cadastrados no SQLite local pelo endpoint real e verifica agora/próximo; nenhum EPG é simulado em produção.
+
+Validação final desta rodada: CI 39001246313 aprovado, 145 testes + smoke com perfis, Lux ID, diagnóstico, filtros mobile, setas, offline/online, callback de continuação e guia rápido com fixture EPG local. Nenhuma mídia real foi reproduzida nem serviço de produção alterado.
+
+### Sugestões após assistir
+O callback existente de término abre sugestões de até seis títulos do catálogo ao finalizar um filme ou chegar ao último episódio disponível. Apenas gêneros declarados alimentam a seleção; toda a série finalizada é excluída, episódios sugeridos são agrupados em um título por série e itens assistidos são omitidos. Os botões abrem os detalhes reais, sem iniciar mídia automaticamente. Personalização desativada e ausência de gêneros/candidatos têm estados explícitos. A continuação de episódios disponíveis permanece independente. Trocar de item, catálogo ou configuração cancela o painel. O service worker usa shell 12.
+
+Verificação: 146 testes locais, incluindo exclusão de séries/assistidos, opt-out e imutabilidade das entradas. Smoke de navegador ampliado para ações dos botões, texto seguro e largura de 320px. Teste com mídia real permanece necessário; os callbacks de reprodução no smoke são simulados.
+
+### Coleções e títulos semelhantes no catálogo
+Os detalhes de filme consultam a coleção informada pelo TMDB e exibem botões apenas para títulos encontrados no catálogo atual. A relação usa ID TMDB explícito ou título normalizado e ano exatos; IDs conflitantes bloqueiam o fallback. A mesma resolução conecta sugestões de filmes/séries às entradas reais. Não há busca aproximada nem alteração de URLs, contagem, ordem ou fontes alternativas.
+
+A consulta de coleção permanece no servidor, com sessão/origem exigidas, domínio TMDB fixo, redirecionamentos bloqueados e orçamento compartilhado de sete segundos com os detalhes. A resposta é sanitizada e limitada a 100 membros. Falhas da coleção preservam os demais metadados e usam cache de cinco minutos; resultados completos usam 24 horas. O cache de detalhes passa a v2, sem migração. Interface pública em shell PWA 13.
+
+Escopo desta entrega: navegação por coleção e semelhantes dentro dos detalhes; não cria uma prateleira global de franquias nem garante identificação de títulos sem ID/ano. Validação com TMDB configurado e catálogo autorizado real permanece necessária. Referência oficial consultada: https://developer.themoviedb.org/reference/collection-details.

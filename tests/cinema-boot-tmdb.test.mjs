@@ -36,7 +36,7 @@ test('Consultas TMDB apenas para títulos visíveis e com limite de concorrênci
   assert.ok(home.includes('const MAX_AUTO_ENRICH = 10;'));
   assert.ok(home.includes('const MAX_SIMULTANEOUS_TMDB = 3;'));
   assert.ok(home.includes('showcase.rails.movies.slice(0, 7)'));
-  assert.ok(home.includes('showcase.rails.series.slice(0, 7)'));
+  assert.ok(home.includes('seriesIndex.representatives.slice(0, 7)'));
   assert.ok(home.includes("if (art && needArt && data.backdrop) art.src = data.backdrop"));
   const html = file('cinema.html');
   assert.ok(html.includes('Apenas imagens M3U · TMDB desativado'));
@@ -49,7 +49,7 @@ test('A versão PWA instala o mesmo splash e mantém cache restrito ao shell', (
   assert.ok(pwa.includes('Abrindo seu Lux Player...'));
   assert.ok(pwa.includes('TMDB primeiro · capas e banners (padrão)'));
   assert.ok(pwa.includes('src="/cinema/install.js"'));
-  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-6'"));
+  assert.ok(sw.includes("const VERSION = 'lux-cinema-shell-14'"));
   assert.ok(sw.includes("'/saved-catalog.js'"));
   assert.ok(sw.includes("'/cinema-tmdb-tags.js'"));
   assert.ok(!sw.includes("'/api/bridge/playlist'"));

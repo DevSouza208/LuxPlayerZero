@@ -1,0 +1,104 @@
+// Run with Playwright installed. Uses the local in-memory integration server only.
+const {chromium}=require('playwright');
+require('node:fs').mkdirSync('test-results',{recursive:true});
+const {spawn}=require('node:child_process');
+const {mkdirSync}=require('node:fs');
+const assert=require('node:assert/strict');
+(async()=>{
+ const server=spawn(process.execPath,['scripts/dev-test-server.mjs'],{stdio:['ignore','pipe','inherit']});
+ let browser;
+ try{
+  await new Promise((resolve,reject)=>{server.stdout.on('data',data=>{if(String(data).includes('Local integration server'))resolve()});server.on('exit',code=>reject(Error('Test server exited: '+code)));setTimeout(()=>reject(Error('Test server timeout')),10000).unref()});
+  browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1365,height:900}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));await page.route('https://**/*',r=>r.abort());
+  await page.goto('http://localhost:4173/');
+  await page.getByRole('link',{name:'Entrar como visitante',exact:false}).click();await page.waitForURL('**/cinema/?guest=1');
+  await page.locator('#lux-boot').waitFor({state:'hidden',timeout:20000});await page.getByText('Modo visitante · Abra sua lista', {exact:false}).waitFor();
+  assert.equal(await page.evaluate(async()=>{const r=await fetch('/api/account/state');return r.status}),401);
+  await page.locator('input[type=file]').setInputFiles({name:'guest.m3u',mimeType:'audio/x-mpegurl',buffer:Buffer.from('#EXTM3U\n#EXTINF:-1 group-title="Filmes",Filme visitante (2024)\nhttps://example.com/movie/guest.mp4')});
+  await page.locator('#nav-movies').click();assert.equal(await page.locator('#browse-grid .media-card').count(),1);
+  await page.screenshot({path:'test-results/guest-home.png'});
+  await page.goto('http://localhost:4173/');await page.fill('#login-identity','admin');await page.fill('#login-password','local-test-only-bootstrap-password');
+  await page.click('#login-form button[type=submit]');await page.waitForURL('**/account/');
+  await page.locator('summary').filter({hasText:'Criar ou editar perfil'}).click();await page.fill('#profile-name','Principal');
+  await page.click('#profile-form button:not([type=button])');await page.getByRole('button',{name:'Principal',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Usar como padrão',exact:true}).click();await page.getByText('Seu perfil padrão',{exact:true}).waitFor();
+  await page.reload();await page.getByText('Seu perfil padrão',{exact:true}).waitFor();
+  await page.locator('#diagnostics-panel summary').click();await page.locator('#diagnostics-refresh').click();await page.getByText('D1 respondeu',{exact:false}).waitFor();
+  mkdirSync('test-results',{recursive:true});await page.screenshot({path:'test-results/account-desktop.png',fullPage:true});
+  await page.getByRole('button',{name:'Principal',exact:true}).click();await page.waitForURL('**/cinema/');
+  await page.locator('#lux-boot').waitFor({state:'hidden',timeout:20000});
+  const fixture='#EXTM3U\n#EXTINF:-1 group-title="Filmes | Ação",Filme de teste (2024)\nhttps://example.com/movie/1.mp4\n#EXTINF:-1 group-title="Filmes | Drama",Outra obra (2022)\nhttps://example.com/movie/2.mp4\n#EXTINF:-1 group-title="Séries",Jornada S01E01\nhttps://example.com/series/1.mp4\n#EXTINF:-1 group-title="Séries",Jornada S02E01\nhttps://example.com/series/2.mp4\n#EXTINF:-1 tvg-id="sportv" group-title="TV Esportes",SporTV HD\nhttps://example.com/live/1.m3u8\n#EXTINF:-1 tvg-id="sportv" group-title="TV Esportes",SporTV FHD\nhttps://example.com/live/2.m3u8';
+  await page.locator('input[type=file]').setInputFiles({name:'fixture.m3u',mimeType:'audio/x-mpegurl',buffer:Buffer.from(fixture)});
+  await page.locator('#nav-movies').click();
+  const cardButtons=page.locator('#browse-grid button[data-details]');await cardButtons.first().focus();await page.keyboard.press('ArrowRight');assert.equal(await cardButtons.nth(1).evaluate(el=>el===document.activeElement),true);
+  await page.selectOption('#browse-year','2024');await page.selectOption('#browse-sort','title');
+  assert.equal(await page.locator('#browse-grid .media-card').count(),1);
+  for(const width of [390,320]){
+   await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   assert.equal(await page.evaluate(()=>document.querySelector('#browse-title').getBoundingClientRect().top>=document.querySelector('.cinema-nav').getBoundingClientRect().bottom),true);
+   assert.equal(await page.locator('.browse-pager button').evaluateAll(buttons=>buttons.every(b=>{const r=b.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth})),true);
+   await page.screenshot({path:'test-results/filters-'+width+'.png'});
+  }
+  await page.setViewportSize({width:1365,height:900});
+  await page.locator('a[href="#inicio"]').first().click();
+  await page.getByRole('button',{name:/Ver detalhes de Jornada/}).first().click();await page.locator('.lux-fullscreen-detail[open]').waitFor();
+  await page.getByRole('tab',{name:'Temporada 2',exact:true}).click();assert.equal(await page.locator('.lux-full-episode-card').count(),1);
+  await page.keyboard.press('ArrowLeft');assert.equal(await page.getByRole('tab',{name:'Temporada 1',exact:true}).getAttribute('aria-selected'),'true');await page.keyboard.press('ArrowRight');assert.equal(await page.getByRole('tab',{name:'Temporada 2',exact:true}).getAttribute('aria-selected'),'true');
+  const assertFullscreen=async()=>assert.equal(await page.locator('.lux-fullscreen-detail').evaluate(el=>{const r=el.getBoundingClientRect();return Math.abs(r.x)<1&&Math.abs(r.y)<1&&Math.abs(r.width-innerWidth)<1&&Math.abs(r.height-innerHeight)<1&&el.matches(':modal')}),true);
+  await assertFullscreen();await page.screenshot({path:'test-results/series-desktop.png'});
+  await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>Boolean(document.activeElement.closest('.lux-fullscreen-detail'))),true);
+  await page.setViewportSize({width:390,height:844});await assertFullscreen();await page.screenshot({path:'test-results/series-mobile.png'});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.keyboard.press('Escape');await page.locator('.lux-fullscreen-detail').waitFor({state:'hidden'});
+  await page.getByRole('button',{name:/Ver detalhes de Jornada/}).first().click();
+  assert.equal(await page.getByRole('tab',{name:'Temporada 2',exact:true}).getAttribute('aria-selected'),'true');
+  await page.keyboard.press('Escape');
+  const currentUrl=page.url();await page.context().setOffline(true);await page.getByText('Sem conexão detectada.',{exact:false}).waitFor();
+  await page.context().setOffline(false);await page.getByText('A conexão de rede voltou.',{exact:false}).waitFor();assert.equal(page.url(),currentUrl);
+  await page.clock.install();
+  await page.evaluate(async()=>{
+   const {createEpisodeContinuation}=await import('/episode-continuation.js');
+   window.testContinuationCalls=[];window.testContinuation=createEpisodeContinuation({host:document.body,onPlay:item=>window.testContinuationCalls.push(item.id),onReturn:()=>{},onDetails:item=>window.testContinuationCalls.push(item.id)});
+   window.testContinuation.show({item:{id:'next-existing-entry'},season:1,number:2,contiguous:true},true);
+  });
+  await page.clock.fastForward(10000);assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry']);
+  await page.evaluate(()=>{window.testContinuation.show({item:{id:'cancelled'},season:1,number:3,contiguous:true},true);window.testContinuation.cancel()});
+  await page.clock.fastForward(10000);assert.equal(await page.evaluate(()=>window.testContinuationCalls.length),1);
+  await page.evaluate(()=>window.testContinuation.showRecommendations([{item:{id:'suggested'},title:'Título <seguro> muito longo para verificar o celular'}]));
+  await page.setViewportSize({width:320,height:844});
+  const suggestion=page.getByRole('button',{name:'Ver detalhes de Título <seguro> muito longo para verificar o celular',exact:true});
+  await suggestion.scrollIntoViewIfNeeded();assert.equal(await suggestion.evaluate(el=>el.querySelector('seguro')===null&&el.getBoundingClientRect().right<=innerWidth),true);
+  await page.screenshot({path:'test-results/after-watch-mobile.png'});await suggestion.click();
+  assert.deepEqual(await page.evaluate(()=>window.testContinuationCalls),['next-existing-entry','suggested']);
+  await page.evaluate(()=>window.testContinuation.showRecommendations([],{enabled:false}));
+  await page.getByText('Filme concluído. As recomendações personalizadas estão desativadas.',{exact:true}).waitFor();
+  await page.evaluate(()=>window.testContinuation.cancel());
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(async()=>{
+   const now=Date.now();const response=await fetch('/api/editorial/guide',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({programs:[{channel:'sportv',title:'Programa de teste',start:now-60000,end:now+3600000},{channel:'sportv',title:'Próximo de teste',start:now+3600000,end:now+7200000}]})});
+   if(!response.ok)throw Error('Fixture guide failed');
+   const {createQuickGuide}=await import('/quick-guide.js');const guide=createQuickGuide(document.body);guide.select({name:'Canal de teste',epgId:'sportv'});
+  });
+  await page.getByRole('button',{name:'Guia do canal',exact:true}).click();await page.getByRole('heading',{name:'Agora · Programa de teste',exact:true}).waitFor();
+  await page.getByRole('heading',{name:'A seguir · Próximo de teste',exact:true}).waitFor();await page.screenshot({path:'test-results/quick-guide-mobile.png'});await page.getByRole('button',{name:'Fechar guia'}).click();
+  await page.evaluate(async()=>{
+   const {createFullDetails}=await import('/cinema-detail-page.js');
+   window.relatedCalls=[];
+   window.relatedTest=createFullDetails({onRelated:item=>window.relatedCalls.push(item.id),metadataFor:async()=>({status:'matched',tmdbId:10}),extendedFor:async()=>({collection:{name:'Coleção de teste',status:'ready'},collectionItems:[{item:{id:'local-sequel'},title:'Continuação presente no catálogo',year:'2024'}],similarItems:[]})});
+   window.relatedTest.open({id:'fixture',name:'Filme de teste'});
+  });
+  await page.setViewportSize({width:320,height:844});
+  const related=page.getByRole('button',{name:'Continuação presente no catálogo (2024)',exact:true});await related.click();
+  assert.deepEqual(await page.evaluate(()=>window.relatedCalls),['local-sequel']);
+  assert.equal(await related.evaluate(el=>el.getBoundingClientRect().right<=innerWidth),true);
+  await page.screenshot({path:'test-results/collection-mobile.png'});
+  await page.keyboard.press('Escape');
+  const luxId=await page.evaluate(async()=>{const r=await fetch('/api/account/session');return (await r.json()).luxId});
+  await page.goto('http://localhost:4173/account/');await page.locator('#logout').click();await page.waitForURL('http://localhost:4173/');
+  await page.fill('#login-identity',luxId);await page.fill('#login-password','local-test-only-bootstrap-password');
+  await page.click('#login-form button[type=submit]');await page.waitForURL('**/cinema/');
+  assert.deepEqual(errors,[]);
+  console.log('Browser smoke passed: login → profile → catalog → series, focus, season memory and mobile. Playback not exercised.');
+ }finally{await browser?.close();server.kill('SIGTERM')}
+})().catch(error=>{console.error(error);process.exitCode=1});

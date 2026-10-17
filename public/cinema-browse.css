@@ -46,3 +46,6 @@
 @media(prefers-reduced-motion:reduce){.browse-grid .media-card{transition:none!important}}
 
 .browse-group-label[hidden]{display:none!important}
+.browse-toolbar{flex-wrap:wrap;justify-content:flex-start}.browse-toolbar .browse-group-label select{min-height:44px;max-width:min(75vw,280px)}.browse-filter-label{flex-basis:100%}.browse-toolbar select:focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}
+@media(max-width:780px){.cinema-shell.is-browsing .browse-screen{margin-top:46px}}
+@media(max-width:510px){.browse-pager{flex-wrap:wrap;justify-content:flex-start;gap:4px;overflow:visible}.browse-pager>span{flex-basis:100%;margin-bottom:6px}.browse-pager button,.browse-pager .browse-go{min-width:44px;width:44px;height:44px;padding:0}.browse-page-entry input{width:44px;height:44px}.browse-filter-label{display:block}}
