@@ -92,3 +92,32 @@ test('PIN usa hash e bloqueia seleção sem PIN correto',async()=>{
  assert.equal((await ctx.call('profile/select',{id:p.id,pin:'583047'},owner)).status,200);
  assert.equal(ctx.env.DB.db.prepare('SELECT pin_hash FROM account_profiles').get().pin_hash.includes('583047'),false);
 });
+
+test('perfil padrão é privado, selecionado no login e nunca ignora PIN',async()=>{
+ const ctx=setup(),owner=await admin(ctx),alice=await member(ctx,owner);
+ await ctx.call('profiles',{name:'Principal',avatar:'luxite'},owner);
+ const p=(await (await ctx.call('profiles',null,owner)).json()).profiles[0];
+ assert.equal((await ctx.call('profile/default',{id:p.id},alice)).status,404);
+ assert.equal((await ctx.call('profile/default',{id:p.id},owner)).status,200);
+ assert.equal((await (await ctx.call('profiles',null,owner)).json()).profiles[0].is_default,1);
+ const login=()=>ctx.call('login',{identity:'admin',password:ctx.env.LUX_ADMIN_BOOTSTRAP_PASSWORD});
+ const first=await login();assert.equal((await first.json()).profileId,p.id);
+ assert.equal((await (await ctx.call('session',null,tokenOf(first))).json()).profileId,p.id);
+ await ctx.call('profile/pin',{id:p.id,password:ctx.env.LUX_ADMIN_BOOTSTRAP_PASSWORD,pin:'583047'},owner);
+ assert.equal((await (await login()).json()).profileId,null);
+ assert.equal((await ctx.call('profile/select',{id:p.id},tokenOf(first))).status,403);
+ await ctx.call('profile/delete',{id:p.id},owner);
+ assert.equal(ctx.env.DB.db.prepare('SELECT default_profile_id FROM account_preferences').get().default_profile_id,null);
+ assert.equal((await (await login()).json()).profileId,null);
+});
+
+test('diagnóstico é exclusivo do admin e não devolve caminhos ou secrets',async()=>{
+ const ctx=setup(),owner=await admin(ctx),alice=await member(ctx,owner);
+ assert.equal((await ctx.call('diagnostics',null,alice)).status,403);
+ ctx.env.TMDB_API_KEY='secret-value';ctx.env.CATALOG_BUCKET={private:'secret-bucket'};
+ ctx.env.DB.db.exec("CREATE TABLE catalog_sources(synced_at TEXT,item_count INTEGER,size_bytes INTEGER,r2_key TEXT); INSERT INTO catalog_sources VALUES ('2026-10-17T00:00:00Z',1234,2048,'private-secret-path')");
+ const r=await ctx.call('diagnostics',null,owner);assert.equal(r.status,200);
+ const report=await r.json();assert.equal(report.catalogs[0].items,1234);assert.equal(report.modules.guide,'missing_migration');assert.equal(report.accounts.total,2);
+ assert.equal(report.r2.status,'configured_not_probed');assert.equal(JSON.stringify(report).includes('secret'),false);
+ assert.match(r.headers.get('cache-control'),/no-store/);
+});

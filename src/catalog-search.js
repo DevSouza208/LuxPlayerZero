@@ -42,7 +42,7 @@ export async function catalogSearchApi(request,env) {
    const where="generation_id=? AND kind=? AND (?='' OR instr(search_text,?)>0) AND (?=0 OR year=?)";
    const args=[head.id,kind,query,query,year,year];
    const total=await env.DB.prepare('SELECT COUNT(*) AS n FROM search_entries WHERE '+where).bind(...args).first();
-   const rows=await env.DB.prepare('SELECT ordinal,title,display_title,group_name,kind,year FROM search_entries WHERE '+where+' ORDER BY display_title,ordinal LIMIT 48 OFFSET ?').bind(...args,(page-1)*48).all();
+   const rows=await env.DB.prepare('SELECT ordinal,title,display_title,group_name,kind,year FROM search_entries WHERE '+where+' ORDER BY ordinal LIMIT 48 OFFSET ?').bind(...args,(page-1)*48).all();
    return reply({ready:true,generation:head.id,snapshotTime:head.snapshot_time,total:total.n,page,entries:rows.results});
   }
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');

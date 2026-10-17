@@ -38,5 +38,5 @@ test('construção publica índice completo no SQLite e exige as duas sessões',
  for(let i=0;i<10&&job.status!=='ready';i++){const r=await catalogSearchApi(req('/api/catalog/search',{generation:job.generation},cookies),env);assert.equal(r.status,200,await r.clone().text());job=await r.json()}
  assert.equal(job.status,'ready');assert.equal(job.count,85);assert.equal(reads,3);
  const response=await catalogSearchApi(req('/api/catalog/search?catalogId=catalog&kind=movies&page=2',null,cookies),env);
- const data=await response.json();assert.equal(data.total,85);assert.equal(data.entries.length,37);assert.equal(JSON.stringify(data).includes('source.example'),false);
+ const data=await response.json();assert.equal(data.total,85);assert.equal(data.entries[0].ordinal,48);assert.equal(data.entries.length,37);assert.equal(JSON.stringify(data).includes('source.example'),false);
 });

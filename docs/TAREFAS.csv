@@ -41,7 +41,7 @@ LUX-039;FASE 2 — PERFIS LUX;Favoritos individuais.;em construção;"Código e/
 LUX-040;FASE 2 — PERFIS LUX;Histórico individual.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-041;FASE 2 — PERFIS LUX;Continuar assistindo individual.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-042;FASE 2 — PERFIS LUX;Sincronização de preferências entre dispositivos.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-043;FASE 2 — PERFIS LUX;Escolha de perfil padrão.;pendente;;;2026-10-17
+LUX-043;FASE 2 — PERFIS LUX;Escolha de perfil padrão.;em construção;"Preferência D1 por conta, login automático somente sem PIN, limpeza ao excluir; testes de isolamento/PIN aprovados. Smoke de UI preparado.";;2026-10-17
 LUX-044;FASE 2 — PERFIS LUX;Gestão de perfis pelo administrador da conta.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-045;FASE 3 — HOME PREMIUM;Hero cinematográfico com banner e imagem apropriados.;pendente;;;2026-10-17
 LUX-046;FASE 3 — HOME PREMIUM;Filmes em destaque.;pendente;;;2026-10-17
@@ -119,7 +119,7 @@ LUX-117;FASE 6 — LUX TV;Categorizar Esportes, Filmes, Séries, Infantil, Notí
 LUX-118;FASE 6 — LUX TV;Busca de canais.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-119;FASE 6 — LUX TV;Favoritos de TV por perfil.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-120;FASE 6 — LUX TV;Últimos canais acessados.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-121;FASE 6 — LUX TV;Continuar no último canal.;pendente;;;2026-10-17
+LUX-121;FASE 6 — LUX TV;Continuar no último canal.;em construção;"Atalho do último canal disponível usa histórico do perfil e callback público; validação de reprodução real pendente.";;2026-10-17
 LUX-122;FASE 6 — LUX TV;Ordenação e canais fixados.;pendente;;;2026-10-17
 LUX-123;FASE 6 — LUX TV;Ocultação de categorias permitida pelo perfil.;bloqueado;Não se oferece controle parental apenas visual;"Catálogo bruto continua acessível pela ponte protegida; requer contrato de autorização compatível";2026-10-17
 LUX-124;FASE 6 — LUX TV;Tratamento de logos ausentes.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
@@ -152,8 +152,8 @@ LUX-150;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Preservar a paleta de 256 cores
 LUX-151;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Melhorar aliases em português e inglês.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-152;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Busca tolerante a acentos e pequenas diferenças de escrita.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-153;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Busca por título original, normalizado, gênero e tags.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-154;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Filtros por ano, gênero, idioma e classificação.;pendente;;;2026-10-17
-LUX-155;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Ordenação por título, ano, popularidade quando fundamentada e adição recente.;pendente;;;2026-10-17
+LUX-154;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Filtros por ano, gênero, idioma e classificação.;em construção;"Filtros locais ano/gênero/áudio, ordem fornecedor/título/ano e cache por catálogo; testes preservam fontes e aplicam filtros à busca aproximada. Classificação etária/popularidade/adição real pendentes.";;2026-10-17
+LUX-155;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Ordenação por título, ano, popularidade quando fundamentada e adição recente.;em construção;"Filtros locais ano/gênero/áudio, ordem fornecedor/título/ano e cache por catálogo; testes preservam fontes e aplicam filtros à busca aproximada. Classificação etária/popularidade/adição real pendentes.";;2026-10-17
 LUX-156;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Detecção conservadora de duplicatas.;pendente;;;2026-10-17
 LUX-157;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Melhor correspondência com TMDB por ID, ano e similaridade.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-158;FASE 8 — CATEGORIZAÇÃO, TAGS E BUSCA;Fallback para metadados do fornecedor.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
@@ -175,7 +175,7 @@ LUX-173;FASE 10 — CATÁLOGO EM LARGA ESCALA;Busca paginada pelo backend.;em co
 LUX-174;FASE 10 — CATÁLOGO EM LARGA ESCALA;Filtros executados de forma eficiente.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-175;FASE 10 — CATÁLOGO EM LARGA ESCALA;Carregamento progressivo de cards.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-176;FASE 10 — CATÁLOGO EM LARGA ESCALA;Minimizar memória do navegador.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-177;FASE 10 — CATÁLOGO EM LARGA ESCALA;Evitar recriar índices a cada pesquisa.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
+LUX-177;FASE 10 — CATÁLOGO EM LARGA ESCALA;Evitar recriar índices a cada pesquisa.;em construção;"Filtros locais ano/gênero/áudio, ordem fornecedor/título/ano e cache por catálogo; testes preservam fontes e aplicam filtros à busca aproximada. Classificação etária/popularidade/adição real pendentes.";;2026-10-17
 LUX-178;FASE 10 — CATÁLOGO EM LARGA ESCALA;Aproveitar metadados já consultados.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
 LUX-179;FASE 10 — CATÁLOGO EM LARGA ESCALA;Cache de imagens quando apropriado.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-180;FASE 10 — CATÁLOGO EM LARGA ESCALA;Deduplicação de consultas TMDB.;concluído;"Verificado pelos testes de coleções, guia, busca, conta, snapshots e baseline; 136 testes locais verdes; nenhuma validação remota alegada";;2026-10-17
@@ -189,20 +189,20 @@ LUX-187;FASE 10 — CATÁLOGO EM LARGA ESCALA;Preservar o último catálogo func
 LUX-188;FASE 11 — ADMINISTRAÇÃO;Dashboard com usuários e perfis.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-189;FASE 11 — ADMINISTRAÇÃO;Gestão de contas e convites.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-190;FASE 11 — ADMINISTRAÇÃO;Permissões.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-191;FASE 11 — ADMINISTRAÇÃO;Visão das fontes autorizadas e estado das sincronizações.;pendente;;;2026-10-17
+LUX-191;FASE 11 — ADMINISTRAÇÃO;Visão das fontes autorizadas e estado das sincronizações.;em construção;"Diagnóstico admin autenticado: migrações, contagens, snapshots, índices e tempo da consulta; secrets/caminhos omitidos. R2/TMDB indicam configuração, não disponibilidade verificada.";;2026-10-17
 LUX-192;FASE 11 — ADMINISTRAÇÃO;Configurações de TMDB.;pendente;;;2026-10-17
 LUX-193;FASE 11 — ADMINISTRAÇÃO;Gerenciamento de categorias e tags.;pendente;;;2026-10-17
 LUX-194;FASE 11 — ADMINISTRAÇÃO;Revisão de correspondências de metadados.;pendente;;;2026-10-17
 LUX-195;FASE 11 — ADMINISTRAÇÃO;Personalização visual da Home.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-196;FASE 11 — ADMINISTRAÇÃO;Gerenciamento de destaques.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-197;FASE 11 — ADMINISTRAÇÃO;Estado do banco D1 e armazenamento R2.;pendente;;;2026-10-17
+LUX-197;FASE 11 — ADMINISTRAÇÃO;Estado do banco D1 e armazenamento R2.;em construção;"Diagnóstico admin autenticado: migrações, contagens, snapshots, índices e tempo da consulta; secrets/caminhos omitidos. R2/TMDB indicam configuração, não disponibilidade verificada.";;2026-10-17
 LUX-198;FASE 11 — ADMINISTRAÇÃO;Histórico de falhas sem exposição de segredos.;pendente;;;2026-10-17
-LUX-199;FASE 11 — ADMINISTRAÇÃO;Estatísticas básicas de utilização respeitando a privacidade.;pendente;;;2026-10-17
-LUX-200;FASE 11 — ADMINISTRAÇÃO;Métricas de desempenho e consumo de recursos.;pendente;;;2026-10-17
+LUX-199;FASE 11 — ADMINISTRAÇÃO;Estatísticas básicas de utilização respeitando a privacidade.;em construção;"Diagnóstico admin autenticado: migrações, contagens, snapshots, índices e tempo da consulta; secrets/caminhos omitidos. R2/TMDB indicam configuração, não disponibilidade verificada.";;2026-10-17
+LUX-200;FASE 11 — ADMINISTRAÇÃO;Métricas de desempenho e consumo de recursos.;em construção;"Diagnóstico admin autenticado: migrações, contagens, snapshots, índices e tempo da consulta; secrets/caminhos omitidos. R2/TMDB indicam configuração, não disponibilidade verificada.";;2026-10-17
 LUX-201;FASE 11 — ADMINISTRAÇÃO;Logs de ações administrativas.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-202;FASE 11 — ADMINISTRAÇÃO;Ferramentas de diagnóstico.;pendente;;;2026-10-17
+LUX-202;FASE 11 — ADMINISTRAÇÃO;Ferramentas de diagnóstico.;em construção;"Diagnóstico admin autenticado: migrações, contagens, snapshots, índices e tempo da consulta; secrets/caminhos omitidos. R2/TMDB indicam configuração, não disponibilidade verificada.";;2026-10-17
 LUX-203;FASE 11 — ADMINISTRAÇÃO;Backup e recuperação.;em construção;"Auditoria/implementação/validação em andamento; evidências e limites em EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-204;FASE 11 — ADMINISTRAÇÃO;Estado dos serviços com alertas claros.;pendente;;;2026-10-17
+LUX-204;FASE 11 — ADMINISTRAÇÃO;Estado dos serviços com alertas claros.;em construção;"Diagnóstico admin autenticado: migrações, contagens, snapshots, índices e tempo da consulta; secrets/caminhos omitidos. R2/TMDB indicam configuração, não disponibilidade verificada.";;2026-10-17
 LUX-205;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Desktop responsivo.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-206;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Mobile responsivo.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-207;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Layout para telas grandes.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
@@ -211,7 +211,7 @@ LUX-209;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Foco visível para teclad
 LUX-210;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Áreas de toque adequadas.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-211;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;PWA instalável e atualização consistente.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-212;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Tela inicial adequada no modo instalado.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
-LUX-213;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Feedback de conectividade.;pendente;;;2026-10-17
+LUX-213;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Feedback de conectividade.;em construção;"Aviso offline/retorno da rede com recarga manual; sem interromper player nem prometer salvamento offline. Smoke preparado.";;2026-10-17
 LUX-214;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Recuperação de estado após fechar o aplicativo.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-215;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Gestão de sessões por dispositivo.;em construção;"Código e/ou testes locais implementados; integração visual/Cloudflare ainda não aprovada. Ver EVOLUTION-IMPLEMENTATION.md";;2026-10-17
 LUX-216;FASE 12 — DISPOSITIVOS, PWA E ACESSIBILIDADE;Interface de associação de dispositivo por código, se necessária.;pendente;;;2026-10-17

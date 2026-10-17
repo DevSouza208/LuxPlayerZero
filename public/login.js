@@ -64,7 +64,7 @@ form.addEventListener('submit', async event => {
     const data = await response.json();
     if (!response.ok) throw Error(data.error || 'Não foi possível entrar.');
     password.value = '';
-    location.assign('/account/');
+    location.assign(data.profileId?'/cinema/':'/account/');
   } catch (error) { announce(feedback, error.message || 'Não foi possível conectar.', 'error'); }
   finally { submit.disabled = false; }
 
@@ -128,5 +128,5 @@ if (year) year.textContent = String(new Date().getFullYear());
 // Check the real server session; no browser token storage.
 void fetch('/api/account/session', { credentials: 'same-origin', cache: 'no-store' })
   .then(response => response.ok ? response.json() : null)
-  .then(data => { if (data?.authenticated) location.replace('/account/'); })
+  .then(data => { if (data?.authenticated) location.replace(data.profileId?'/cinema/':'/account/'); })
   .catch(() => {});

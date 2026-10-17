@@ -1,3 +1,4 @@
+import { accountDiagnostics } from './account-diagnostics.js';
 import { verifyMfa, mfaAction } from './account-mfa.js';
 import { HttpError, reply, requireConfig, randomToken, digest, equal, validPassword, hashPassword,
   bodyJson, cookie, session, requiredSession, limit, audit, SESSION_SECONDS } from './account-security.js';
@@ -9,9 +10,14 @@ const results = async query => (await query.all()).results;
 function requireAdmin(user) {if(user.role!=='admin')throw new HttpError(403,'Ação exclusiva do administrador.');}
 async function openSession(request,env,user) {
   const token=randomToken(),now=Date.now();
-  await env.DB.prepare('INSERT INTO account_sessions(token_hash,id,user_id,device,created_at,expires_at) VALUES (?,?,?,?,?,?)')
-    .bind(await digest(token),crypto.randomUUID(),user.id,(request.headers.get('user-agent')||'Dispositivo').slice(0,180),now,now+SESSION_SECONDS*1000).run();
-  return cookie(reply({authenticated:true,username:user.username,role:user.role}),token);
+  // Resolve the unprotected default in the INSERT so a concurrent PIN change cannot be bypassed.
+  const sessionId=crypto.randomUUID();
+  await env.DB.prepare(`INSERT INTO account_sessions(token_hash,id,user_id,profile_id,device,created_at,expires_at)
+    VALUES (?,?,?,(SELECT p.id FROM account_preferences a JOIN account_profiles p
+      ON p.id=a.default_profile_id AND p.user_id=a.user_id WHERE a.user_id=? AND p.pin_hash IS NULL),?,?,?)`)
+    .bind(await digest(token),sessionId,user.id,user.id,(request.headers.get('user-agent')||'Dispositivo').slice(0,180),now,now+SESSION_SECONDS*1000).run();
+  const selected=await env.DB.prepare('SELECT profile_id FROM account_sessions WHERE id=?').bind(sessionId).first();
+  return cookie(reply({authenticated:true,username:user.username,role:user.role,profileId:selected?.profile_id||null}),token);
 }
 function validateState(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))throw new HttpError(400,'Estado inválido.');
@@ -87,7 +93,9 @@ export async function accountApi(request,env) {
     }
     const user=await requiredSession(request,env);
     if(request.method==='GET') {
-      if(path==='/api/account/profiles')return reply({profiles:await results(env.DB.prepare('SELECT id,name,avatar,(pin_hash IS NOT NULL) AS protected FROM account_profiles WHERE user_id=? ORDER BY created_at,id').bind(user.user_id))});
+      if(path==='/api/account/profiles')return reply({profiles:await results(env.DB.prepare(`SELECT p.id,p.name,p.avatar,(p.pin_hash IS NOT NULL) AS protected,
+        COALESCE(a.default_profile_id=p.id,0) AS is_default FROM account_profiles p
+        LEFT JOIN account_preferences a ON a.user_id=p.user_id WHERE p.user_id=? ORDER BY is_default DESC,p.created_at,p.id`).bind(user.user_id))});
       if(path==='/api/account/devices')return reply({devices:await results(env.DB.prepare('SELECT id,device,created_at,expires_at FROM account_sessions WHERE user_id=? AND expires_at>? ORDER BY created_at DESC').bind(user.user_id,Date.now())),current:user.session_id});
       if(path==='/api/account/state'){
         if(!user.profile_id)throw new HttpError(409,'Escolha um perfil.');
@@ -95,6 +103,7 @@ export async function accountApi(request,env) {
           JOIN account_profiles p ON p.id=s.profile_id WHERE p.id=? AND p.user_id=?`).bind(user.profile_id,user.user_id).first();
         return reply({profileId:user.profile_id,value:row?JSON.parse(row.value):{},version:row?.version||0});
       }
+      if(path==='/api/account/diagnostics'){requireAdmin(user);await limit(env,'diagnostics:'+user.user_id,20);return reply(await accountDiagnostics(env));}
       if(path==='/api/account/admin'){
         requireAdmin(user);
         const [users,events]=await Promise.all([
@@ -142,6 +151,13 @@ export async function accountApi(request,env) {
       }
       return reply({ok:true});
     }
+    if(path==='/api/account/profile/default'){
+      const id=body.id===null?null:String(body.id||'');
+      if(id!==null&&!await env.DB.prepare('SELECT id FROM account_profiles WHERE id=? AND user_id=?').bind(id,user.user_id).first())throw new HttpError(404,'Perfil não encontrado.');
+      await env.DB.prepare(`INSERT INTO account_preferences(user_id,default_profile_id) VALUES (?,?)
+        ON CONFLICT(user_id) DO UPDATE SET default_profile_id=excluded.default_profile_id`).bind(user.user_id,id).run();
+      return reply({ok:true});
+    }
     if(path==='/api/account/profile/pin'){
       await limit(env,await digest('pin-setting:'+user.user_id),5);
       const account=await env.DB.prepare('SELECT * FROM account_users WHERE id=?').bind(user.user_id).first();
@@ -165,7 +181,10 @@ export async function accountApi(request,env) {
         if(!/^\d{6}$/.test(body.pin||'')||!equal(await hashPassword(body.pin,row.pin_salt,env),row.pin_hash))throw new HttpError(403,'PIN inválido.');
         await env.DB.prepare('DELETE FROM account_limits WHERE key=?').bind(await digest('pin:'+user.user_id+':'+row.id)).run();
       }
-      await env.DB.prepare('UPDATE account_sessions SET profile_id=? WHERE id=? AND user_id=?').bind(row.id,user.session_id,user.user_id).run();
+      const selection=await env.DB.prepare(`UPDATE account_sessions SET profile_id=? WHERE id=? AND user_id=?
+        AND EXISTS(SELECT 1 FROM account_profiles WHERE id=? AND user_id=? AND pin_hash IS ?)`)
+        .bind(row.id,user.session_id,user.user_id,row.id,user.user_id,row.pin_hash).run();
+      if(!selection.meta.changes)throw new HttpError(409,'A proteção do perfil mudou. Tente novamente.');
       return reply({ok:true});
     }
     if(path==='/api/account/state'){

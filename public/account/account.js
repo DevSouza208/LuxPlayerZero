@@ -22,13 +22,17 @@ async function profiles(){
  const data=await api('profiles');$('profiles').replaceChildren();$('profiles').setAttribute('aria-busy','false');
  if(!data.profiles.length)$('profiles').append(row('Crie seu primeiro perfil para começar.'));
  for(const p of data.profiles){
-  const card=document.createElement('div');card.className='profile';
+  const card=document.createElement('div');card.className='profile';card.dataset.default=String(Boolean(p.is_default));
   const choose=button(p.name,async()=>{const answer=p.protected?await askPin():{};if(answer===null)return;await api('profile/select',{id:p.id,pin:answer.pin});location.assign('/cinema/')});
   if(p.avatar==='luxite'){const img=document.createElement('img');img.src='/assets/luxite.png';img.alt='';choose.prepend(img)}
   else{const avatar=document.createElement('span');avatar.className='avatar';avatar.textContent=avatars[p.avatar]||'◈';choose.prepend(avatar)}
   card.append(choose,button('Editar',()=>{$('profile-id').value=p.id;$('profile-name').value=p.name;$('profile-avatar').value=p.avatar;$('profile-form').closest('details').open=true;$('profile-name').focus()}),
    button('PIN',async()=>{const answer=await askPin(true);if(!answer)return;await api('profile/pin',{id:p.id,...answer});await profiles();status('Proteção do perfil atualizada.')}),
    button('Excluir',async()=>{if(!confirm('Excluir o perfil '+p.name+' e seu histórico?'))return;await api('profile/delete',{id:p.id});await profiles()}));
+  card.append(button(p.is_default?'Remover padrão':'Usar como padrão',async()=>{
+   await api('profile/default',{id:p.is_default?null:p.id});await profiles();status(p.is_default?'Escolha de perfil será exibida ao entrar.':'Perfil padrão salvo. Se houver PIN, ele continuará sendo solicitado.');
+  }));
+  if(p.is_default){const badge=document.createElement('p');badge.className='default-badge';badge.textContent='Seu perfil padrão';card.append(badge);}
   $('profiles').append(card);
  }
 }
@@ -59,3 +63,20 @@ $('index-form').onsubmit=async event=>{
   }while(indexing);
  }catch(error){status(error.message,true)}finally{indexing=false;event.submitter.disabled=false}
 };
+
+$('diagnostics-refresh').onclick=()=>run($('diagnostics-refresh'),async()=>{
+ const result=$('diagnostics-result');result.textContent='Verificando…';
+ try{
+  const data=await api('diagnostics'),nodes=[];
+  const labels={catalog:'Catálogo',guide:'Guia e esportes',search:'Índice de busca',details:'Detalhes TMDB',defaults:'Perfil padrão'};
+  nodes.push(row('D1 respondeu · '+data.database.queryMs+' ms nesta consulta'));
+  nodes.push(row('R2: '+(data.r2.configured?'configurado; acesso ao objeto não testado':'não configurado')));
+  nodes.push(row('TMDB: '+(data.tmdb.configured?'chave configurada; provedor não consultado':'não configurado')));
+  nodes.push(row(data.accounts.active+' contas ativas · '+data.accounts.profiles+' perfis · '+data.accounts.sessions+' sessões válidas'));
+  for(const [key,value] of Object.entries(data.modules))nodes.push(row((labels[key]||key)+': '+(value==='ready'?'tabelas disponíveis':'migração pendente')));
+  nodes.push(row(data.catalogCount+' snapshots registrados. Exibindo os 25 mais recentes.'));
+  data.catalogs.forEach((source,i)=>nodes.push(row('Catálogo '+(i+1)+' · '+source.items+' entradas · '+(source.bytes/1048576).toFixed(1)+' MB · '+(source.syncedAt?new Date(source.syncedAt).toLocaleString('pt-BR'):'data indisponível'))));
+  for(const job of data.search)nodes.push(row('Índices '+({building:'em construção',ready:'prontos',failed:'com falha'}[job.status]||job.status)+': '+job.total));
+  result.replaceChildren(...nodes);
+ }catch(error){result.textContent='Não foi possível verificar os serviços.';throw error}
+});

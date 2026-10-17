@@ -105,3 +105,5 @@ export function searchSimilarity(title,query){
   if(terms.length>1&&cover<1)score*=.82;
   return Math.min(1,Math.max(0,score));
 }
+
+export const genreLabel=id=>GENRES[id]?.[0]||id;

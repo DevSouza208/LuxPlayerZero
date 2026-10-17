@@ -37,7 +37,7 @@
   </style>
   <script type="module" src="/cinema-app.js"></script>
   <script defer src="/cinema/install.js"></script>
-<link rel="stylesheet" href="/cinema-detail-page.css"><link rel="stylesheet" href="/lux-tag-palette.css"></head>
+<link rel="stylesheet" href="/cinema-detail-page.css"><link rel="stylesheet" href="/lux-tag-palette.css"><link rel="stylesheet" href="/connectivity.css"><script type="module" src="/connectivity.js"></script></head>
 <body>
 <div id="lux-boot" class="lux-boot" role="status" aria-live="polite" aria-label="Carregando Lux Player">
   <div class="lux-boot-title"><span class="lux-boot-symbol" aria-hidden="true">✧</span><span>Abrindo seu Lux Player...</span></div>
@@ -150,7 +150,7 @@
         <label class="browse-group-label" for="browse-group">GRUPO
           <select id="browse-group" aria-label="Filtrar por grupo"><option value="">Todos os grupos</option></select>
         </label>
-        <label class="browse-group-label" hidden>CATEGORIA<select id="browse-tv-category"><option value="">Todas as categorias</option></select></label><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
+        <label class="browse-group-label" hidden>CATEGORIA<select id="browse-tv-category"><option value="">Todas as categorias</option></select></label><label class="browse-group-label">ANO<select id="browse-year" aria-label="Filtrar por ano"></select></label><label class="browse-group-label">GÊNERO<select id="browse-genre" aria-label="Filtrar por gênero"></select></label><label class="browse-group-label">ÁUDIO<select id="browse-language" aria-label="Filtrar por áudio declarado"></select></label><label class="browse-group-label">ORDEM<select id="browse-sort" aria-label="Ordenar catálogo"><option value="source">Ordem do fornecedor</option><option value="title">Título A–Z</option><option value="year">Ano mais recente</option></select></label><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
       </div>
       <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
       <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button">Voltar ao topo ↑</button></div>

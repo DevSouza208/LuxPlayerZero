@@ -8,7 +8,8 @@ import {createEpisodeContinuation} from './episode-continuation.js';
 import {buildSeriesIndex,nextEpisode} from './cinema-series.js';
 import {groupTvEntries,TV_CATEGORY_LABELS} from './cinema-tv-groups.js';
 import {createFullDetails} from './cinema-detail-page.js';
-import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
+import { genreLabel } from './media-taxonomy.js';
+import { browseRoleFromHash, browsePageData, browseGroups, browseFacets } from './cinema-browse.js';
 
 import { createProfileStore } from './profile-store.js';
 const $ = id => document.getElementById(id);
@@ -141,6 +142,8 @@ export function createHome({ play } = {}) {
   let browsePage = 1;
   let browseSearch = '';
   let browseGroup = '';
+  let browseYear='',browseGenre='',browseLanguage='',browseSort='source',facetSource=null;
+  const yearSelect=$('browse-year'),genreSelect=$('browse-genre'),languageSelect=$('browse-language'),sortSelect=$('browse-sort');
   let tvCategory = '', tvCategorySource = null, tvCategoryCache = null;
   let browseLastGroupSource = null;
   let browseLastGroupRole = null;
@@ -386,7 +389,7 @@ export function createHome({ play } = {}) {
     if (valid !== browseRole) {
       browseSearch = '';
       browseGroup = '';
-      tvCategory = '';
+      tvCategory = '';browseYear=browseGenre=browseLanguage='';browseSort='source';facetSource=null;if(sortSelect)sortSelect.value='source';
       browsePage = 1;
       browseLastGroupSource = null;
       browseLastGroupRole = null;
@@ -429,6 +432,17 @@ export function createHome({ play } = {}) {
       }
     }
     const source = browseSource(browseRole);
+    if(facetSource!==source){
+      facetSource=source;const facets=browseFacets(source);
+      if(browseYear&&!facets.years.map(String).includes(browseYear))browseYear='';
+      if(browseGenre&&!facets.genres.includes(browseGenre))browseGenre='';
+      if(browseLanguage&&!facets.languages.includes(browseLanguage))browseLanguage='';
+      for(const [select,values,label,selected,format] of [[yearSelect,facets.years,'Todos os anos',browseYear,String],[genreSelect,facets.genres,'Todos os gêneros',browseGenre,genreLabel],[languageSelect,facets.languages,'Todos',browseLanguage,String]]){
+        if(!select)continue;const all=document.createElement('option');all.value='';all.textContent=label;
+        select.replaceChildren(all,...values.map(value=>{const option=document.createElement('option');option.value=String(value);option.textContent=format(value);return option}));select.value=selected;
+      }
+    }
+
     const title = browseRole === 'tv' ? (configRaw.tvTitle ? settingsTitle('tv') : 'Ao vivo')
       : browseRole === 'movies' ? (configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes')
       : browseRole === 'series' ? (configRaw.seriesTitle ? settingsTitle('series') : 'Séries')
@@ -456,8 +470,8 @@ export function createHome({ play } = {}) {
       browseGroupSelect.value = browseGroup;
       browseGroupSelect.parentElement.hidden = browseRole === 'favorites';
     }
-    const requestKey = [catalogueEpoch,browseRole,browseSearch,browsePage,browseGroup].join('|');
-    if(browseRole==='movies' && browseSearch && !browseGroup && requestedKey!==requestKey){
+    const requestKey = [catalogueEpoch,browseRole,browseSearch,browsePage,browseGroup,browseYear,browseGenre,browseLanguage,browseSort].join('|');
+    if(browseRole==='movies' && browseSearch && !browseGroup && !browseYear && !browseGenre && !browseLanguage && browseSort==='source' && requestedKey!==requestKey){
       requestedKey=requestKey;
       void searchCatalog(browseSearch,browsePage,items).then(result=>{
         if(requestedKey!==requestKey || !result)return;
@@ -465,14 +479,14 @@ export function createHome({ play } = {}) {
       });
     }
     const page = remoteKey===requestKey && remotePage ? remotePage : browsePageData(source, {
-      page: browsePage, query: browseSearch, group: browseGroup
+      page: browsePage, query: browseSearch, group: browseGroup,year:browseYear,genre:browseGenre,language:browseLanguage,sort:browseSort
     });
     browsePage = page.page;
     $('browse-page-label').textContent = 'Página ' + page.page.toLocaleString('pt-BR') +
       ' de ' + page.pageCount.toLocaleString('pt-BR') + ' · ' + page.total.toLocaleString('pt-BR') + ' títulos';
     browsePageInput.value = String(page.page);
     browsePageInput.max = String(page.pageCount);
-    $('browse-filter-label').textContent = browseSearch || browseGroup
+    $('browse-filter-label').textContent = browseSearch || browseGroup || browseYear || browseGenre || browseLanguage
       ? page.total.toLocaleString('pt-BR') + ' títulos encontrados'
       : source.length.toLocaleString('pt-BR') + ' títulos disponíveis';
     $('browse-foot-count').textContent = page.start + '–' + page.end +
@@ -518,6 +532,9 @@ export function createHome({ play } = {}) {
   tvCategorySelect?.addEventListener('change',()=>{
     tvCategory=tvCategorySelect.value;browseGroup='';browsePage=1;
     browseLastGroupSource=null;renderBrowse();
+  });
+  for(const select of [yearSelect,genreSelect,languageSelect,sortSelect])select?.addEventListener('change',()=>{
+    browseYear=yearSelect.value;browseGenre=genreSelect.value;browseLanguage=languageSelect.value;browseSort=sortSelect.value;browsePage=1;renderBrowse();
   });
   browseGroupSelect?.addEventListener('change', () => {
     browseGroup = browseGroupSelect.value;
@@ -729,6 +746,13 @@ export function createHome({ play } = {}) {
       configRaw[rails[key].enabled] !== false &&
       (configRaw.hideEmpty === false || !items.length || rails[key].list.length));
     railsRoot.replaceChildren(...visible.map(key => rails[key].draw()));
+    const lastTv=availableRecent.find(([item])=>classifyRole(item)==='tv')?.[0];
+    if(lastTv){
+      const last=document.createElement('button');last.type='button';last.className='lux-last-channel';
+      last.textContent='Voltar ao último canal · '+titleForDisplay(lastTv);
+      last.addEventListener('click',()=>start(lastTv));railsRoot.prepend(last);
+    }
+
     if (recommendations.length) railsRoot.append(createRail('recommendations', 'Para você',
       recommendations.map(row => row.item), 'Porque você assistiu ou salvou ' + recommendations[0].reason));
     document.querySelector('.cinema-shell')?.classList.toggle('is-compact', config.density === 'compact');

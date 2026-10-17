@@ -34,7 +34,7 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Configuração para ambiente isolado de revisão
 1. Usar uma cópia de teste do D1, não o banco de produção.
-2. Aplicar migrações não destrutivas novas: 0003, 0004, 0005, 0006, 0007 e 0008, em ordem. 0006 adiciona colunas e deve ser executada uma vez pelo controle de migrações. A 0001 já pertence ao mecanismo existente. Esta branch não inclui a 0002 do PR14.
+2. Aplicar migrações não destrutivas novas: 0003, 0004, 0005, 0006, 0007, 0008 e 0009, em ordem. 0006 adiciona colunas e deve ser executada uma vez pelo controle de migrações. A 0001 já pertence ao mecanismo existente. Esta branch não inclui a 0002 do PR14.
 3. Configurar DB e os bindings existentes de snapshot sem renomeá-los. Novos secrets: `LUX_AUTH_PEPPER` aleatório >=32 caracteres, `LUX_ADMIN_BOOTSTRAP_PASSWORD` aleatório >=20 caracteres. Não versionar valores reais.
 4. Entrar como `admin` somente no ambiente privado, alterar a senha, ativar 2FA, guardar códigos de recuperação e remover o secret de bootstrap.
 5. Verificar os testes, fluxos de convite, perfis e isolamento. Validar a reprodução real existente separadamente com fonte autorizada.
@@ -42,7 +42,7 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 
 ## Validação executada
 - Baseline: 113 testes existentes aprovados.
-- Após os módulos novos: 139 testes aprovados (atualizar este número ao adicionar testes).
+- Após os módulos novos: 142 testes aprovados (atualizar este número ao adicionar testes).
 - Testes usam SQLite real para SQL, transações, isolamento, convites, estado, sessões, PIN e MFA. Simulações de R2 só nos testes; nenhum stream privado utilizado.
 - Teste de índice: 10 mil entradas por chunks; teste de integração de publicação/paginação com SQLite e R2 simulado.
 - Smoke em scripts/browser-smoke.cjs aprovado no GitHub Actions, execução 38999412801 (commit 86142b0): login, perfil, catálogo, temporadas, persistência e foco. Segunda execução 38999705743 aprovada com 138 testes e verificação de geometria/modal em desktop e mobile. Capturas da conta, detalhes desktop e mobile revisadas; o modal cobre a viewport. Reprodução real e PWA instalado ainda não testados.
@@ -59,3 +59,12 @@ A branch parte de `20aa1fdbc07561c68780e48fe7d7ce3fdf9d90e2`, preservado em `bac
 O módulo episode-continuation usa exclusivamente o callback público do player. Oferece próximo episódio realmente presente, ignora fontes duplicadas na sequência e desativa avanço automático diante de lacunas numéricas. Preferência privada por perfil, desligada inicialmente; espera 10 segundos, pode cancelar e não avança se a página ficar oculta. Botão de retorno reabre os detalhes suspensos. Teste de navegador verifica o callback com entrada fictícia, sem reproduzir mídia. Reprodução real segue pendente.
 
 Validação final do código desta rodada: GitHub Actions 38999939859 aprovado, 139 testes e smoke com setas de temporadas e continuação por callback simulado. Não equivale a teste de reprodução real.
+
+
+## Perfil padrão, diagnóstico e navegação — bloco seguinte
+- Migração 0009 cria preferência de perfil por conta. Login seleciona automaticamente apenas o perfil padrão sem PIN; com PIN mantém a seleção explícita. Exclusão limpa a referência. A atribuição é atômica com a leitura do PIN, e seleção manual rejeita proteção alterada durante a validação.
+- Diagnóstico exclusivo do administrador, limitado a 20 consultas por 15 minutos: contagens de contas/perfis/sessões, presença de tabelas, últimos 25 snapshots e estados dos índices. Não devolve secrets, URLs, nomes de bucket ou chaves R2. Configuração de R2/TMDB não é apresentada como conectividade testada.
+- Aviso de conectividade usa o sinal do navegador. Não interrompe mídia nem recarrega automaticamente; oferece recarregar após retorno da rede. Não promete persistência offline.
+- Último canal: atalho baseado no histórico do perfil e restrito a item ainda disponível no catálogo. Reprodução continua pelo callback público existente.
+- Filtros por ano, gênero e áudio declarado; ordenação por fornecedor, título ou ano. Sem classificação etária presumida, popularidade ou data de adição inventadas. Busca remota mantém ordem do fornecedor; filtros adicionais usam índice local reutilizado e paginação de 48 itens. Cache por array do catálogo evita renormalização e nova ordenação a cada página. O loader protegido ainda carrega o catálogo completo.
+- Novos testes cobrem padrão/PIN/isolamento, diagnóstico sem segredos, combinação de filtros e integridade das entradas. Smoke ampliado para padrão persistente, diagnóstico, filtros mobile e queda/retorno da rede.

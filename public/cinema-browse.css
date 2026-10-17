@@ -46,3 +46,4 @@
 @media(prefers-reduced-motion:reduce){.browse-grid .media-card{transition:none!important}}
 
 .browse-group-label[hidden]{display:none!important}
+.browse-toolbar{flex-wrap:wrap;justify-content:flex-start}.browse-toolbar .browse-group-label select{min-height:44px;max-width:min(75vw,280px)}.browse-filter-label{flex-basis:100%}.browse-toolbar select:focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}
