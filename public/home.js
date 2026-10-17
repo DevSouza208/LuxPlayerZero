@@ -321,6 +321,163 @@ export function createHome({ play } = {}) {
       ? items.find(item => item.name === config.pinnedName) || null : null;
   }
 
+  // Catálogos completos em páginas: usa referências do mesmo índice do showcase
+  // (zero novo parsing e só 48 elementos DOM por página).
+  function browseSource(role) {
+    if (role === 'favorites') return favorites.map(entry => itemFromKey(entry.key)).filter(Boolean);
+    return showcase.catalogs?.[role] || [];
+  }
+  function activateBrowse(nextRole, options = {}) {
+    if (!browseRoot) return;
+    const valid = ['tv', 'movies', 'series', 'favorites'].includes(nextRole) ? nextRole : null;
+    if (valid !== browseRole) {
+      browseSearch = '';
+      browseGroup = '';
+      browsePage = 1;
+      browseLastGroupSource = null;
+      browseLastGroupRole = null;
+      if (navSearch) navSearch.value = '';
+    }
+    browseRole = valid;
+    const path = valid === 'tv' ? '#destaques-tv' : valid === 'movies' ? '#destaques-filmes'
+      : valid === 'series' ? '#destaques-series' : valid === 'favorites' ? '#minha-lista' : '#inicio';
+    if (options.push && window.location.hash !== path) {
+      history.pushState(null, '', path);
+    }
+    browseRoot.hidden = !valid;
+    document.querySelector('.cinema-shell')?.classList.toggle('is-browsing', Boolean(valid));
+    navLinks.forEach(link => {
+      const selected = link.getAttribute('href') === path;
+      link.classList.toggle('is-active', selected);
+      if (selected) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    if (valid) renderBrowse();
+    if (options.scroll !== false) window.scrollTo(0, 0);
+  }
+  function renderBrowse() {
+    if (!browseRole || !browseGrid) return;
+    const source = browseSource(browseRole);
+    const title = browseRole === 'tv' ? (configRaw.tvTitle ? settingsTitle('tv') : 'Ao vivo')
+      : browseRole === 'movies' ? (configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes')
+      : browseRole === 'series' ? (configRaw.seriesTitle ? settingsTitle('series') : 'Séries')
+      : config.favoritesTitle;
+    $('browse-title').textContent = title;
+    browseGrid.dataset.role = browseRole;
+
+    // O filtro de grupos muda só quando a categoria/índice muda.
+    if (browseGroupSelect && (browseLastGroupRole !== browseRole || browseLastGroupSource !== source)) {
+      browseLastGroupRole = browseRole;
+      browseLastGroupSource = source;
+      const all = document.createElement('option');
+      all.value = '';
+      all.textContent = 'Todos os grupos';
+      const options = [all];
+      if (browseRole !== 'favorites') {
+        for (const [group, count] of browseGroups(source)) {
+          const option = document.createElement('option');
+          option.value = group;
+          option.textContent = group + ' (' + count.toLocaleString('pt-BR') + ')';
+          options.push(option);
+        }
+      }
+      browseGroupSelect.replaceChildren(...options);
+      browseGroupSelect.value = browseGroup;
+      browseGroupSelect.parentElement.hidden = browseRole === 'favorites';
+    }
+    const page = browsePageData(source, {
+      page: browsePage, query: browseSearch, group: browseGroup
+    });
+    browsePage = page.page;
+    $('browse-page-label').textContent = 'Página ' + page.page.toLocaleString('pt-BR') +
+      ' de ' + page.pageCount.toLocaleString('pt-BR') + ' · ' + page.total.toLocaleString('pt-BR') + ' títulos';
+    browsePageInput.value = String(page.page);
+    browsePageInput.max = String(page.pageCount);
+    $('browse-filter-label').textContent = browseSearch || browseGroup
+      ? page.total.toLocaleString('pt-BR') + ' títulos encontrados'
+      : source.length.toLocaleString('pt-BR') + ' títulos disponíveis';
+    $('browse-foot-count').textContent = page.start + '–' + page.end +
+      ' de ' + page.total.toLocaleString('pt-BR');
+    for (const button of browseRoot.querySelectorAll('[data-browse-page]')) {
+      const direction = button.dataset.browsePage;
+      button.disabled = direction === 'first' || direction === 'prev'
+        ? page.page <= 1 : page.page >= page.pageCount;
+    }
+    if (!page.entries.length) {
+      const empty = document.createElement('div');
+      empty.className = 'browse-empty';
+      appendText(empty, 'strong', '', items.length ? 'Nenhum título encontrado.' : 'Sua biblioteca começa aqui.');
+      appendText(empty, 'span', '', items.length ? 'Experimente outra busca ou grupo.' : 'Conecte sua playlist para explorar os títulos.');
+      if (!items.length) {
+        const button = appendText(empty, 'button', '', '＋ Conectar fonte');
+        button.type = 'button';
+        button.dataset.browseConnect = 'true';
+      }
+      browseGrid.replaceChildren(empty);
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    for (const item of page.entries) {
+      const card = createCard(item, browseRole);
+      const visual = card.querySelector('.media-visual');
+      if (visual) {
+        const badge = appendText(visual, 'span', 'browse-badge',
+          browseRole === 'tv' ? 'AO VIVO' : browseRole === 'movies' ? 'FILME' :
+          browseRole === 'series' ? 'SÉRIE' : 'MINHA LISTA');
+        badge.setAttribute('aria-hidden', 'true');
+      }
+      const favorite = card.querySelector('.media-favorite');
+      if (favorite) favorite.textContent = (favorites.some(entry => entry.key === itemKey(item)) ? '♥' : '＋') + ' Minha lista';
+      fragment.append(card);
+    }
+    browseGrid.replaceChildren(fragment);
+    // Enriquecer só algumas capas visíveis se restar cota da Home.
+    if (metadataNeeded(config, 'auto')) {
+      for (const item of page.entries.slice(0, 2)) autoArtRequest(item);
+    }
+  }
+  browseGroupSelect?.addEventListener('change', () => {
+    browseGroup = browseGroupSelect.value;
+    browsePage = 1;
+    renderBrowse();
+  });
+  browseRoot?.addEventListener('click', event => {
+    const button = event.target.closest('[data-browse-page]');
+    if (button) {
+      const action = button.dataset.browsePage;
+      const count = browsePageData(browseSource(browseRole), {
+        page: browsePage, query: browseSearch, group: browseGroup
+      }).pageCount;
+      browsePage = action === 'first' ? 1 : action === 'last' ? count
+        : Math.max(1, Math.min(count, browsePage + (action === 'next' ? 1 : -1)));
+      renderBrowse();
+      window.scrollTo(0, 0);
+      return;
+    }
+    if (event.target.closest('[data-browse-connect]')) { openDrawer(); return; }
+    const fav = event.target.closest('[data-favorite]');
+    if (fav) {
+      const item = getById(fav.dataset.favorite);
+      if (item) toggleFavorite(item);
+      return;
+    }
+    const details = event.target.closest('[data-details]');
+    if (details) {
+      const item = getById(details.dataset.details);
+      if (item) showDetails(item);
+    }
+  });
+  function browseGoToPage() {
+    browsePage = Number(browsePageInput?.value || 1);
+    renderBrowse();
+    window.scrollTo(0, 0);
+  }
+  $('browse-page-go')?.addEventListener('click', browseGoToPage);
+  browsePageInput?.addEventListener('keydown', event => {
+    if (event.key === 'Enter') { event.preventDefault(); browseGoToPage(); }
+  });
+  $('browse-top')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
   function createCard(item, category, saved = null) {
     const card = document.createElement('article');
     card.className = 'media-card';
