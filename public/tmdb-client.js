@@ -9,7 +9,7 @@ const course = /curso|aula|treinamento|workshop|tutorial|modulo|m[oó]dulo|pales
 export function tmdbQueryForItem(item, role) {
   if (!item || (role !== 'movies' && role !== 'series')) return null;
   if (course.test(String(item.group || '')) || String(item.kind || '') === 'radio') return null;
-  let name = String(item.name || '').trim();
+  let name = String(item.displayName || item.name || '').trim();
   if (!name || name.length > 160) return null;
   // Alguns provedores acrescentam +, ★, tags [FILME] ou qualidade antes do nome.
   name = name.replace(/^[\s+*•▪▶►★☆✓✔!#]+/u, '')
@@ -17,7 +17,9 @@ export function tmdbQueryForItem(item, role) {
     .replace(quality, '');
   for (let i = 0; i < 3; i++) name = name.replace(tailQuality, '');
   const yearMatch = name.match(/(?:\(|\[|\s)(19\d\d|20[0-3]\d)(?:\)|\]|\s|$)/);
-  const year = yearMatch ? Number(yearMatch[1]) : null;
+  const catalogYear = Number(item.catalogYear);
+  const year = Number.isInteger(catalogYear) && catalogYear >= 1900 && catalogYear <= 2099
+    ? catalogYear : yearMatch ? Number(yearMatch[1]) : null;
   if (yearMatch) name = name.replace(yearMatch[0], ' ');
   // Etiquetas de resolução podem vir depois do ano, sem separador.
   name = name.replace(/\s+(?:4K|UHD|FHD|FULL\s*HD|HD|SD|HDR|HEVC|H265|H264)\s*$/i, '');

@@ -3,6 +3,7 @@ import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
 import { createHome } from './home.js';
+import { presentationForEntry, titleForDisplay } from './cinema-title.js';
 import { attachCinemaTmdbIds } from './cinema-tmdb-tags.js';
 import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot } from './saved-catalog.js';
 
@@ -198,7 +199,7 @@ async function request(url, as = 'text') {
   } finally { clearTimeout(timeout); }
 }
 function setChannels(items, caption, snapshotId = null) {
-  channels = items.map((item, index) => ({ ...item, id: 'c' + index }));
+  channels = items.map((item, index) => ({ ...item, id: 'c' + index, ...presentationForEntry(item) }));
   selected = null;
   stop();
   els.search.value = '';
@@ -219,7 +220,7 @@ function render() {
   const kind = els.filter.value;
   const filtered = channels.filter(item =>
     (kind === 'all' || kind === item.kind) &&
-    (!query || (item.name + ' ' + (item.group || '')).toLocaleLowerCase('pt-BR').includes(query))
+    (!query || (titleForDisplay(item) + ' ' + item.name + ' ' + (item.group || '')).toLocaleLowerCase('pt-BR').includes(query))
   );
   els.channels.replaceChildren();
   if (!filtered.length) {
@@ -235,7 +236,7 @@ function render() {
     btn.type = 'button';
     btn.className = 'channel' + (selected?.id === item.id ? ' active' : '');
     btn.setAttribute('role', 'listitem');
-    btn.title = item.name;
+    btn.title = titleForDisplay(item);
     const symbol = document.createElement('span');
     symbol.className = 'channel-icon';
     symbol.textContent = item.kind === 'radio' ? '♫' : '▶';
@@ -243,7 +244,7 @@ function render() {
     label.className = 'channel-content';
     const name = document.createElement('span');
     name.className = 'channel-name';
-    name.textContent = item.name;
+    name.textContent = titleForDisplay(item);
     const group = document.createElement('span');
     group.className = 'channel-group';
     group.textContent = item.group || (item.kind === 'radio' ? 'Rádio' : 'Vídeo');
@@ -302,7 +303,7 @@ async function playItem(item) {
   selected = item;
   homeCall('onSelect', item);
   render();
-  els.title.textContent = item.name;
+  els.title.textContent = titleForDisplay(item);
   els.format.textContent = streamType(item.url);
   state('Conectando');
   log('Abrindo mídia', item.kind + ' / ' + streamType(item.url));
@@ -318,7 +319,7 @@ async function playItem(item) {
     els.idle.hidden = true;
     els.radio.hidden = item.kind !== 'radio';
     els.video.hidden = item.kind === 'radio';
-    els.radioTitle.textContent = item.name;
+    els.radioTitle.textContent = titleForDisplay(item);
 
     const format = streamType(item.url);
     let waitForManifest = false;

@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
 import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
+import { titleForDisplay } from './cinema-title.js';
 import { browseRoleFromHash, browsePageData, browseGroups } from './cinema-browse.js';
 
 const STORAGE = 'luxzero:home:';
@@ -318,7 +319,7 @@ export function createHome({ play } = {}) {
   function rebuild() {
     showcase = buildShowcase(items, config, savedKeys());
     pinnedItem = config.heroMode === 'pinned' && config.pinnedName
-      ? items.find(item => item.name === config.pinnedName) || null : null;
+      ? items.find(item => item.name === config.pinnedName || titleForDisplay(item) === config.pinnedName) || null : null;
   }
 
   // Catálogos completos em páginas: usa referências do mesmo índice do showcase
@@ -485,7 +486,7 @@ export function createHome({ play } = {}) {
     visual.type = 'button';
     visual.className = 'media-visual';
     visual.dataset.details = item.id;
-    visual.setAttribute('aria-label', 'Ver detalhes de ' + item.name);
+    visual.setAttribute('aria-label', 'Ver detalhes de ' + titleForDisplay(item));
     const image = chooseArtwork(safeImage(item.logo), cachedMetadata(item), config.imageEngine);
     if (image) {
       const img = document.createElement('img');
@@ -499,7 +500,7 @@ export function createHome({ play } = {}) {
     }
     const monogram = document.createElement('span');
     monogram.className = 'media-monogram';
-    monogram.textContent = (item.name || 'L').slice(0, 1).toUpperCase();
+    monogram.textContent = (titleForDisplay(item) || 'L').slice(0, 1).toUpperCase();
     visual.append(monogram);
     appendText(visual, 'span', 'media-play-glyph', '▶');
     if (saved && shouldResume(saved.position, saved.duration)) {
@@ -515,7 +516,7 @@ export function createHome({ play } = {}) {
     info.className = 'media-info';
     const labels = document.createElement('div');
     labels.className = 'media-labels';
-    appendText(labels, 'span', 'media-title', item.name);
+    appendText(labels, 'span', 'media-title', titleForDisplay(item));
     const heart = document.createElement('button');
     heart.type = 'button';
     heart.className = 'media-favorite';
@@ -526,7 +527,8 @@ export function createHome({ play } = {}) {
     heart.setAttribute('aria-label', heart.title);
     labels.append(heart);
     info.append(labels);
-    appendText(info, 'span', 'media-group', item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'));
+    appendText(info, 'span', 'media-group', [item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'),
+      item.catalogYear, ...(item.catalogTags || [])].filter(Boolean).join(' · '));
     card.append(info);
     return card;
   }
@@ -577,7 +579,7 @@ export function createHome({ play } = {}) {
       showcase.rails[role].find(item => safeImage(item.logo)) || showcase.rails[role][0]
     ).find(Boolean) || null;
     const title = $('hero-title');
-    title.textContent = heroItem ? heroItem.name : config.heroTitle;
+    title.textContent = heroItem ? titleForDisplay(heroItem) : config.heroTitle;
     $('hero-subtitle').textContent = heroItem ?
       (heroItem.group || 'Da sua biblioteca') + ' · ' + config.heroSubtitle : config.heroSubtitle;
     $('hero-category').textContent = heroItem ? 'SELECIONADO PARA VOCÊ' : 'BEM-VINDO AO SEU UNIVERSO';
@@ -667,8 +669,9 @@ export function createHome({ play } = {}) {
   function showDetails(item) {
     if (!item || !detailsDialog) return;
     detailsItem = item;
-    $('details-title').textContent = item.name;
-    $('details-group').textContent = item.group || 'Disponível na sua biblioteca';
+    $('details-title').textContent = titleForDisplay(item);
+    $('details-group').textContent = [item.group || 'Disponível na sua biblioteca',
+      item.catalogYear, ...(item.catalogTags || [])].filter(Boolean).join(' · ');
     $('details-kicker').textContent = 'LUX PLAYER · ' + (item.group || 'SUA BIBLIOTECA').slice(0, 62);
     const art = $('details-art');
     const logo = safeImage(item.logo);
