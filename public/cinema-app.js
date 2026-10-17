@@ -1,3 +1,4 @@
+import {createImmersivePlayer} from './cinema-player-ui.js';
 import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
@@ -128,7 +129,7 @@ function errorText(error) {
   if (/https?:\/\//i.test(text)) return 'O servidor recusou ou não conseguiu entregar esta fonte.';
   return text.slice(0, 190);
 }
-function fail(message) { note(message, 'error'); state('Erro'); log('Falha', message.slice(0, 110)); }
+function fail(message) { note(message, 'error'); state('Erro'); immersive.error(message); log('Falha', message.slice(0, 110)); }
 function protocolBlocked(url) {
   return location.protocol === 'https:' && String(url).toLowerCase().startsWith('http:');
 }
@@ -297,8 +298,23 @@ function streamType(url) {
   if (/\.(mp3|aac|ogg|opus|m4a|wav)$/.test(path)) return 'ÁUDIO';
   return 'NATIVO';
 }
+const immersive=createImmersivePlayer({
+  video:els.video,
+  onStop:()=>stop(),
+  onClose:()=>homeCall('resumeDetails'),
+  getHls:()=>hls,
+  onVariant:item=>{void playItem(item)}
+});
 async function playItem(item) {
   stop();
+  if(item.kind==='radio') immersive.close(false);
+  else immersive.open(item,{
+    art:homeCall('backdropFor',item),
+    variants:homeCall('tvVariants',item)||[],
+    title:homeCall('playbackTitle',item)||titleForDisplay(item),
+    kind:/(?:\/series\/|temporada|episodio|s[0-9]{1,2}e[0-9]{1,3})/i.test(item.url+' '+item.group)?'SÉRIE':
+      /\/live\//i.test(item.url)?'TV AO VIVO': 'FILME'
+  });
   const generation = operation;
   selected = item;
   homeCall('onSelect', item);
@@ -504,7 +520,7 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { sourceLoad++; forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { sourceLoad++; forgetSnapshot(); channels = []; selected = null; immersive.close(false); stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;

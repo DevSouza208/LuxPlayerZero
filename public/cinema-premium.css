@@ -72,3 +72,9 @@ html{scroll-padding-top:80px}body{background:#050508;color:#f9f8fe}
 .details-overview{font:400 14px/1.76 'Outfit',sans-serif;color:#cfc4da;margin:16px 0 0;max-width:650px;white-space:normal}
 .details-metadata-status{font-size:11px;color:#93839e;line-height:1.6;margin:14px 0 0}
 .details-overview[hidden],.details-meta[hidden]{display:none!important}
+
+/* Logical TV group: show source count without replacing raw streams. */
+.lux-tv-variant-count{display:block;color:#bc9ad9;font-size:10px;margin-top:3px}
+.lux-tv-source-picker{display:grid;gap:9px;margin:18px 0}.lux-tv-source-picker[hidden]{display:none!important}
+.lux-tv-source-picker label{font-size:11px;color:#c597f0;text-transform:uppercase;letter-spacing:.1em;font-weight:800}
+.lux-tv-source-picker select{width:100%;background:#160d20;color:#fff;border:1px solid #a35ae34e;border-radius:9px;padding:11px 12px}
