@@ -1,13 +1,13 @@
 /**
  * TMDB: títulos normalizados e correspondência aproximada conservadora.
- * Ano é obrigatório para aproximação textual; títulos ambíguos não são usados.
+ * Similaridade textual mínima de 96%; ano informado e ambiguidades são verificados.
  * tmdb-id explícito da M3U permite consulta direta; nunca confundir tvg-id EPG.
  * Metadados jamais mudam URL de vídeo ou identificação do item.
  */
 export const TMDB_LIMITS = Object.freeze({
   dailyRemoteLookups: 5000,
-  matchTtlMs: 60 * 24 * 60 * 60 * 1000,
-  missTtlMs: 7 * 24 * 60 * 60 * 1000
+  matchTtlMs: 180 * 24 * 60 * 60 * 1000,
+  missTtlMs: 6 * 60 * 60 * 1000
 });
 const normalize = value => String(value || '').normalize('NFD')
   .replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR')
@@ -29,7 +29,8 @@ export function validateQuery(value) {
   if (hasId && (!Number.isSafeInteger(tmdbId) || tmdbId < 1 || tmdbId > 999999999)) return null;
   // Versionamento: resultados "unmatched" do algoritmo rígido antigo não bloqueiam o novo.
   return { type, title, year, tmdbId,
-    key: 'v2:' + type + ':' + (year || '-') + ':' + normalized + ':' + (tmdbId || '-') };
+    previousKey: 'v2:' + type + ':' + (year || '-') + ':' + normalized + ':' + (tmdbId || '-'),
+    key: 'v3:' + type + ':' + (year || '-') + ':' + canonical(title) + ':' + (tmdbId || '-') };
 }
 
 const publishedYear = row => {
@@ -60,6 +61,8 @@ function formatMatch(query, row) {
     title: query.title, // Preserva a identidade M3U.
     year: publishedYear(row),
     tmdbId: row.id,
+    matchedTitle: String(row.title || row.name || '').slice(0,200),
+    originalTitle: String(row.original_title || row.original_name || '').slice(0,200),
     overview: typeof row.overview === 'string' ? row.overview.slice(0, 1400) : '',
     poster: officialImage(row.poster_path, 'w500'),
     backdrop: officialImage(row.backdrop_path, 'w1280'),
@@ -69,7 +72,7 @@ function formatMatch(query, row) {
 }
 
 function namesOf(query, row) {
-  return query.type === 'movie' ? [row.title, row.original_title] : [row.name, row.original_name];
+  return [...(query.type === 'movie' ? [row.title, row.original_title] : [row.name, row.original_name]), ...(Array.isArray(row.aliases) ? row.aliases : [])].filter(name => typeof name === 'string' && name.length <= 200);
 }
 
 /** Similaridade textual limitada para evitar "Duna" => "Duna 2" e outros homônimos. */
@@ -107,18 +110,19 @@ export function chooseExactMatch(query, results) {
     const names = namesOf(query, row).filter(Boolean);
     const exact = names.some(name => normalize(name) === literal);
     const canonicalExact = names.some(name => canonical(name) === normalized);
-    // Sem ano: aceitar só texto igual (inclusive artigos); não adivinhar por semelhança.
-    const proximity = query.year === null ? 0 :
-      Math.max(0, ...names.map(name => similarity(normalized, canonical(name))));
-    const score = exact ? 1 : canonicalExact ? .99 : proximity;
-    if (score >= .86) scored.push({ row, score });
+    // Não confundir sequências numeradas mesmo em títulos muito semelhantes.
+    const numbers = text => (canonical(text).match(/\b\d+\b/g) || []).join('|');
+    const proximity = Math.max(0, ...names.filter(name => numbers(name) === numbers(query.title))
+      .map(name => similarity(normalized, canonical(name))));
+    const score = exact || canonicalExact ? 1 : proximity;
+    if (score >= .96) scored.push({ row, score });
   }
   const unique = [...new Map(scored.map(entry => [entry.row.id, entry])).values()]
     .sort((a, b) => b.score - a.score);
   if (!unique.length) return null;
   // Dois filmes/séries parecidos? Sem segurança, mantém a capa da playlist.
-  if (unique.length > 1 && unique[0].score - unique[1].score < .07) return null;
-  return formatMatch(query, unique[0].row);
+  if (unique.length > 1 && unique[0].score - unique[1].score < .02) return null;
+  return {...formatMatch(query, unique[0].row), similarity: Math.round(unique[0].score * 10000) / 100};
 }
 
 /** ID explícito vence diferenças de idioma; ano da M3U continua obrigatório se presente. */

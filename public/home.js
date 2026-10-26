@@ -329,7 +329,7 @@ export function createHome({ play } = {}) {
     if (tmdbCalls >= MAX_TMDB_CALLS) return null;
     tmdbCalls++;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 9000);
+    const timeout = setTimeout(() => controller.abort(), 35000);
     const promise = requestTmdb(query, fetch, controller.signal)
       .catch(() => null)
       .then(data => {

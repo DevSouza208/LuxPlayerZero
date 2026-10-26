@@ -62,7 +62,12 @@ export function parseM3u(text, baseUrl) {
     const line = raw.trim();
     if (!line) continue;
     if (line.startsWith('#EXTINF:')) {
-      const idx = line.indexOf(',');
+      // Commas inside quoted tvg-name/group-title are not the title separator.
+      let quoted = false, idx = -1;
+      for (let i = 0; i < line.length; i++) {
+        if (line[i] === '"') quoted = !quoted;
+        else if (line[i] === ',' && !quoted) { idx = i; break; }
+      }
       const header = idx >= 0 ? line.slice(0, idx) : line;
       const properties = attrs(header);
       const title = idx >= 0 ? line.slice(idx + 1).trim() : '';
