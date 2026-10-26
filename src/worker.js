@@ -1,3 +1,4 @@
+import { importGuestPlaylist } from './guest-playlist.js';
 import { detailMetadata } from './detail-metadata.js';
 import { catalogSearchApi } from './catalog-search.js';
 import { editorialApi } from './editorial-api.js';
@@ -16,6 +17,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/bridge/import') return importGuestPlaylist(request, env);
     if (url.pathname === '/api/metadata/details') return detailMetadata(request, env);
     if (url.pathname === '/api/catalog/search') return catalogSearchApi(request, env);
     if (url.pathname.startsWith('/api/editorial/')) return editorialApi(request, env);

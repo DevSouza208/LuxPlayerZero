@@ -9,9 +9,9 @@ test('ausência de configuração não pede chave que não pode funcionar', () =
   assert.match(view.message, /Cloudflare/i);
 });
 
-test('configurado e sem sessão orienta entrar no Lux ID', () => {
+test('visitante importa na sessão e só precisa do Lux ID para guardar', () => {
   const view = describeBridge({ configured:true, connected:false, mediaEnabled:false }, false);
-  assert.equal(view.kind, 'needs-login');
+  assert.equal(view.kind, 'visitor');
   assert.equal(view.showKey, false);
   assert.match(view.message, /Lux ID/i);
 });

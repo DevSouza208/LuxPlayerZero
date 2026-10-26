@@ -8,13 +8,13 @@ export function describeBridge(status, needsMedia = false) {
     kind: 'unconfigured', showKey: false,
     message: 'Ponte HTTPS indisponível. Configure BRIDGE_ACCESS_KEY e BRIDGE_ALLOWED_HOSTS no Cloudflare Pages; somente depois conecte fontes HTTP.'
   };
+  if (!status.connected) return {
+    kind: 'visitor', showKey: false,
+    message: 'Sua lista pode ser aberta nesta sessão. Entre no Lux ID para guardar sua biblioteca.'
+  };
   if (status.snapshotReady === false) return {
     kind: 'unconfigured', showKey: false,
-    message: 'Conecte R2 (CATALOG_BUCKET) e D1 (DB) no Cloudflare Pages para guardar as listas HTTP.'
-  };
-  if (!status.connected) return {
-    kind: 'needs-login', showKey: false,
-    message: 'Entre na sua conta Lux ID para conectar e guardar sua biblioteca.'
+    message: 'O armazenamento da biblioteca está indisponível. Contate o administrador.'
   };
   if (needsMedia && !status.mediaEnabled) return {
     kind: 'catalog-only', showKey: false,

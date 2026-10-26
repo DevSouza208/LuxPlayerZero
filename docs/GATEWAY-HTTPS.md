@@ -70,3 +70,10 @@ Os testes não usam servidores nem credenciais reais. Execute: \`npm test\`.
 Com `LUX_AUTH_PEPPER` configurado, a ponte valida a sessão da conta no D1 em cada requisição. Não solicita nem envia a chave técnica pelo navegador. Logout, revogação e expiração encerram o acesso à ponte. Visitantes precisam entrar na conta para guardar/restaurar listas privadas. O segredo `BRIDGE_ACCESS_KEY` continua somente no servidor para criptografia; a allowlist permanece obrigatória. O caminho legado por chave é restrito a instalações sem configuração de contas.
 
 O baseline dos quatro módulos de autorização/interface foi atualizado para esta mudança solicitada; snapshot, URLs e motor de reprodução permanecem preservados.
+
+
+## Importação no modo visitante (26/10/2026)
+
+`POST /api/bridge/import` abre exclusivamente a M3U informada pelo visitante, a partir de um host já permitido pelo administrador. Usa o segredo/configuração do servidor sem enviar a chave ao navegador. Não cria sessão privada, não escreve ou lê R2/D1 e não retorna IDs de snapshots. Catálogos persistentes continuam protegidos pelo login. O limite é 256 MB, com leitura em streaming, verificação do cabeçalho M3U, prazo de 180 segundos, limite de corpo de 8 KB e validação de cada redirecionamento. URLs de mídia permanecem intactas; não converte vídeos HTTP em HTTPS.
+
+A tabela usuarios permanece em trabalho separado, sem migração ou alteração de autenticação nesta correção.

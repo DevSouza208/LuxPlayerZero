@@ -48,6 +48,18 @@ export function createBridge({ onStatus = () => {} } = {}) {
   }
 
   return {
+    async importPlaylist(url) {
+      const response = await fetch('/api/bridge/import', {
+        method: 'POST', credentials: 'same-origin', cache: 'no-store',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url }), referrerPolicy: 'no-referrer'
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Não foi possível importar a playlist.');
+      }
+      return response.text();
+    },
     // A M3U original é guardada no R2 e registrada no D1.
     // O navegador recebe o arquivo pela rota HTTPS privada.
     async snapshot(url) {
