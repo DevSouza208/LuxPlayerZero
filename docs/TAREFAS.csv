@@ -268,3 +268,4 @@ LUX-CLEAN-DUBBED-TITLES;NORMALIZAÇÃO DO CATÁLOGO;Remover Dublado/DUB da apres
 LUX-LOADING-ART-CACHE;Cinema;Frases na abertura, transição de seções e cache das capas visualizadas;concluído;175 testes locais. Cache limitado a 120 imagens HTTPS sem parâmetros. Transição de 380 ms e movimento reduzido.;;2026-10-26
 LUX-NATIVE-CURSOR;Cinema;Cursor com contorno luminoso inspirado na referência;concluído;SVG nativo 32 px, brilho azul e lilás nos itens clicáveis, sem loop JS. Cursor de texto e toque preservados.;;2026-10-26
 LUX-SECTION-SPLASH-DURATION;Cinema;Alongar transição de seções para 800 ms;concluído;Animação e fechamento sincronizados em 800 ms;;2026-10-26
+LUX-HOVER-POLISH;Cinema;Padronizar hover elegante e cursor de ações;concluído;Brilho suave em ações e campos, foco por teclado, cursor Lux também nos filhos dos botões e links. Movimento reduzido respeitado.;;2026-10-26

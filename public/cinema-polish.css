@@ -103,8 +103,40 @@
 /* Cursor nativo: acompanha o mouse sem loops de animação ou atraso. */
 @media (hover:hover) and (pointer:fine){
   html,body{cursor:url('/assets/lux-cursor.svg') 7 6,auto}
-  a,button,label[for],select,summary,[role="button"],.upload{cursor:url('/assets/lux-cursor-active.svg') 7 6,pointer}
+  a,button,label[for],select,summary,[role="button"],.upload{cursor:url('/assets/lux-cursor-active.svg') 7 6,default}
   input,textarea,[contenteditable="true"]{cursor:text}
   button:disabled,[aria-disabled="true"]{cursor:not-allowed}
   video,video *{cursor:auto}
+}
+
+/* Resposta visual compartilhada: discreta no repouso, clara ao interagir. */
+body :is(a[href],button,summary,select,[role="button"],label[for],.upload){
+  transition:color .18s ease,background-color .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease,transform .2s ease;
+  -webkit-tap-highlight-color:#b38aff26;
+}
+body :is(input,textarea){transition:border-color .18s ease,box-shadow .18s ease}
+body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for],.upload):focus-visible{
+  outline:2px solid #cbb9ff;outline-offset:4px;
+}
+@media (hover:hover) and (pointer:fine){
+  /* Inclui filhos: ícones, imagens e títulos não retomam a mãozinha do sistema. */
+  body :is(a[href],button,summary,select,[role="button"],label[for],.upload),
+  body :is(a[href],button,summary,select,[role="button"],label[for],.upload) *{
+    cursor:url('/assets/lux-cursor-active.svg') 7 6,default!important;
+  }
+  body :is(button,input,select,textarea):disabled,
+  body :is(button,input,select,textarea):disabled *,body [aria-disabled="true"],body [aria-disabled="true"] *{cursor:not-allowed!important}
+  body :is(input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),textarea,[contenteditable="true"]){cursor:text!important}
+  body :is(input[type="checkbox"],input[type="radio"],input[type="range"],input[type="file"],input[type="submit"],input[type="button"],input[type="reset"]){cursor:url('/assets/lux-cursor-active.svg') 7 6,default!important}
+  body :is(button,summary,select,[role="button"],label[for],.upload):not(:disabled):not([aria-disabled="true"]):hover{
+    filter:brightness(1.1);border-color:#bca0eb99;box-shadow:0 0 0 1px #c5a5fa18,0 5px 20px #9c7bff19;
+  }
+  body a[href]:not([aria-disabled="true"]):hover{color:#eadcff;text-shadow:0 0 14px #b38aff70}
+  body .cinema-nav-link:hover{background-color:#b38aff12;box-shadow:inset 0 -2px #bda0ee80}
+  body :is(input,textarea):not(:disabled):hover{border-color:#bca0eb88;box-shadow:0 0 0 2px #b38aff10}
+  body :is(button,[role="button"]):not(:disabled):not([aria-disabled="true"]):active{filter:brightness(.97)}
+}
+@media(prefers-reduced-motion:reduce){
+  body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for],.upload){transition:none}
+  body :is(button,a[href],[role="button"]):hover{transform:none}
 }
