@@ -1,3 +1,4 @@
+import {deriveCatalogPresentation} from './cinema-title.js';
 /**
  * Interface read-only para enriquecimento TMDB.
  * Nunca envia URL de stream, chave de origem ou catálogo ao servidor.
@@ -9,7 +10,8 @@ const course = /curso|aula|treinamento|workshop|tutorial|modulo|m[oó]dulo|pales
 export function tmdbQueryForItem(item, role) {
   if (!item || (role !== 'movies' && role !== 'series')) return null;
   if (course.test(String(item.group || '')) || String(item.kind || '') === 'radio') return null;
-  let name = String(item.displayName || item.name || '').trim();
+  const presentation=deriveCatalogPresentation(item.displayName||item.name,item.catalogYear);
+  let name = presentation.title.trim();
   if (!name || name.length > 160) return null;
   // Alguns provedores acrescentam +, ★, tags [FILME] ou qualidade antes do nome.
   name = name.replace(/^[\s+*•▪▶►★☆✓✔!#]+/u, '')
@@ -17,7 +19,7 @@ export function tmdbQueryForItem(item, role) {
     .replace(quality, '');
   for (let i = 0; i < 3; i++) name = name.replace(tailQuality, '');
   const yearMatch = name.match(/(?:\(|\[|\s)(19\d\d|20[0-3]\d)(?:\)|\]|\s|$)/);
-  const catalogYear = Number(item.catalogYear);
+  const catalogYear = Number(item.catalogYear||presentation.year);
   const year = Number.isInteger(catalogYear) && catalogYear >= 1900 && catalogYear <= 2099
     ? catalogYear : yearMatch ? Number(yearMatch[1]) : null;
   if (yearMatch) name = name.replace(yearMatch[0], ' ');

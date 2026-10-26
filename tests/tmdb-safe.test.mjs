@@ -279,3 +279,9 @@ test('positivos antigos são reutilizados, negativos antigos são buscados novam
  let calls=0;const response=await lookupTmdb(request(body),env,async()=>{calls++;return Response.json({results:[actor('Duna',2021,11)]})});
  assert.equal((await response.json()).tmdbId,11);assert.equal(calls,1);
 });
+
+test('dublado é removido do título antes da identificação sem alterar a fonte',()=>{
+ const item={name:'DUBLADO - Duna (2021) [DUB]',url:'http://source.example/movie/1',group:'FILMES'};
+ const before=JSON.stringify(item),query=tmdbQueryForItem(item,'movies');
+ assert.equal(query.title,'Duna');assert.equal(query.year,2021);assert.equal(JSON.stringify(item),before);
+});
