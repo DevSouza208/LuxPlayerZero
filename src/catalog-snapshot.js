@@ -167,7 +167,7 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     return apiError(503, 'Sincronização indisponível: configure R2 (CATALOG_BUCKET), D1 (DB) e a chave do catálogo na Cloudflare.');
   }
   if (!sameOriginPost(request)) return apiError(403, 'Solicitação de outro site bloqueada.');
-  if (!await session(request, env)) return apiError(401, 'Informe a chave privada do catálogo para conectar.');
+  if (!await session(request, env)) return apiError(401, 'Entre na sua conta Lux ID para conectar sua biblioteca.');
   if (Number(request.headers.get('content-length') || 0) > 8192) {
     return apiError(413, 'Endereço enviado é grande demais.');
   }

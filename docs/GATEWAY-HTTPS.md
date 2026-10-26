@@ -63,3 +63,10 @@ O código implementa um adaptador de mídia **desativado por padrão** para uso 
 O código da Function está em \`functions/api/bridge/\`, na **raiz do repositório**, como exigido pela plataforma Cloudflare Pages. Não mova para \`public/functions\`. O \`public/_routes.json\` limita a execução de Functions a \`/api/bridge/*\`, preservando o site estático. O diretório publicado no Pages continua \`public\`.
 
 Os testes não usam servidores nem credenciais reais. Execute: \`npm test\`.
+
+
+## Acesso pelo Lux ID (26/10/2026)
+
+Com `LUX_AUTH_PEPPER` configurado, a ponte valida a sessão da conta no D1 em cada requisição. Não solicita nem envia a chave técnica pelo navegador. Logout, revogação e expiração encerram o acesso à ponte. Visitantes precisam entrar na conta para guardar/restaurar listas privadas. O segredo `BRIDGE_ACCESS_KEY` continua somente no servidor para criptografia; a allowlist permanece obrigatória. O caminho legado por chave é restrito a instalações sem configuração de contas.
+
+O baseline dos quatro módulos de autorização/interface foi atualizado para esta mudança solicitada; snapshot, URLs e motor de reprodução permanecem preservados.

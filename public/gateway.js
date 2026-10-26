@@ -7,7 +7,7 @@ export function isBridgeRequired(url) {
     /^http:\/\//i.test(String(url || '').trim());
 }
 
-export function createBridge({ getKey, onStatus = () => {} } = {}) {
+export function createBridge({ onStatus = () => {} } = {}) {
   let connected = false;
   async function post(action, body) {
     const response = await fetch('/api/bridge/' + action, {
@@ -28,7 +28,7 @@ export function createBridge({ getKey, onStatus = () => {} } = {}) {
 
   async function ensureConnected() {
     if (connected) return;
-    // Tenta cookie já existente antes de exigir a chave novamente.
+    // A sessão Lux ID é validada pelo servidor; nenhum segredo vem da interface.
     try {
       const response = await fetch('/api/bridge/status', {
         credentials: 'same-origin', cache: 'no-store', referrerPolicy: 'no-referrer'
@@ -42,11 +42,7 @@ export function createBridge({ getKey, onStatus = () => {} } = {}) {
         }
       }
     } catch {}
-    const key = getKey?.();
-    if (!key) {
-      throw new Error('Informe a chave de acesso para sincronizar a lista HTTP no R2 e D1.');
-    }
-    await post('connect', { key });
+    await post('connect', {});
     connected = true;
     onStatus('Gateway HTTPS conectado com sessão segura.');
   }
