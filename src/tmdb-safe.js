@@ -5,7 +5,7 @@
  * Metadados jamais mudam URL de vídeo ou identificação do item.
  */
 export const TMDB_LIMITS = Object.freeze({
-  dailyRemoteLookups: 120,
+  dailyRemoteLookups: 5000,
   matchTtlMs: 60 * 24 * 60 * 60 * 1000,
   missTtlMs: 7 * 24 * 60 * 60 * 1000
 });

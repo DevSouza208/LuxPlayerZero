@@ -235,3 +235,7 @@ test('Apenas rota TMDB adicional, sem mexer em /api/bridge nem cache PWA de stre
   const original = read('public/app.js');
   assert.doesNotMatch(original, /tmdb-client|TMDB_API_KEY/);
 });
+
+test('consulta de série remove S1 E1 antes de buscar a capa',()=>{
+ assert.deepEqual(tmdbQueryForItem({name:'4 Blocks Zero S1 E1',group:'Séries'},'series'),{type:'tv',title:'4 Blocks Zero',year:null});
+});

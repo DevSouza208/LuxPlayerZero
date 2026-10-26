@@ -24,7 +24,7 @@ export function tmdbQueryForItem(item, role) {
   // Etiquetas de resolução podem vir depois do ano, sem separador.
   name = name.replace(/\s+(?:4K|UHD|FHD|FULL\s*HD|HD|SD|HDR|HEVC|H265|H264)\s*$/i, '');
   if (role === 'series') {
-    name = name.replace(/\s*(?:[|:\-]\s*)?(?:S\d{1,2}E\d{1,3}|T\d{1,2}\s*E\d{1,3})\b.*$/i, '');
+    name = name.replace(/\s*(?:[|:\-]\s*)?(?:S\d{1,2}\s*E\d{1,3}|T\d{1,2}\s*E\d{1,3})\b.*$/i, '');
   }
   name = name.replace(/\s*[|\-]\s*$/, '').replace(/\s+/g, ' ').trim();
   if (name.length < 3 || name.length > 130 || /^\d+$/.test(name)) return null;
