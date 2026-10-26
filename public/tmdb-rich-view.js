@@ -17,8 +17,8 @@ export function renderRichMetadata(root,data){
  field('Título original',data.originalTitle);field('Lançamento',data.releaseDate);field('Última exibição',data.lastAirDate);
  field('Duração',data.runtime?data.runtime+' minutos':null);field('Classificação no Brasil',data.certification);
  field('Avaliação TMDB',data.rating!=null?data.rating.toFixed(1)+'/10'+(data.voteCount?' · '+data.voteCount.toLocaleString('pt-BR')+' votos':''):null);
- field('Gêneros',data.genres);field('Situação',statuses[data.status]||data.status);field('Idioma original',data.originalLanguage);
- field('Idiomas',data.languages);field('Países',data.countries);field('Emissoras',data.networks?.map(x=>x.name));
+ field('Gêneros',data.genres);field('Situação',statuses[data.status]||data.status);
+ field('Países',data.countries);field('Emissoras',data.networks?.map(x=>x.name));
  field('Temporadas no TMDB',data.seasonCount);field('Episódios no TMDB',data.episodeCount);
  const money=value=>value?new Intl.NumberFormat('pt-BR',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value):null;
  field('Orçamento',money(data.budget));field('Receita',money(data.revenue));field('Popularidade TMDB',data.popularity?.toFixed(1));
