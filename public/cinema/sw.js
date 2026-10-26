@@ -1,6 +1,5 @@
-/* Lux Cinema PWA: cache somente da interface pública. Nunca armazenar M3U, mídia,
- * /api, credenciais ou respostas de terceiros no service worker. */
-const VERSION = 'lux-cinema-shell-27';
+/* Lux Cinema: interface pública e capas visíveis. Catálogos, APIs e streams não entram neste cache. */
+const VERSION = 'lux-cinema-shell-28';
 const ASSETS = [
   '/tmdb-rich-view.js', '/guest-mode.js', '/catalog-relations.js', '/quick-guide.js', '/guide-model.js', '/catalog-navigation.js', '/connectivity.js', '/connectivity.css', '/style.css', '/home.css', '/cinema-premium.css', '/cinema-polish.css', '/cinema-browse.css',
   '/cinema-app.js', '/home.js', '/episode-continuation.js', '/home-model.js', '/cinema-browse.js', '/tmdb-client.js', '/cinema-tmdb-tags.js', '/cinema-title.js', '/media-taxonomy.js', '/tv-normalizer.js', '/profile-store.js', '/recommendations.js', '/catalog-search-client.js', '/cinema-series.js', '/cinema-tv-groups.js', '/cinema-detail-page.js', '/cinema-detail-page.css', '/lux-tag-palette.js', '/lux-tag-palette.css', '/saved-catalog.js', '/catalog-cache.js',
@@ -26,10 +25,40 @@ self.addEventListener('activate', event => {
 const isPublicAsset = url => url.origin === self.location.origin &&
   ASSETS.includes(url.pathname) && !url.search;
 
+const ART_CACHE = 'lux-cinema-artwork-v1';
+const ART_LIMIT = 120;
+const isArtwork = (request, url) => request.destination === 'image' &&
+  url.protocol === 'https:' && !url.username && !url.password && !url.search &&
+  (url.hostname === 'image.tmdb.org' || /\.(?:jpe?g|png|webp|avif)$/i.test(url.pathname));
+let artWrites = Promise.resolve();
+async function cachedArtwork(request) {
+  const cache = await caches.open(ART_CACHE);
+  const saved = await cache.match(request);
+  if (saved) return saved;
+  // Respostas legíveis evitam guardar erros opacos e a cota inflada dessas imagens.
+  let response;
+  try { response = await fetch(new Request(request, {mode:'cors', credentials:'omit'})); }
+  catch { return fetch(request); }
+  if (response.ok) {
+    const copy = response.clone();
+    const write = artWrites.then(async () => {
+      await cache.put(request, copy);
+      const keys = await cache.keys();
+      for (const key of keys.slice(0, Math.max(0, keys.length - ART_LIMIT))) await cache.delete(key);
+    }).catch(() => {});
+    artWrites = write;
+    await write;
+  }
+  return response;
+}
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  if (isArtwork(request, url)) {
+    event.respondWith(cachedArtwork(request));
+    return;
+  }
   if (!isPublicAsset(url)) return;
 
   // Network first, cache só para o shell. O catálogo e os streams sempre usam rede.

@@ -4,7 +4,7 @@
   "public/gateway.js": "030c7e8257f781e89ee6e7f443ef66b610ee1ba5bfeb4fe58ae2eeaf29339d28",
   "public/direct-source.js": "d244a9c7685b4df370fe8be4c5c62fa11aaf8d8d00206f466f357e77877aac89",
   "public/app.js": "6a15c953c73bb92f7550763a651eb766efcee903b0c6fec6340411e92de7635b",
-  "public/cinema-app.js": "316155b863b72c87205cb245e424ca4520ddf135941b90312f6530c6e037afff",
+  "public/cinema-app.js": "0986fc5482deb8bafe09dd7dbb1f2f8626a99339ed5f45d4939b883e32c885a8",
   "functions/api/bridge/connect.js": "4bd1e21d82d5c63fc248f32fa911cbe7293dc80390738ceecfef9c28e72ffa3c",
   "functions/api/bridge/sync.js": "508b26be6dba078aedb54011b428ee56357f873ea058223f99706415b9315d2c",
   "functions/api/bridge/status.js": "dbebc83c0d2f54cdeb28560788ca709ff93b656baa5926a2de13a27a683d5e64",

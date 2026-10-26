@@ -421,10 +421,26 @@ export function createHome({ play } = {}) {
     }
     return showcase.catalogs?.[role] || [];
   }
+  let sectionTransitionTimer;
+  const sectionTransition = document.createElement('div');
+  sectionTransition.className = 'lux-section-loading';
+  sectionTransition.hidden = true;
+  sectionTransition.setAttribute('role', 'status');
+  sectionTransition.setAttribute('aria-live', 'polite');
+  document.body.append(sectionTransition);
+  function animateSection(role) {
+    clearTimeout(sectionTransitionTimer);
+    sectionTransition.textContent = {movies:'Luz, câmera… filmes!',series:'Só mais um episódio…',tv:'Entrando no ar…',favorites:'Seus favoritos, bem aqui.'}[role] || 'De volta ao seu Lux…';
+    sectionTransition.hidden = false;
+    sectionTransition.classList.remove('is-animating');
+    requestAnimationFrame(() => sectionTransition.classList.add('is-animating'));
+    sectionTransitionTimer = setTimeout(() => { sectionTransition.hidden = true; }, 380);
+  }
   function activateBrowse(nextRole, options = {}) {
     if (!browseRoot) return;
     const valid = ['tv', 'movies', 'series', 'favorites'].includes(nextRole) ? nextRole : null;
     if (valid !== browseRole) {
+      if (options.push || options.scroll === false && items.length) animateSection(valid);
       browseSearch = '';
       browseGroup = '';
       tvCategory = '';browseYear=browseGenre=browseLanguage='';browseSort='source';facetSource=null;if(sortSelect)sortSelect.value='source';
