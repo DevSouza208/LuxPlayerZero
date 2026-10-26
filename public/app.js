@@ -108,6 +108,9 @@ async function request(url, as = 'text') {
 
   // Na presença do R2 e D1, buscamos HTTP pelo servidor e consumimos a M3U
   // servida por HTTPS; nunca reconstruímos os endereços dos canais.
+  if (isHttpCatalog && bridgeStatus?.configured && !bridgeStatus.connected) {
+    return bridge.importPlaylist(url);
+  }
   if (isHttpCatalog && bridgeStatus?.snapshotReady) {
     const result = await bridge.snapshot(url);
     log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
