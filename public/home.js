@@ -65,6 +65,7 @@ export function createHome({ play } = {}) {
   let seriesIndex=buildSeriesIndex([]),tvIndex=groupTvEntries([]);
   let recommendationMap = new Map(), recommendations = [];
   let movieRelations=null,seriesRelations=null;
+  let relationSource=null,relationRules='';
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
@@ -104,7 +105,7 @@ export function createHome({ play } = {}) {
   }
   const fullDetails=createFullDetails({
     onPlay:entry=>start(entry),
-    onRelated:showDetails,
+    onRelated:entry=>{if(getById(entry?.id)===entry)showDetails(entry);},
     metadataFor:entry=>metadataFor(entry),
     extendedFor:async (data,target)=>{
       const details=await extendedMetadata(data,target);if(!details)return null;
@@ -112,7 +113,8 @@ export function createHome({ play } = {}) {
         ?(movieRelations??=relationIndex(showcase.catalogs.movies))
         :(seriesRelations??=relationIndex(seriesIndex.representatives,'series'));
       const options={excludeId:data.tmdbId,excludeItem:target};
-      return {...details,collectionItems:resolveRelations(index,details.collection?.parts,options),similarItems:resolveRelations(index,details.similar,options)};
+      const present=rows=>resolveRelations(index,rows,options).filter(row=>getById(row.item.id)===row.item);
+      return {...details,collectionItems:present(details.collection?.parts),similarItems:present(details.similar)};
     },
     isFavorite:entry=>favorites.some(row=>row.key===itemKey(entry)),
     onFavorite:entry=>toggleFavorite(entry),
@@ -387,7 +389,10 @@ export function createHome({ play } = {}) {
     showcase = buildShowcase(items, config, savedKeys());
     seriesIndex=buildSeriesIndex(showcase.catalogs.series);
     tvIndex=groupTvEntries(showcase.catalogs.tv);
-    movieRelations=null;seriesRelations=null;
+    const rules=JSON.stringify([config.tvKeywords,config.moviesKeywords,config.seriesKeywords]);
+    if(relationSource!==items||relationRules!==rules){
+      movieRelations=null;seriesRelations=null;relationSource=items;relationRules=rules;
+    }
     tvCategorySource=null;tvCategoryCache=null;
     recommendationMap = recommendationIndex(items);
     updateRecommendations();
