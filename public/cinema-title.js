@@ -18,12 +18,12 @@ export function deriveCatalogPresentation(raw, suppliedYear = null) {
   const original = String(raw ?? '').trim();
   if (!original) return { title: String(raw ?? ''), year: null, tags: [] };
   const markers = [];
-  if (/\[(?:dub|dublado)\]/i.test(original)) markers.push('Dublado');
-  if (/\[(?:l|leg|legendado)\]/i.test(original)) markers.push('Legendado');
+  if (/\b(?:dub|dublad[oa]s?)\b/i.test(original)) markers.push('Dublado');
+  if (/(?:\[(?:l|leg|legendado)\]|\b(?:leg|legendad[oa]s?)\b)/i.test(original)) markers.push('Legendado');
   if (/\[cinema\]/i.test(original)) markers.push('Cinema');
 
   let title = original.replace(decoration, '').replace(qualityPrefix, '');
-  title = title.replace(presentationToken, ' ').replace(/\b(?:dublad[oa]s?|dub)\b/giu, ' ').replace(/[\[(]\s*[\])]/g, ' ').replace(/\s+/g, ' ').replace(/^[\s|:\-–—]+|[\s|:\-–—]+$/g,'').trim();
+  title = title.replace(presentationToken, ' ').replace(/\b(?:dublad[oa]s?|dub|legendad[oa]s?|leg)\b/giu, ' ').replace(/[\[(]\s*[\])]/g, ' ').replace(/\s+/g, ' ').replace(/^[\s|:\-–—]+|[\s|:\-–—]+$/g,'').trim();
   // Eliminar qualidade/datas SOMENTE como sufixos com separadores claros.
   for (let i = 0; i < 3; i++) title = title.replace(qualityTail, '').trim();
   title = title.replace(endDate, '').trim();

@@ -33,7 +33,8 @@
 .browse-grid .media-labels{display:block}
 .browse-grid .media-favorite{font:500 11px 'Outfit',sans-serif;color:#b5a5c4;display:block;text-align:left;margin-top:10px;width:100%;padding:0}
 .browse-grid .media-favorite:hover{color:#e4bbff}
-.browse-badge{position:absolute;top:11px;left:10px;z-index:4;padding:5px 10px;background:#09070cbf;color:#fff;border-radius:40px;font:650 10px 'Outfit',sans-serif;letter-spacing:.01em}
+.browse-badges{position:absolute;top:11px;left:10px;right:10px;z-index:4;display:flex;flex-wrap:wrap;gap:5px;pointer-events:none}
+.browse-badge{padding:5px 10px;background:#09070cbf;color:#fff;border-radius:40px;font:650 10px 'Outfit',sans-serif;letter-spacing:.01em}
 .browse-empty{grid-column:1/-1;min-height:230px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#130e1973;border:1px dashed #463552;border-radius:17px;color:#afa0bb;text-align:center;font-size:13px;line-height:1.7}
 .browse-empty button{border:1px solid #815b9c;border-radius:8px;padding:10px 16px;background:#31213e;color:#f1e8f9}
 .browse-foot{margin-top:30px;display:flex;justify-content:space-between;align-items:center;color:#8e819a;font-size:11px}

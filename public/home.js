@@ -552,10 +552,14 @@ export function createHome({ play } = {}) {
       const card = createCard(item, browseRole);
       const visual = card.querySelector('.media-visual');
       if (visual) {
-        const badge = appendText(visual, 'span', 'browse-badge',
+        const badges = appendText(visual, 'span', 'browse-badges', '');
+        const badge = appendText(badges, 'span', 'browse-badge',
           browseRole === 'tv' ? 'AO VIVO' : browseRole === 'movies' ? 'FILME' :
           browseRole === 'series' ? 'SÉRIE' : 'MINHA LISTA');
         badge.setAttribute('aria-hidden', 'true');
+        for (const tag of (item.catalogTags || []).filter(tag => tag === 'Dublado' || tag === 'Legendado')) {
+          appendText(badges, 'span', 'browse-badge browse-audio-badge', tag);
+        }
       }
       const favorite = card.querySelector('.media-favorite');
       if (favorite) favorite.textContent = (favorites.some(entry => entry.key === itemKey(item)) ? '♥' : '＋') + ' Minha lista';
@@ -666,10 +670,8 @@ export function createHome({ play } = {}) {
     heart.setAttribute('aria-label', heart.title);
     labels.append(heart);
     info.append(labels);
-    appendText(info, 'span', 'media-group',
-      [item.normalizedGroup || item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'),
-        item.catalogYear].filter(Boolean).join(' · '));
-    const tags=(item.catalogTags||[]).filter(tag=>tag!=='Dublado').slice(0,3);
+    if (item.catalogYear) appendText(info, 'span', 'media-group', String(item.catalogYear));
+    const tags=(item.catalogTags||[]).filter(tag=>tag!=='Dublado' && tag!=='Legendado').slice(0,3);
     if(tags.length){
       const strip=appendText(info,'div','lux-tag-strip','');
       for(const tag of tags){
