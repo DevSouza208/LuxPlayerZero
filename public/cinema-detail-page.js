@@ -1,3 +1,4 @@
+import {renderRichMetadata,detailFacts} from './tmdb-rich-view.js';
 /* Full-viewport Lux 2.0-inspired film and series pages.
  * HTML strings below are static only; provider data is assigned via textContent.
  */
@@ -12,11 +13,11 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  '<div class="lux-full-poster"><img alt="" referrerpolicy="no-referrer"><span>LUX</span></div>'+
  '<div class="lux-full-summary"><span class="lux-full-eyebrow" id="lux-full-kind">FILME</span><h1 id="lux-full-title"></h1>'+
  '<div class="lux-full-meta"></div><p class="lux-full-description" hidden></p>'+
- '<div class="lux-full-credits" hidden></div><div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
+ '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
  '<button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
  '<section class="lux-full-seasons" hidden aria-label="Temporadas e episódios">'+
  '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2></div>'+
- '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section></section>';
+ '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section><section class="lux-full-credits" hidden aria-label="Informações do TMDB"></section></section>';
  const page=shell.firstElementChild, $=selector=>shell.querySelector(selector);
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
  let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
@@ -79,10 +80,9 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
     if(values.length)$('.lux-full-meta').textContent=(series?series.seasons.length+' temporadas · '+count+' episódios · ':'')+values.join(' · ');
     const extended=await extendedFor?.(info,target);
     if(!opened||currentEpoch!==epoch||!extended)return;
-    if(extended.certification)credits.append(make('p','','Classificação no Brasil: '+extended.certification));
-    if(extended.directors?.length)credits.append(make('p','','Direção: '+extended.directors.join(', ')));
-    if(extended.creators?.length)credits.append(make('p','','Criação: '+extended.creators.join(', ')));
-    if(extended.cast?.length)credits.append(make('p','','Elenco: '+extended.cast.map(row=>row.name).join(', ')));
+    if(extended.overview){desc.textContent=extended.overview;desc.hidden=false;}
+    const rich=make('div');renderRichMetadata(rich,extended);credits.append(rich);
+    const richFacts=detailFacts(extended);if(richFacts.length)$('.lux-full-meta').textContent=richFacts.join(' · ');
     if(extended.collection?.name){
       credits.append(make('h2','','Coleção: '+extended.collection.name));
       if(!extended.collectionItems?.length)credits.append(make('p','',extended.collection.status==='unavailable'?'Não foi possível consultar os títulos desta coleção agora.':'Nenhum outro título desta coleção foi identificado com segurança no catálogo.'));

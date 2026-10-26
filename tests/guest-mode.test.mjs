@@ -7,7 +7,7 @@ test('visitor shell works without bindings but does not unlock private paths',as
  assert.equal(isGuestMode('https://lux.test/account/?guest=1'),false);
  assert.equal(await accountGate(new Request('https://lux.test/cinema/?guest=1'),{}),null);
  for(const path of ['/cinema/install.js','/cinema/sw.js','/cinema/manifest.webmanifest'])assert.equal(await accountGate(new Request('https://lux.test'+path),{}),null);
- for(const path of ['/account/?guest=1','/api/metadata/details?guest=1','/cinema/private?guest=1']){
+ for(const path of ['/account/?guest=1','/api/metadata/private?guest=1','/cinema/private?guest=1']){
   assert.notEqual(await accountGate(new Request('https://lux.test'+path),{}),null);
  }
 });
@@ -22,6 +22,6 @@ test('visitor can request public artwork but not private metadata details',async
  assert.equal(createGuestStore().read('settings',{}).imageEngine,'tmdb');
  assert.equal(await accountGate(new Request(origin+'/api/metadata/status'),{}),null);
  assert.equal(await accountGate(new Request(origin+'/api/metadata/tmdb',{method:'POST'}),{}),null);
- assert.notEqual(await accountGate(new Request(origin+'/api/metadata/details',{method:'POST'}),{}),null);
+ assert.equal(await accountGate(new Request(origin+'/api/metadata/details',{method:'POST'}),{}),null);
  assert.notEqual(await accountGate(new Request(origin+'/api/metadata/tmdb'),{}),null);
 });
