@@ -33,7 +33,7 @@ test('Quando TMDB está ligado ele tem prioridade, e M3U continua fallback', () 
 
 test('Consultas TMDB apenas para títulos visíveis e com limite de concorrência', () => {
   const home = file('home.js');
-  assert.ok(home.includes('const MAX_AUTO_ENRICH = 10;'));
+  assert.ok(home.includes('const MAX_AUTO_ENRICH = 500;'));
   assert.ok(home.includes('const MAX_SIMULTANEOUS_TMDB = 3;'));
   assert.ok(home.includes('showcase.rails.movies.slice(0, 7)'));
   assert.ok(home.includes('seriesIndex.representatives.slice(0, 7)'));

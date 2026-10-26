@@ -16,3 +16,12 @@ test('visitor state stays in memory and never carries over to another instance',
  assert.equal(a.read('favorites',[]).length,1);assert.deepEqual(b.read('favorites',[]),[]);
  const copy=a.read('favorites',[]);copy.push({name:'Mutated'});assert.equal(a.read('favorites',[]).length,1);
 });
+
+test('visitor can request public artwork but not private metadata details',async()=>{
+ const origin='https://lux.test';
+ assert.equal(createGuestStore().read('settings',{}).imageEngine,'tmdb');
+ assert.equal(await accountGate(new Request(origin+'/api/metadata/status'),{}),null);
+ assert.equal(await accountGate(new Request(origin+'/api/metadata/tmdb',{method:'POST'}),{}),null);
+ assert.notEqual(await accountGate(new Request(origin+'/api/metadata/details',{method:'POST'}),{}),null);
+ assert.notEqual(await accountGate(new Request(origin+'/api/metadata/tmdb'),{}),null);
+});

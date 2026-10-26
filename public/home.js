@@ -87,8 +87,8 @@ export function createHome({ play } = {}) {
   let tmdbInFlight = 0;
   let tmdbEpoch = 0;
   let tmdbReadiness = null;
-  const MAX_TMDB_CALLS = 18;
-  const MAX_AUTO_ENRICH = 10;
+  const MAX_TMDB_CALLS = 500;
+  const MAX_AUTO_ENRICH = 500;
   const MAX_SIMULTANEOUS_TMDB = 3;
 
   const fullDetails=createFullDetails({
@@ -317,7 +317,7 @@ export function createHome({ play } = {}) {
   }
   async function metadataFor(item) {
     const query = queryFor(item);
-    if (guest || !query || !metadataNeeded(config, 'details')) return null;
+    if (!query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
     if (tmdbPending.has(key)) return tmdbPending.get(key);
@@ -545,9 +545,9 @@ export function createHome({ play } = {}) {
       fragment.append(card);
     }
     browseGrid.replaceChildren(fragment);
-    // Enriquecer só algumas capas visíveis se restar cota da Home.
+    // Buscar capas da página aberta; deduplicar e limitar concorrência.
     if (metadataNeeded(config, 'auto')) {
-      for (const item of page.entries.slice(0, 2)) autoArtRequest(item);
+      for (const item of page.entries) autoArtRequest(item);
     }
   }
   tvCategorySelect?.addEventListener('change',()=>{
