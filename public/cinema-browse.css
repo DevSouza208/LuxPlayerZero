@@ -54,7 +54,7 @@
 .lux-section-loading{position:fixed;inset:72px 0 0;z-index:80;display:flex;align-items:center;justify-content:center;gap:14px;background:rgba(5,4,7,.9);color:#e8d1ff;font:500 clamp(16px,2vw,21px) 'Outfit',sans-serif;pointer-events:none}
 .lux-section-loading[hidden]{display:none}
 .lux-section-loading::before{content:'';width:22px;height:22px;border:2px solid #b38aff35;border-top-color:#cbb9ff;border-radius:50%;animation:lux-section-spin .65s linear infinite}
-.lux-section-loading.is-animating{animation:lux-section-reveal .38s ease both}
+.lux-section-loading.is-animating{animation:lux-section-reveal .8s ease both}
 @keyframes lux-section-spin{to{transform:rotate(360deg)}}
 @keyframes lux-section-reveal{0%{opacity:0}20%,65%{opacity:1}100%{opacity:0}}
 @media(prefers-reduced-motion:reduce){.lux-section-loading.is-animating,.lux-section-loading::before{animation:none}}
