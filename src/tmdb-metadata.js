@@ -58,7 +58,7 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
   const url = query.tmdbId
     ? new URL('https://api.themoviedb.org/3/' + query.type + '/' + query.tmdbId)
     : new URL('https://api.themoviedb.org/3/search/' + query.type);
-  url.searchParams.set('api_key', env.TMDB_API_KEY);
+  url.searchParams.set('api_key', env.TMDB_API_KEY.trim());
   url.searchParams.set('language', 'pt-BR');
   if (!query.tmdbId) {
     // Artigos iniciais comuns atrapalham pesquisas de títulos localizados;
@@ -70,15 +70,16 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
   let result;
   try {
     const response = await fetcher(url.href, {
-      method: 'GET', cache: 'no-store', redirect: 'error',
+      method: 'GET', redirect: 'manual',
       signal: AbortSignal.timeout(7000),
-      headers: { 'accept': 'application/json' }
+      headers: { 'accept': 'application/json', 'cache-control': 'no-cache' }
     });
     if (!response.ok) return fail(503, 'TMDB indisponível no momento. Usando os dados originais.');
     const data = await response.json();
     result = query.tmdbId ? chooseIdMatch(query, data) : chooseExactMatch(query, data?.results);
-  } catch {
-    return fail(503, 'Consulta TMDB falhou. Usando os dados originais.');
+  } catch (error) {
+    const code = error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'TMDB_TIMEOUT' : error instanceof SyntaxError ? 'TMDB_RESPONSE' : 'TMDB_NETWORK';
+    return new Response(JSON.stringify({error:'Consulta TMDB falhou. Usando os dados originais.',code}),{status:503,headers:{'content-type':'application/json','cache-control':'no-store'}});
   }
 
   const payload = result || { status: 'unmatched' };

@@ -239,3 +239,13 @@ test('Apenas rota TMDB adicional, sem mexer em /api/bridge nem cache PWA de stre
 test('consulta de série remove S1 E1 antes de buscar a capa',()=>{
  assert.deepEqual(tmdbQueryForItem({name:'4 Blocks Zero S1 E1',group:'Séries'},'series'),{type:'tv',title:'4 Blocks Zero',year:null});
 });
+
+
+test('lookup funciona em Pages sem suporte ao campo cache do fetch',async()=>{
+ const response=await lookupTmdb(request({type:'movie',title:'Duna',year:2021}),{DB:fakeDB(),TMDB_API_KEY:' key-with-whitespace '},async(url,options)=>{
+  assert.equal(options.cache,undefined);assert.equal(options.redirect,'manual');
+  assert.equal(new URL(url).searchParams.get('api_key'),'key-with-whitespace');
+  return Response.json({results:[actor('Duna',2021,11)]});
+ });
+ assert.equal(response.status,200);assert.equal((await response.json()).status,'matched');
+});
