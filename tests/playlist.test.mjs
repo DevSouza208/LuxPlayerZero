@@ -63,3 +63,9 @@ test('botão de demonstração usa importação M3U do servidor, não injeta uma
   assert.ok(source.includes("new URL('/demo/playlist.m3u', location.href)"));
   assert.ok(source.includes('parseM3u(text, url)'));
 });
+
+test('vírgulas no tvg-name não viram parte dos atributos do título',()=>{
+ const url='http://example.com/live/1';
+ const [item]=parseM3u('#EXTM3U\n#EXTINF:-1 tvg-name="A, a Estranha S1 E1" tvg-logo="https://example.com/poster.jpg" group-title="Séries",A, a Estranha S1 E1\n'+url);
+ assert.equal(item.name,'A, a Estranha S1 E1');assert.equal(item.group,'Séries');assert.equal(item.logo,'https://example.com/poster.jpg');assert.equal(item.url,url);
+});

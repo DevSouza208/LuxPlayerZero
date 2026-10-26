@@ -57,7 +57,7 @@ test('Normaliza nomes M3U com prefixo +, artigos e pequenos erros sem perder o a
   const query = tmdbQueryForItem({name:'+ A Odisseia (2026)',group:'FILMES',url:'https://private.example/video.m3u8'},'movies');
   assert.deepEqual(query,{type:'movie',title:'A Odisseia',year:2026});
   assert.equal(chooseExactMatch(movie('A Odisseia',2026), [actor('Odisseia',2026,301)])?.tmdbId,301);
-  assert.equal(chooseExactMatch(movie('Odiseia',2026), [actor('Odisseia',2026,301)])?.tmdbId,301);
+  assert.equal(chooseExactMatch(movie('Odiseia',2026), [actor('Odisseia',2026,301)]),null);
   assert.equal(chooseExactMatch(movie('Odiseia',2025), [actor('Odisseia',2026,301)]),null);
   assert.equal(chooseExactMatch(movie('Odiseia',null), [actor('Odisseia',2026,301)]),null);
 });
@@ -75,7 +75,7 @@ test('tmdb-id explícito permite nome traduzido, mas não ano divergente', () =>
   assert.equal(chooseIdMatch(query,actor('The Odyssey',2025,456)),null);
   assert.equal(chooseIdMatch(query,actor('The Odyssey',2026,457)),null);
   assert.equal(validateQuery({type:'movie',title:'A Odisseia',tmdbId:'hack'}),null);
-  assert.ok(query.key.startsWith('v2:'), 'A nova versão não deve ler misses antigos do cache');
+  assert.ok(query.key.startsWith('v3:'), 'A nova versão não deve ler misses antigos do cache');
   assert.equal(tmdbQueryForItem({name:'A Odisseia (2026)',group:'Filmes',tmdbId:456},'movies').tmdbId,456);
 });
 
@@ -248,4 +248,34 @@ test('lookup funciona em Pages sem suporte ao campo cache do fetch',async()=>{
   return Response.json({results:[actor('Duna',2021,11)]});
  });
  assert.equal(response.status,200);assert.equal((await response.json()).status,'matched');
+});
+
+test('aceita pelo menos 96% sem ano, mas rejeita similaridade menor e sequência diferente',()=>{
+ const title='Uma extraordinaria aventura pelo universo';
+ const result=chooseExactMatch(movie(title,null),[actor('Uma extraordinaria aventura pelo universon',2024,900)]);
+ assert.equal(result?.tmdbId,900);assert.ok(result.similarity>=96);
+ assert.equal(chooseExactMatch(movie('Uma extraordinaria aventura pelo universo 2',null),[actor('Uma extraordinaria aventura pelo universo 3',2024,901)]),null);
+});
+test('busca inglesa e traduções verificadas recuperam alias e guardam a capa no D1',async()=>{
+ const db=fakeDB(),env={DB:db,TMDB_API_KEY:'test-key'};const calls=[];
+ const fetcher=async raw=>{
+  const url=new URL(raw);calls.push(url.pathname+'?'+url.searchParams.get('language'));
+  if(url.pathname.endsWith('/translations'))return Response.json({translations:[{iso_639_1:'pt',data:{title:'Pelados e Solitários'}}]});
+  return Response.json({results:[actor('Naked and Afraid',2013,901)]});
+ };
+ const body={type:'movie',title:'Pelados e Solitários'};
+ const first=await lookupTmdb(request(body),env,fetcher);assert.equal(first.status,200);
+ const found=await first.json();assert.equal(found.status,'matched');assert.equal(found.tmdbId,901);assert.ok(found.poster);
+ assert.equal(calls.length,3);assert.ok(calls[1].endsWith('en-US'));assert.equal(db.usage.values().next().value,3);
+ const second=await lookupTmdb(request(body),env,()=>{throw Error('Cache must avoid remote search')});
+ assert.equal((await second.json()).poster,found.poster);assert.equal(calls.length,3);
+});
+test('positivos antigos são reutilizados, negativos antigos são buscados novamente',async()=>{
+ const db=fakeDB(),env={DB:db,TMDB_API_KEY:'test-key'},body={type:'movie',title:'Duna',year:2021};
+ const query=validateQuery(body);const positive=chooseExactMatch(query,[actor('Duna',2021,11)]);
+ db.cache.set(query.previousKey,{payload:JSON.stringify(positive),expires_at:Date.now()+100000});
+ assert.equal((await (await lookupTmdb(request(body),env,()=>{throw Error('Must reuse positive')})).json()).tmdbId,11);
+ db.cache.set(query.previousKey,{payload:JSON.stringify({status:'unmatched'}),expires_at:Date.now()+100000});
+ let calls=0;const response=await lookupTmdb(request(body),env,async()=>{calls++;return Response.json({results:[actor('Duna',2021,11)]})});
+ assert.equal((await response.json()).tmdbId,11);assert.equal(calls,1);
 });
