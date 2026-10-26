@@ -1,3 +1,6 @@
+import {createCatalogCache} from './catalog-cache.js';
+import {isGuestMode} from './guest-mode.js';
+const guestCatalogCache = isGuestMode() ? createCatalogCache() : null;
 import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
@@ -200,7 +203,10 @@ async function request(url, as = 'text') {
     throw error;
   } finally { clearTimeout(timeout); }
 }
-function setChannels(items, caption, snapshotId = null) {
+function setChannels(items, caption, snapshotId = null, persist = true) {
+  if (persist && guestCatalogCache) void guestCatalogCache.save(items).then(saved => {
+    if (!saved) log('Biblioteca', 'Não foi possível guardar o catálogo neste dispositivo.');
+  });
   channels = items.map((item, index) => ({ ...item, id: 'c' + index, ...presentationForEntry(item) }));
   selected = null;
   stop();
@@ -506,7 +512,7 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { sourceLoad++; forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { sourceLoad++; void guestCatalogCache?.clear(); forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;
@@ -529,6 +535,16 @@ els.demo.addEventListener('click', async () => {
  * A resposta HTTP é autenticada pelo cookie HttpOnly válido por 7 dias.
  */
 async function restoreSavedLibrary() {
+  if (guestCatalogCache) {
+    const generation = sourceLoad;
+    const cached = await guestCatalogCache.read();
+    if (generation !== sourceLoad || channels.length) return;
+    if (Array.isArray(cached?.items) && cached.items.length) {
+      setChannels(cached.items, 'cache deste dispositivo', null, false);
+      note(cached.items.length.toLocaleString('pt-BR') + ' títulos restaurados do cache. Importe novamente para atualizar a lista.', 'info');
+    }
+    return;
+  }
   const id = savedSnapshot();
   if (!id || channels.length) return;
   if (!bridgeStatus?.snapshotReady) {
