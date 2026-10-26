@@ -105,3 +105,11 @@
 @media(prefers-reduced-motion:reduce){.tmdb-cast article{transition:none}}
 
 .tmdb-videos a>span{display:block;padding:0 14px}.tmdb-rich a:focus-visible{outline:3px solid #cbb9ff;outline-offset:4px}
+
+.lux-full-trailer{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:13px 23px;border:1px solid #c5a3ff55;border-radius:10px;background:#a77aff13;color:#e5d3ff;text-decoration:none;font:600 15px 'Outfit',sans-serif;box-sizing:border-box}.lux-full-trailer[hidden]{display:none!important}.lux-full-trailer:hover{background:#a77aff26;border-color:#c5a3ff}
+.lux-related{margin-top:32px;padding-top:24px;border-top:1px solid #ffffff0d}.lux-related h3{font-size:22px;letter-spacing:-.03em;color:#f2eafa;margin:0 0 18px}
+.lux-related-track{display:flex;gap:16px;overflow-x:auto;padding:4px 2px 20px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#503a63 transparent}
+.lux-related .lux-related-card{flex:0 0 155px;display:flex;flex-direction:column;align-items:stretch;min-width:0;max-width:155px;margin:0;padding:0 0 13px;background:#15101d;border:1px solid #ffffff10;border-radius:14px;overflow:hidden;scroll-snap-align:start;text-align:left;transition:transform .2s,border-color .2s}
+.lux-related .lux-related-card:hover{transform:translateY(-3px);border-color:#b38aff66}.lux-related-art{display:grid;place-items:center;position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:linear-gradient(145deg,#30203f,#130e1b)}.lux-related-art img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover}.lux-related-letter{font-size:54px;font-weight:750;color:#73518755}.lux-related-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:12px 12px 0;font-size:13px;font-weight:550;line-height:1.45;color:#f2eafa}.lux-related-year{padding:6px 12px 0;font-size:11px;color:#a38eaf}
+@media(max-width:740px){.lux-full-trailer{min-height:44px;padding:10px 17px;font-size:13px}.lux-related .lux-related-card{flex-basis:130px;max-width:130px}.lux-related-track{gap:12px}.lux-related h3{font-size:19px}}
+@media(prefers-reduced-motion:reduce){.lux-related .lux-related-card{transition:none}}

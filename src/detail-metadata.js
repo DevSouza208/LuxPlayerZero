@@ -2,7 +2,7 @@ import {bodyJson,HttpError,reply} from './account-security.js';
 const validId=value=>Number.isSafeInteger(value)&&value>0&&value<=999999999;
 export function sanitizeCollection(data,id){
  if(data?.id!==id)throw new Error('Invalid collection');
- return (Array.isArray(data.parts)?data.parts:[]).filter(row=>validId(row.id)&&row.adult!==true).slice(0,100).map(row=>({id:row.id,title:clean(row.title,240),year:clean(row.release_date,4)}));
+ return (Array.isArray(data.parts)?data.parts:[]).filter(row=>validId(row.id)&&row.adult!==true).slice(0,100).map(row=>({id:row.id,title:clean(row.title,240),year:clean(row.release_date,4),...(image(row.poster_path)?{poster:image(row.poster_path)}:{})}));
 }
 const image=(value,size='w500')=>typeof value==='string'&&/^\/[a-zA-Z0-9_.-]{2,100}$/.test(value)?'https://image.tmdb.org/t/p/'+size+value:null;
 const number=value=>typeof value==='number'&&Number.isFinite(value)&&value>=0?value:null;
@@ -42,7 +42,7 @@ export function sanitizeDetails(data,type,id){
   creators:(data.created_by||[]).slice(0,4).map(row=>clean(row.name,100)),
   trailer:trailer?'https://www.youtube.com/watch?v='+trailer.key:null,
   collection:type==='movie'&&validId(data.belongs_to_collection?.id)?{id:data.belongs_to_collection.id,name:clean(data.belongs_to_collection.name,150)}:null,
-  similar:(data.recommendations?.results||[]).filter(row=>row.adult!==true).slice(0,20).map(row=>({id:row.id,title:clean(row.title||row.name,240),year:clean(row.release_date||row.first_air_date,4)}))
+  similar:(data.recommendations?.results||[]).filter(row=>row.adult!==true).slice(0,20).map(row=>({id:row.id,title:clean(row.title||row.name,240),year:clean(row.release_date||row.first_air_date,4),...(image(row.poster_path)?{poster:image(row.poster_path)}:{})}))
  };
 }
 export async function detailMetadata(request,env,fetcher=fetch){
@@ -52,7 +52,7 @@ export async function detailMetadata(request,env,fetcher=fetch){
   if(!['movie','tv'].includes(type)||!Number.isSafeInteger(id)||id<1||id>999999999)throw new HttpError(400,'Identificador inválido.');
   if(!env.TMDB_API_KEY?.trim()||!env.DB?.prepare)throw new HttpError(503,'TMDB indisponível.');
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_cache (id TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at INTEGER NOT NULL)').run();
-  const key='v3:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
+  const key='v4:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
   if(cached)return reply(JSON.parse(cached.payload));
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_daily (day TEXT PRIMARY KEY,used INTEGER NOT NULL DEFAULT 0)').run();
   const quota=await env.DB.prepare('INSERT INTO detail_metadata_daily(day,used) VALUES (?,1) ON CONFLICT(day) DO UPDATE SET used=used+1 WHERE used<5000').bind(new Date().toISOString().slice(0,10)).run();
