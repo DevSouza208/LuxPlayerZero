@@ -493,7 +493,7 @@ els.file.addEventListener('change', async () => {
   const file = els.file.files?.[0];
   if (!file) return;
   try {
-    if (file.size > 20 * 1024 * 1024) throw new Error('Arquivo excede 20 MB.');
+    if (file.size > 256 * 1024 * 1024) throw new Error('Arquivo excede 256 MB.');
     const contents = await file.text();
     const entries = attachCinemaTmdbIds(contents, parseM3u(contents));
     if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
