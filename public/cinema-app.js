@@ -16,6 +16,13 @@ const bootSplash = $('lux-boot');
 const bootMessage = $('lux-boot-status');
 const bootSkip = $('lux-boot-skip');
 let bootFinished = false;
+const bootPhrases = ['A pipoca fica por sua conta 🍿', 'Qual vai ser a boa de hoje?', 'Só mais um episódio… a gente entende.', 'Seu próximo favorito pode estar aqui.', 'Acomode-se. O Lux já vai começar.'];
+let bootPhraseIndex = Math.floor(Math.random() * bootPhrases.length);
+function showBootPhrase() {
+  if (bootMessage && !bootFinished) bootMessage.textContent = bootPhrases[bootPhraseIndex++ % bootPhrases.length];
+}
+showBootPhrase();
+const bootPhraseTimer = setInterval(showBootPhrase, 3200);
 function bootProgress(message) {
   if (bootMessage && !bootFinished) bootMessage.textContent = message;
 }
@@ -23,6 +30,7 @@ function finishBoot() {
   if (bootFinished) return;
   bootFinished = true;
   clearTimeout(slowBootTimer);
+  clearInterval(bootPhraseTimer);
   if (!bootSplash) return;
   bootSplash.classList.add('is-leaving');
   setTimeout(() => { bootSplash.hidden = true; }, 300);
@@ -556,7 +564,7 @@ async function restoreSavedLibrary() {
     return;
   }
   const generation = sourceLoad;
-  bootProgress('Recuperando sua biblioteca do R2…');
+  showBootPhrase();
   note('Restaurando sua biblioteca privada do R2…', 'info');
   try {
     const result = await readSavedSnapshot(id);
@@ -574,7 +582,7 @@ async function restoreSavedLibrary() {
       note('Não foi possível recuperar a playlist do R2. A referência foi preservada para tentar novamente.', 'info');
       return;
     }
-    bootProgress('Organizando seus títulos…');
+    showBootPhrase();
     const entries = attachCinemaTmdbIds(result.content, parseM3u(result.content));
     if (!entries.length) throw new Error('O snapshot salvo não tem mídias válidas.');
     if (generation === sourceLoad) {
@@ -618,7 +626,7 @@ $('restore-library')?.addEventListener('click', async () => {
 updateForm();
 void (async () => {
   try {
-    bootProgress('Verificando sua biblioteca…');
+    showBootPhrase();
     await refreshBridgeStatus();
     await restoreSavedLibrary();
   } catch {

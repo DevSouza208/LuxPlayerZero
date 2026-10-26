@@ -50,3 +50,11 @@
 .browse-toolbar{flex-wrap:wrap;justify-content:flex-start}.browse-toolbar .browse-group-label select{min-height:44px;max-width:min(75vw,280px)}.browse-filter-label{flex-basis:100%}.browse-toolbar select:focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}
 @media(max-width:780px){.cinema-shell.is-browsing .browse-screen{margin-top:46px}}
 @media(max-width:510px){.browse-pager{flex-wrap:wrap;justify-content:flex-start;gap:4px;overflow:visible}.browse-pager>span{flex-basis:100%;margin-bottom:6px}.browse-pager button,.browse-pager .browse-go{min-width:44px;width:44px;height:44px;padding:0}.browse-page-entry input{width:44px;height:44px}.browse-filter-label{display:block}}
+
+.lux-section-loading{position:fixed;inset:72px 0 0;z-index:80;display:flex;align-items:center;justify-content:center;gap:14px;background:rgba(5,4,7,.9);color:#e8d1ff;font:500 clamp(16px,2vw,21px) 'Outfit',sans-serif;pointer-events:none}
+.lux-section-loading[hidden]{display:none}
+.lux-section-loading::before{content:'';width:22px;height:22px;border:2px solid #b38aff35;border-top-color:#cbb9ff;border-radius:50%;animation:lux-section-spin .65s linear infinite}
+.lux-section-loading.is-animating{animation:lux-section-reveal .38s ease both}
+@keyframes lux-section-spin{to{transform:rotate(360deg)}}
+@keyframes lux-section-reveal{0%{opacity:0}20%,65%{opacity:1}100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.lux-section-loading.is-animating,.lux-section-loading::before{animation:none}}
