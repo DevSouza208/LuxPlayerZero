@@ -17,3 +17,9 @@ test('relations avoid conflicting IDs, deduplicate metadata and preserve variant
  assert.equal(resolveRelations(index,[{id:20,title:'Outra',year:'2025'},{id:20,title:'Outra',year:'2025'}]).length,1);
  assert.equal(items.length,4);
 });
+
+test('capinha da recomendação acompanha o item real sem trocar a fonte',()=>{
+ const item={id:'movie1',name:'Duna (2021)',group:'FILMES',url:'http://source.example/movie/1',tmdbId:438631};
+ const result=resolveRelations(relationIndex([item]),[{id:438631,title:'Duna',year:'2021',poster:'https://image.tmdb.org/t/p/w500/poster.jpg'}]);
+ assert.equal(result[0].poster,'https://image.tmdb.org/t/p/w500/poster.jpg');assert.equal(result[0].item,item);assert.equal(result[0].item.url,'http://source.example/movie/1');
+});

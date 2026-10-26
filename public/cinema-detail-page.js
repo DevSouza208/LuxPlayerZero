@@ -14,7 +14,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  '<div class="lux-full-summary"><span class="lux-full-eyebrow" id="lux-full-kind">FILME</span><h1 id="lux-full-title"></h1>'+
  '<div class="lux-full-meta"></div><p class="lux-full-description" hidden></p>'+
  '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
- '<button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
+ '<a class="lux-full-trailer" data-full-trailer hidden target="_blank" rel="noopener noreferrer">▶ Trailer</a><button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
  '<section class="lux-full-seasons" hidden aria-label="Temporadas e episódios">'+
  '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2></div>'+
  '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section><section class="lux-full-credits" hidden aria-label="Informações do TMDB"></section></section>';
@@ -60,6 +60,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
     series.seasons.length+' temporada'+(series.seasons.length===1?'':'s')+' · '+count+' episódio'+(count===1?'':'s'):
     [next.catalogYear,next.normalizedGroup||next.group].filter(Boolean).join(' · ');
   const desc=$('.lux-full-description');desc.hidden=true;desc.textContent='';
+  const trailerLink=$('[data-full-trailer]');trailerLink.hidden=true;trailerLink.removeAttribute('href');
   const credits=$('.lux-full-credits');credits.hidden=true;credits.replaceChildren();
   const resume=series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
   const playLabel=$('[data-full-play] span');playLabel.textContent=resume?'Continuar T'+resume.season+':E'+resume.number:(getProgress?.(next)?.position>15?'Continuar':'Começar');
@@ -91,13 +92,22 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
       if(!rows?.length)return;
       const section=make('section','lux-related');section.setAttribute('aria-label',label);
       section.append(make('h3','',label));
-      for(const row of rows){const button=make('button','',row.title+(row.year?' ('+row.year+')':''));button.type='button';button.addEventListener('click',()=>onRelated?.(row.item));section.append(button)}
+      const track=make('div','lux-related-track');
+      for(const row of rows){
+        const button=make('button','lux-related-card');button.type='button';button.setAttribute('aria-label','Ver detalhes de '+row.title);
+        const visual=make('span','lux-related-art'),posterUrl=photo(row.poster)||photo(row.item.logo);
+        if(posterUrl){const image=make('img');image.src=posterUrl;image.alt='';image.loading='lazy';image.referrerPolicy='no-referrer';image.onerror=()=>{const reserve=photo(row.item.logo);if(reserve&&image.src!==reserve){image.src=reserve;return}image.remove()};visual.append(image)}
+        visual.append(make('span','lux-related-letter',row.title.slice(0,1).toUpperCase()));
+        button.append(visual,make('strong','lux-related-title',row.title));if(row.year)button.append(make('small','lux-related-year',row.year));
+        button.addEventListener('click',()=>onRelated?.(row.item));track.append(button);
+      }
+      section.append(track);
       credits.append(section);
     };
     appendRelations(extended.collectionItems,'Da mesma coleção no seu catálogo');
     appendRelations(extended.similarItems,'Títulos semelhantes no seu catálogo');
     if(extended.trailer&&/^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/.test(extended.trailer)){
-      const link=make('a','','Ver trailer oficial');link.href=extended.trailer;link.target='_blank';link.rel='noopener noreferrer';credits.append(link);
+      trailerLink.href=extended.trailer;trailerLink.hidden=false;
     }
     credits.hidden=!credits.childNodes.length;
    }catch{/* Metadata never affects playback. */}

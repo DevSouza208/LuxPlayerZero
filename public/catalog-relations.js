@@ -24,7 +24,7 @@ export function resolveRelations(index,rows,{excludeId,excludeItem,limit=12}={})
    candidates=matches.map(match=>match.item);
   }
   const item=candidates.find(candidate=>candidate!==excludeItem);if(!item)continue;
-  result.push({item,title:row.title,year:row.year});if(result.length>=limit)break;
+  result.push({item,title:row.title,year:row.year,...(row.poster?{poster:row.poster}:{})});if(result.length>=limit)break;
  }
  return result;
 }
