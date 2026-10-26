@@ -13,8 +13,8 @@ export function describeBridge(status, needsMedia = false) {
     message: 'Conecte R2 (CATALOG_BUCKET) e D1 (DB) no Cloudflare Pages para guardar as listas HTTP.'
   };
   if (!status.connected) return {
-    kind: 'needs-key', showKey: true,
-    message: 'Armazenamento disponível. Informe a chave para baixar a M3U no R2 e registrá-la no D1.'
+    kind: 'needs-login', showKey: false,
+    message: 'Entre na sua conta Lux ID para conectar e guardar sua biblioteca.'
   };
   if (needsMedia && !status.mediaEnabled) return {
     kind: 'catalog-only', showKey: false,

@@ -28,7 +28,6 @@ let history = [];
 let bridgeStatus = null;
 let bridgeNeeded = false;
 const bridge = createBridge({
-  getKey: () => els.bridgeKey.value.trim(),
   onStatus: message => {
     log('Ponte HTTPS', message);
     if (els.bridgeKey.value) els.bridgeKey.value = '';
@@ -109,8 +108,7 @@ async function request(url, as = 'text') {
 
   // Na presença do R2 e D1, buscamos HTTP pelo servidor e consumimos a M3U
   // servida por HTTPS; nunca reconstruímos os endereços dos canais.
-  if (isHttpCatalog && bridgeStatus?.snapshotReady &&
-      (bridge.isConnected() || bridgeStatus.connected || els.bridgeKey.value.trim())) {
+  if (isHttpCatalog && bridgeStatus?.snapshotReady) {
     const result = await bridge.snapshot(url);
     log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
       'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');

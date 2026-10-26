@@ -65,7 +65,6 @@ function homeCall(method, ...args) {
   catch (error) { console.warn('Falha isolada da vitrine Lux:', method, error); }
 }
 const bridge = createBridge({
-  getKey: () => els.bridgeKey.value.trim(),
   onStatus: message => {
     log('Ponte HTTPS', message);
     if (els.bridgeKey.value) els.bridgeKey.value = '';
@@ -150,8 +149,7 @@ async function request(url, as = 'text') {
 
   // Na presença do R2 e D1, buscamos HTTP pelo servidor e consumimos a M3U
   // servida por HTTPS; nunca reconstruímos os endereços dos canais.
-  if (isHttpCatalog && bridgeStatus?.snapshotReady &&
-      (bridge.isConnected() || bridgeStatus.connected || els.bridgeKey.value.trim())) {
+  if (isHttpCatalog && bridgeStatus?.snapshotReady) {
     const result = await bridge.snapshot(url);
     lastSnapshotId = result.catalogId || null;
     log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
@@ -571,13 +569,7 @@ async function restoreSavedLibrary() {
   }
 }
 $('restore-library')?.addEventListener('click', async () => {
-  const key = els.bridgeKey.value.trim();
   if (!savedSnapshot()) { note('Nenhuma biblioteca guardada para recuperar.', 'info'); return; }
-  if (!key) {
-    note('Informe a chave privada do gateway para restaurar a biblioteca.', 'info');
-    els.bridgeKey.focus();
-    return;
-  }
   const button = $('restore-library');
   button.disabled = true;
   button.textContent = 'Validando sessão…';
@@ -586,11 +578,11 @@ $('restore-library')?.addEventListener('click', async () => {
       method: 'POST', credentials: 'same-origin', cache: 'no-store',
       referrerPolicy: 'no-referrer',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ key })
+      body: JSON.stringify({})
     });
     els.bridgeKey.value = '';
     if (!response.ok) {
-      note('A chave não foi aceita. Confira as credenciais do gateway.', 'error');
+      note('Entre na sua conta Lux ID para restaurar sua biblioteca.', 'error');
       return;
     }
     await refreshBridgeStatus();

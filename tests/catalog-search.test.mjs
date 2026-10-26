@@ -20,19 +20,19 @@ import {readFileSync} from 'node:fs';
 import {accountApi} from '../src/account-api.js';
 import {catalogSearchApi} from '../src/catalog-search.js';
 import {connect} from '../src/bridge-core.js';
-test('construção publica índice completo no SQLite e exige as duas sessões',async()=>{
+test('construção publica índice completo no SQLite e exige sessão Lux ID',async()=>{
  const env={DB:database(),LUX_AUTH_PEPPER:'test-only-search-pepper-for-integration',LUX_ADMIN_BOOTSTRAP_PASSWORD:'test-only-search-bootstrap-password',BRIDGE_ACCESS_KEY:'test-only-search-bridge-password',BRIDGE_ALLOWED_HOSTS:'source.example'};
  for(const migration of ['0001_catalog_sources.sql','0007_catalog_search.sql'])env.DB.db.exec(readFileSync(new URL('../migrations/'+migration,import.meta.url),'utf8'));
  const req=(path,body,cookie='')=>new Request('https://lux.example'+path,{method:body?'POST':'GET',headers:{origin:'https://lux.example','content-type':'application/json',cookie},body:body?JSON.stringify(body):undefined});
  const login=await accountApi(req('/api/account/login',{identity:'admin',password:env.LUX_ADMIN_BOOTSTRAP_PASSWORD}),env);
  const accountCookie=login.headers.get('set-cookie').split(';')[0];
- const bridge=await connect(req('/api/bridge/connect',{key:env.BRIDGE_ACCESS_KEY}),env);
- assert.equal(bridge.status,200);const cookies=accountCookie+'; '+bridge.headers.get('set-cookie').split(';')[0];
+ const bridge=await connect(req('/api/bridge/connect',{},accountCookie),env);
+ assert.equal(bridge.status,200);const cookies=accountCookie;
  let content='#EXTM3U\n';for(let i=0;i<85;i++)content+='#EXTINF:-1 group-title="Filmes",Filme '+i+'\nhttps://source.example/movie/'+i+'\n';
  const bytes=encode(content);
  env.DB.db.prepare('INSERT INTO catalog_sources VALUES (?,?,?,?,?,?)').run('hash','catalog','snapshot','2026-10-17T00:00:00Z',85,bytes.length);
  let reads=0;env.CATALOG_BUCKET={get:async(key,{range})=>{reads++;assert.equal(key,'snapshot');return {arrayBuffer:async()=>bytes.slice(range.offset,range.offset+range.length).buffer}}};
- assert.equal((await catalogSearchApi(req('/api/catalog/search',{catalogId:'catalog'},accountCookie),env)).status,401);
+ assert.equal((await catalogSearchApi(req('/api/catalog/search',{catalogId:'catalog'}),env)).status,401);
  let job=await (await catalogSearchApi(req('/api/catalog/search',{catalogId:'catalog'},cookies),env)).json();
  assert.ok(job.generation);
  for(let i=0;i<10&&job.status!=='ready';i++){const r=await catalogSearchApi(req('/api/catalog/search',{generation:job.generation},cookies),env);assert.equal(r.status,200,await r.clone().text());job=await r.json()}
