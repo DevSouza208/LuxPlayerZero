@@ -21,7 +21,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
  let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
  const selectedSeasons=new Map();
- const setPhoto=(target,value)=>{target.onerror=()=>{target.hidden=true;if(target===poster)fallback.hidden=false};const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
+ const setPhoto=(target,value)=>{target.onerror=()=>{const reserve=target===poster?photo(lastOptions.fallbackPoster):'';if(reserve&&target.src!==reserve){target.src=reserve;return}target.hidden=true;if(target===poster)fallback.hidden=false};const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
  const play=entry=>{if(!entry)return;suspend();onPlay?.(entry)};
  function renderSeason(focusSelected=false){
   if(!series?.seasons?.length)return;
@@ -37,7 +37,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   for(const row of selected.episodes){
    const card=make('button','lux-full-episode-card');card.type='button';
    const visual=make('span','lux-full-episode-art');
-   const imgSrc=photo(row.item.logo);if(imgSrc){const image=make('img');image.src=imgSrc;image.alt='';image.loading='lazy';visual.append(image)}
+   const imgSrc=photo(row.item.logo)||photo(series?.poster);if(imgSrc){const image=make('img');image.src=imgSrc;image.alt='';image.loading='lazy';visual.append(image)}
    visual.append(make('span','lux-full-episode-play','▶'));
    const info=make('span','lux-full-episode-info');info.append(make('b','', 'T'+row.season+':E'+row.number));
    if(isWatched?.(row.item))info.append(make('small','','Assistido'));

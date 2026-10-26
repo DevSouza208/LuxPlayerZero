@@ -3,6 +3,7 @@
  * We do not infer missing episodes, stream URLs, season data or TMDB matches.
  * Original parsed entries remain untouched and are played by their source id.
  */
+import {safeImage} from './home-model.js';
 import {normalizeSearchText} from './media-taxonomy.js';
 const PATTERNS=[
   /\bS(?:eason)?\s*0*(\d{1,2})\s*[- ._:]*E(?:pisode)?\s*0*(\d{1,3})\b/i,
@@ -43,9 +44,10 @@ export function buildSeriesIndex(items){
     if(!key)continue;
     let group=groups.get(key);
     if(!group){
-      group={key,title:parsed.showTitle,representative:item,episodes:[],seasonMap:new Map()};
+      group={key,title:parsed.showTitle,representative:item,poster:'',episodes:[],seasonMap:new Map()};
       groups.set(key,group);
     }
+    if(!group.poster)group.poster=safeImage(item.logo);
     const row={item,season:parsed.season,number:parsed.episode,title:parsed.episodeTitle,episodeId:item.episodeId||null};
     group.episodes.push(row);
     let episodes=group.seasonMap.get(row.season);

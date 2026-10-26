@@ -51,3 +51,17 @@ test('IDs e numeração explicitamente declarados separam séries homônimas sem
  const invalid=parseM3u(source.replace('season-number="2"','season-number="999"'));
  assert.equal(buildSeriesIndex(invalid).representatives.length,2);assert.equal(buildSeriesIndex(invalid).byItemId.has(invalid[0].id),false);
 });
+
+test('série reaproveita capa de outro episódio sem mudar representante ou URLs',()=>{
+ const first={...item('a','Outside S01E01','','Séries'),logo:''};
+ const second={...item('b','Outside S01E02','','Séries'),logo:'https://image.tmdb.org/t/p/w500/provider.jpg'};
+ const other={...item('c','Outra Série S01E01','','Séries'),logo:'https://example.com/other.jpg'};
+ const rows=[first,second,other],before=structuredClone(rows),index=buildSeriesIndex(rows);
+ assert.equal(index.groups[0].poster,second.logo);assert.equal(index.byItemId.get(first.id).poster,second.logo);
+ assert.equal(index.representatives[0],first);assert.equal(index.groups[1].poster,other.logo);
+ assert.deepEqual(rows,before);
+});
+test('imagem insegura não impede aproveitar uma capa HTTPS posterior',()=>{
+ const index=buildSeriesIndex([{...item('a','Série S1E1'),logo:'javascript:alert(1)'},{...item('b','Série S1E2'),logo:'https://example.com/poster.jpg'}]);
+ assert.equal(index.groups[0].poster,'https://example.com/poster.jpg');
+});
