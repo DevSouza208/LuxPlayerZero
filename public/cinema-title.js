@@ -23,7 +23,7 @@ export function deriveCatalogPresentation(raw, suppliedYear = null) {
   if (/\[cinema\]/i.test(original)) markers.push('Cinema');
 
   let title = original.replace(decoration, '').replace(qualityPrefix, '');
-  title = title.replace(presentationToken, ' ').replace(/\s+/g, ' ').trim();
+  title = title.replace(presentationToken, ' ').replace(/\b(?:dublad[oa]s?|dub)\b/giu, ' ').replace(/[\[(]\s*[\])]/g, ' ').replace(/\s+/g, ' ').replace(/^[\s|:\-–—]+|[\s|:\-–—]+$/g,'').trim();
   // Eliminar qualidade/datas SOMENTE como sufixos com separadores claros.
   for (let i = 0; i < 3; i++) title = title.replace(qualityTail, '').trim();
   title = title.replace(endDate, '').trim();

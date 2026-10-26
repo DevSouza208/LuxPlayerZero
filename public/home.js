@@ -669,7 +669,7 @@ export function createHome({ play } = {}) {
     appendText(info, 'span', 'media-group',
       [item.normalizedGroup || item.group || (category === 'tv' ? 'Ao vivo' : 'Biblioteca'),
         item.catalogYear].filter(Boolean).join(' · '));
-    const tags=(item.catalogTags||[]).slice(0,3);
+    const tags=(item.catalogTags||[]).filter(tag=>tag!=='Dublado').slice(0,3);
     if(tags.length){
       const strip=appendText(info,'div','lux-tag-strip','');
       for(const tag of tags){
@@ -874,7 +874,7 @@ export function createHome({ play } = {}) {
     const tagRoot=$('details-tags');
     if(tagRoot){
       tagRoot.replaceChildren();
-      for(const tag of (item.catalogTags||[]).slice(0,12)){
+      for(const tag of (item.catalogTags||[]).filter(tag=>tag!=='Dublado').slice(0,12)){
         const badge=appendText(tagRoot,'span','lux-media-tag',tag),color=tagColor(tag);
         badge.style.color=color.solid;
         badge.style.background=color.soft;
