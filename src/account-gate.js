@@ -9,7 +9,7 @@ export async function accountGate(request, env) {
   // Public title metadata contains no account/catalog data; lookup keeps its own
   // same-origin validation, bounded queries, D1 cache and daily quota.
   if((request.method==='GET'&&path==='/api/metadata/status')||
-     (request.method==='POST'&&path==='/api/metadata/tmdb'))return null;
+     (request.method==='POST'&&['/api/metadata/tmdb','/api/metadata/details'].includes(path)))return null;
   const cinema=/^\/(cinema(?:\/|\.html|$)|player\.html$)/.test(path);
   const privatePage=cinema||path.startsWith('/guide/')||/^\/account(?:\/|\.html|$)/.test(path);
   const privateApi=path.startsWith('/api/metadata/');

@@ -16,7 +16,7 @@ const movie = (title, year = null) => validateQuery({ type: 'movie', title, year
 
 test('TMDB é o padrão de imagens, sinopses continuam opcionais, e a M3U pode ser escolhida', () => {
   assert.equal(DEFAULT_SETTINGS.imageEngine, 'tmdb');
-  assert.equal(DEFAULT_SETTINGS.summaryEngine, 'off');
+  assert.equal(DEFAULT_SETTINGS.summaryEngine, 'tmdb');
   assert.deepEqual([normalizeSettings({ imageEngine: 'playlist' }).imageEngine,
     normalizeSettings({ summaryEngine: 'tmdb' }).summaryEngine], ['playlist','tmdb']);
   assert.equal(normalizeSettings({ imageEngine: 'javascript:wrong' }).imageEngine, 'tmdb');

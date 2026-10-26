@@ -19,7 +19,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   railOrder: 'personal',
   density: 'comfortable',
   imageEngine: 'tmdb',
-  summaryEngine: 'off'
+  summaryEngine: 'tmdb'
 });
 
 export function normalizeSettings(value = {}) {

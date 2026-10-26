@@ -1,3 +1,4 @@
+import {detailFacts} from './tmdb-rich-view.js';
 import {isGuestMode,createGuestStore} from './guest-mode.js';
 import {relationIndex,resolveRelations} from './catalog-relations.js';
 import {createQuickGuide} from './quick-guide.js';
@@ -91,15 +92,23 @@ export function createHome({ play } = {}) {
   const MAX_AUTO_ENRICH = 500;
   const MAX_SIMULTANEOUS_TMDB = 3;
 
+  const richCache=new Map(),richPending=new Map();
+  async function extendedMetadata(data,target){
+    const type=queryFor(target)?.type;if(config.summaryEngine==='off'||data?.status!=='matched'||!data.tmdbId||!type)return null;
+    const key=type+':'+data.tmdbId;
+    if(richCache.has(key))return richCache.get(key);
+    if(richPending.has(key))return richPending.get(key);
+    const promise=fetch('/api/metadata/details',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({tmdbId:data.tmdbId,type}),signal:AbortSignal.timeout(15000)})
+      .then(async response=>response.ok?response.json():null).catch(()=>null).then(details=>{richCache.set(key,details);return details}).finally(()=>richPending.delete(key));
+    richPending.set(key,promise);return promise;
+  }
   const fullDetails=createFullDetails({
     onPlay:entry=>start(entry),
     onRelated:showDetails,
     metadataFor:entry=>metadataFor(entry),
     extendedFor:async (data,target)=>{
-      if(config.summaryEngine!=='tmdb'||data?.status!=='matched'||!data.tmdbId)return null;
-      const response=await fetch('/api/metadata/details',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({tmdbId:data.tmdbId,type:queryFor(target)?.type}),signal:AbortSignal.timeout(8000)});
-      if(!response.ok)return null;
-      const details=await response.json(),index=queryFor(target)?.type==='movie'
+      const details=await extendedMetadata(data,target);if(!details)return null;
+      const index=queryFor(target)?.type==='movie'
         ?(movieRelations??=relationIndex(showcase.catalogs.movies))
         :(seriesRelations??=relationIndex(seriesIndex.representatives,'series'));
       const options={excludeId:data.tmdbId,excludeItem:target};
@@ -713,6 +722,7 @@ export function createHome({ play } = {}) {
     return section;
   }
 
+  $('hero-details')?.addEventListener('click',()=>showDetails(heroItem));
   function renderHero() {
     const ordered = config.heroMode === 'tv' ? ['tv','movies','series'] :
       config.heroMode === 'series' ? ['series','movies','tv'] : ['movies','series','tv'];
@@ -729,6 +739,17 @@ export function createHome({ play } = {}) {
     const artwork = heroItem && providerArtwork(heroItem);
     const data = cachedMetadata(heroItem);
     const enriched = data?.status === 'matched' && config.imageEngine !== 'playlist';
+    const richKey=data?.tmdbId?queryFor(heroItem)?.type+':'+data.tmdbId:'';
+    const rich=richCache.get(richKey);
+    const description=rich?.overview||data?.overview;
+    if(description){$('hero-subtitle').textContent=description;$('hero-subtitle').classList.add('hero-overview');}
+    else $('hero-subtitle').classList.remove('hero-overview');
+    const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.textContent=values.join(' · ');facts.hidden=!values.length;}
+    const tagline=$('hero-tagline');if(tagline){tagline.textContent=rich?.tagline||'';tagline.hidden=!rich?.tagline;}
+    if(data?.status==='matched'&&!richCache.has(richKey)&&!richPending.has(richKey)){
+      const selected=heroItem;void extendedMetadata(data,selected).then(()=>{if(heroItem===selected)renderHero()});
+    }
+    if($('hero-details'))$('hero-details').hidden=!heroItem;
     const backdrop = safeImage(config.heroBackdrop);
     const heroArt = $('hero-art');
     // Logos de canal são pequenas e quadradas; nunca esticá-las como hero panorâmico.
