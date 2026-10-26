@@ -285,3 +285,18 @@ test('dublado é removido do título antes da identificação sem alterar a font
  const before=JSON.stringify(item),query=tmdbQueryForItem(item,'movies');
  assert.equal(query.title,'Duna');assert.equal(query.year,2021);assert.equal(JSON.stringify(item),before);
 });
+
+ test('novas importações limpam áudio e preservam as tags e a fonte',async()=>{
+ const {presentationForEntry}=await import('../public/cinema-title.js');
+ for(const audio of ['LEGENDADO','LEG','DUBLADO','DUB']){
+  const source={name:`Duna (2021) - ${audio}`,url:'https://source.example/movie/1',group:'FILMES'};
+  const original=JSON.stringify(source);
+  const entry={...source,...presentationForEntry(source)};
+  assert.equal(entry.displayName,'Duna');
+  assert.equal(entry.catalogYear,2021);
+  assert.ok(entry.catalogTags.includes(audio.startsWith('D')?'Dublado':'Legendado'));
+  assert.equal(tmdbQueryForItem(entry,'movies').title,'Duna');
+  assert.equal(JSON.stringify(source),original);
+  assert.deepEqual(presentationForEntry(source),presentationForEntry(source));
+ }
+});
