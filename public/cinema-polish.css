@@ -99,3 +99,12 @@
 .restore-library-panel button{padding:11px 12px;min-height:43px;border:1px solid #a677d6;border-radius:8px;background:linear-gradient(115deg,#7e3dc7,#a473dd);color:#fff;font:700 12px 'Outfit',sans-serif}
 .restore-library-panel button:hover{filter:brightness(1.09)}
 .restore-library-panel button:disabled{opacity:.55;cursor:wait}
+
+/* Cursor nativo: acompanha o mouse sem loops de animação ou atraso. */
+@media (hover:hover) and (pointer:fine){
+  html,body{cursor:url('/assets/lux-cursor.svg') 7 6,auto}
+  a,button,label[for],select,summary,[role="button"],.upload{cursor:url('/assets/lux-cursor-active.svg') 7 6,pointer}
+  input,textarea,[contenteditable="true"]{cursor:text}
+  button:disabled,[aria-disabled="true"]{cursor:not-allowed}
+  video,video *{cursor:auto}
+}
