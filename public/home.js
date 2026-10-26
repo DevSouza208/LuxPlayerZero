@@ -311,6 +311,9 @@ export function createHome({ play } = {}) {
   function keyForQuery(query) {
     return query ? [query.type, query.title.toLocaleLowerCase('pt-BR'), query.year || '', query.tmdbId || ''].join('|') : '';
   }
+  function providerArtwork(item) {
+    return safeImage(item?.logo) || seriesIndex.byItemId.get(item?.id)?.poster || '';
+  }
   function cachedMetadata(item) {
     const query = queryFor(item);
     return query ? tmdbResolved.get(keyForQuery(query)) || null : null;
@@ -605,7 +608,7 @@ export function createHome({ play } = {}) {
     visual.className = 'media-visual';
     visual.dataset.details = item.id;
     visual.setAttribute('aria-label', 'Ver detalhes de ' + titleForDisplay(item));
-    const image = chooseArtwork(safeImage(item.logo), cachedMetadata(item), config.imageEngine);
+    const image = chooseArtwork(providerArtwork(item), cachedMetadata(item), config.imageEngine);
     if (image) {
       const img = document.createElement('img');
       img.src = image;
@@ -613,7 +616,11 @@ export function createHome({ play } = {}) {
       img.loading = 'lazy';
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
-      img.addEventListener('error', () => img.remove(), { once: true });
+      img.addEventListener('error', () => {
+        const reserve=providerArtwork(item);
+        if(reserve && img.src!==reserve){img.src=reserve;return;}
+        img.remove();
+      });
       visual.append(img);
     }
     const monogram = document.createElement('span');
@@ -719,7 +726,7 @@ export function createHome({ play } = {}) {
     $('hero-category').textContent = heroItem ? 'SELECIONADO PARA VOCÊ' : 'BEM-VINDO AO SEU UNIVERSO';
     // O hero mantém o cenário cinematográfico; logos pequenos ficam em um cartão próprio.
     const poster = $('hero-poster');
-    const artwork = heroItem && safeImage(heroItem.logo);
+    const artwork = heroItem && providerArtwork(heroItem);
     const data = cachedMetadata(heroItem);
     const enriched = data?.status === 'matched' && config.imageEngine !== 'playlist';
     const backdrop = safeImage(config.heroBackdrop);
@@ -818,7 +825,8 @@ export function createHome({ play } = {}) {
       const found=role==='series'?seriesIndex.byItemId.get(item.id):null;
       const metadata=cachedMetadata(item);
       fullDetails.open(item,{series:found,
-        poster:metadata?.poster||safeImage(item.logo),
+        poster:chooseArtwork(providerArtwork(item),metadata,config.imageEngine),
+        fallbackPoster:providerArtwork(item),
         backdrop:metadata?.backdrop||''});
       return;
     }
@@ -1060,7 +1068,7 @@ export function createHome({ play } = {}) {
         (entry?.displayName||entry?.name||'');
     },
     resumeDetails(){return fullDetails.resume()},
-    backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||entry?.logo)},
+    backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||providerArtwork(entry))},
     setItems(next) {
       quickGuide.select(null);continuation.cancel();
       // Descarta buscas automáticas pendentes da biblioteca anterior.
