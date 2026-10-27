@@ -184,3 +184,4 @@
 .lux-player-modal-back span{font:500 14px 'Outfit',sans-serif;letter-spacing:0}.lux-player-modal-bar{padding-top:max(16px,env(safe-area-inset-top))}
 @media(max-width:600px),(max-height:480px){.lux-video-episodes,.lux-video-tracks{width:44px;min-width:44px;padding:10px;border:0;background:transparent}.lux-video-episodes span,.lux-video-tracks span{display:none}}
 @media(max-width:600px){.lux-player-modal-bar{padding-top:max(12px,env(safe-area-inset-top))}}
+.lux-video-episodes,.lux-video-tracks{min-height:44px}
