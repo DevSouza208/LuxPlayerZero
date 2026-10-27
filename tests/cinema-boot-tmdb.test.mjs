@@ -35,8 +35,10 @@ test('Consultas TMDB apenas para títulos visíveis e com limite de concorrênci
   const home = file('home.js');
   assert.ok(home.includes('const MAX_AUTO_ENRICH = 500;'));
   assert.ok(home.includes('const MAX_SIMULTANEOUS_TMDB = 3;'));
-  assert.ok(home.includes('showcase.rails.movies.slice(0, 7)'));
-  assert.ok(home.includes('seriesIndex.representatives.slice(0, 7)'));
+  assert.ok(home.includes('new IntersectionObserver'));
+  assert.ok(home.includes('entry.isIntersecting'));
+  assert.ok(!home.includes('prepareInitialArtwork'));
+  assert.ok(!file('cinema-app.js').includes("await homeCall('prepareInitialArtwork')"));
   assert.ok(home.includes("if (art && needArt && data.backdrop) art.src = data.backdrop"));
   const html = file('cinema.html');
   assert.ok(html.includes('Apenas imagens M3U · TMDB desativado'));
