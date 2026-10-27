@@ -192,6 +192,7 @@
 @media(max-width:360px){
   .auth-layout .login-side{padding-left:18px;padding-right:18px}
   .auth-layout .brand-lockup{max-width:140px}
+  .auth-layout~.lux-legal-links{font-size:10px;gap:0 4px}
   .auth-layout .field-label{align-items:baseline;gap:6px}
 }
 @media(max-width:760px) and (orientation:landscape){
