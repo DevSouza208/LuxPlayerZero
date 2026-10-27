@@ -12,6 +12,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
   <script type="module" src="/app.js"></script>
+<link rel="stylesheet" href="/lux-icons.css">
 </head>
 <body>
 <div class="shell">
@@ -23,9 +24,9 @@
 
     <nav class="side-nav" aria-label="Seções do player">
       <span class="nav-caption">EXPLORAR</span>
-      <a class="nav-link active" href="#ao-vivo" aria-current="page"><span class="nav-icon">▣</span> TV ao vivo <span class="nav-active-dot"></span></a>
-      <a class="nav-link" href="#biblioteca"><span class="nav-icon">▤</span> Biblioteca</a>
-      <a class="nav-link" href="#minha-fonte"><span class="nav-icon">⌁</span> Minhas fontes</a>
+      <a class="nav-link active" href="#ao-vivo" aria-current="page"><span class="nav-icon"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span> TV ao vivo <span class="nav-active-dot"></span></a>
+      <a class="nav-link" href="#biblioteca"><span class="nav-icon"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span> Biblioteca</a>
+      <a class="nav-link" href="#minha-fonte"><span class="nav-icon"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span> Minhas fontes</a>
     </nav>
 
     <section id="minha-fonte" class="source-card" aria-label="Gerenciar fonte de conteúdo">
@@ -50,10 +51,10 @@
           <label for="xc-pass">SENHA</label>
           <input id="xc-pass" type="password" autocomplete="new-password">
         </div>
-        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
+        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></button>
         <div id="file-fields" hidden>
           <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
-          <label for="m3u-file" class="upload">Selecionar arquivo .m3u / .txt</label>
+          <label for="m3u-file" class="upload"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Selecionar arquivo .m3u / .txt</span></label>
           <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
         </div>
       </form>
@@ -64,7 +65,7 @@
   <main class="main" id="ao-vivo">
     <header class="topbar">
       <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
-      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true">↗</span></a></div>
+      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></a></div>
     </header>
 
     <div id="message" class="message" role="status" aria-live="polite">Conecte uma fonte para começar a assistir.</div>
@@ -73,16 +74,16 @@
       <div class="player-column">
         <div class="section-head"><div><span class="eyebrow">SUA TELA</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
         <div class="video-wrap">
-          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
+          <div id="idle-stage" class="idle-stage"><div class="play-orbit"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
           <video id="video" controls playsinline preload="none" hidden></video>
-          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
+          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
         </div>
         <div class="now-playing"><div><span class="eyebrow">EM REPRODUÇÃO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
         <p class="disclaimer">O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.</p>
       </div>
 
       <section class="library" id="biblioteca" aria-label="Biblioteca de canais">
-        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual">Limpar</button></div>
+        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg><span>Limpar</span></button></div>
         <div class="list-tools"><input id="search" type="search" placeholder="Buscar canais..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">TV</option><option value="radio">Rádio</option></select></div>
         <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
       </section>

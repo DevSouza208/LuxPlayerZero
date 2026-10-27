@@ -1,3 +1,4 @@
+import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createPlayerControls} from './player-controls.js';
 import {createPlayerModal} from './player-modal.js';
 import {createCatalogCache} from './catalog-cache.js';
@@ -282,7 +283,7 @@ function render() {
     btn.title = titleForDisplay(item);
     const symbol = document.createElement('span');
     symbol.className = 'channel-icon';
-    symbol.textContent = item.kind === 'radio' ? '♫' : '▶';
+    setIcon(symbol,item.kind === 'radio'?'music':'play');
     const label = document.createElement('span');
     label.className = 'channel-content';
     const name = document.createElement('span');
@@ -294,7 +295,7 @@ function render() {
     label.append(name, group);
     const arrow = document.createElement('span');
     arrow.className = 'channel-arrow';
-    arrow.textContent = '↗';
+    setIcon(arrow,'arrow-up-right');
     btn.append(symbol, label, arrow);
     btn.addEventListener('click', () => { void playItem(item); });
     fragment.append(btn);
@@ -528,7 +529,7 @@ async function importSource(event) {
   } finally {
     if (generation === sourceLoad) {
       els.connect.disabled = false;
-      els.connect.innerHTML = 'Conectar fonte <span aria-hidden="true">↗</span>';
+      setIconLabel(els.connect,'arrow-up-right','Conectar fonte');
     }
   }
 }
@@ -653,7 +654,7 @@ $('restore-library')?.addEventListener('click', async () => {
   } finally {
     els.bridgeKey.value = '';
     button.disabled = false;
-    button.innerHTML = '↺ &nbsp; Reconectar e restaurar biblioteca';
+    setIconLabel(button,'refresh-cw','Reconectar e restaurar biblioteca');
   }
 });
 async function saveAccountSource(source,id) {
