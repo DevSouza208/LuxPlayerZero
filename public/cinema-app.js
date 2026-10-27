@@ -165,7 +165,7 @@ async function request(url, as = 'text') {
     return bridge.importPlaylist(url);
   }
   if (isHttpCatalog && bridgeStatus?.snapshotReady) {
-    const result = await bridge.snapshot(url);
+    const result = await bridge.snapshot(url, { fresh: true });
     lastSnapshotId = result.catalogId || null;
     log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
       'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');
@@ -192,7 +192,7 @@ async function request(url, as = 'text') {
       updateBridgePanel();
 
       if (isHttpCatalog && bridgeStatus?.snapshotReady) {
-        const result = await bridge.snapshot(url);
+        const result = await bridge.snapshot(url, { fresh: true });
         lastSnapshotId = result.catalogId || null;
         log('Catálogo', result.cached ? 'Última M3U recuperada do R2' :
           'M3U guardada no R2 e registrada no D1 (' + result.itemCount + ' itens)');

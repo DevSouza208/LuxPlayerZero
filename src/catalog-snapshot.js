@@ -64,7 +64,7 @@ function savedResult(row, cached = false) {
  * na memória do Worker. Mantém o arquivo original e conta os #EXTINF.
  * Cada parte, exceto a última, atende ao mínimo de 5 MiB do R2.
  */
-async function streamCatalogToR2(body, bucket, fileKey) {
+async function streamCatalogToR2(body, bucket, fileKey, expectedBytes = 0) {
   if (!body) throw new Error('O fornecedor devolveu uma resposta vazia.');
   const upload = await bucket.createMultipartUpload(fileKey, {
     httpMetadata: { contentType: 'audio/x-mpegurl; charset=utf-8', cacheControl: 'private, no-store' }
@@ -131,6 +131,7 @@ async function streamCatalogToR2(body, bucket, fileKey) {
         }
       }
     }
+    if (expectedBytes > 0 && bytes !== expectedBytes) throw new Error('O fornecedor devolveu um download incompleto. Tente atualizar a lista novamente.');
     inspectText(decoder.decode());
     if (lineTail) inspectLine(lineTail);
     if (!firstLine || itemCount === 0) {
@@ -173,9 +174,11 @@ export async function syncCatalog(request, env, fetcher = fetch) {
   }
 
   let source;
+  let requireFresh = false;
   try {
     const body = await request.json();
     source = permittedUrl(body?.url, env).href;
+    requireFresh = body?.requireFresh === true;
   } catch {
     return apiError(400, 'Endereço inválido ou servidor não autorizado.');
   }
@@ -205,9 +208,10 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     if (Number(response.headers.get('content-length') || 0) > MAX_CATALOG_BYTES) {
       throw new Error('A playlist ultrapassa o limite de 256 MB.');
     }
-    imported = await streamCatalogToR2(response.body, env.CATALOG_BUCKET, fileKey);
+    const expectedBytes = !response.headers.get('content-encoding') ? Number(response.headers.get('content-length') || 0) : 0;
+    imported = await streamCatalogToR2(response.body, env.CATALOG_BUCKET, fileKey, expectedBytes);
   } catch (error) {
-    const cached = await latestAvailable(env, old);
+    const cached = requireFresh ? null : await latestAvailable(env, old);
     if (cached) return cached;
     const message = String(error?.message || '');
     if (/ultrapassa o limite de 256 MB/.test(message)) {

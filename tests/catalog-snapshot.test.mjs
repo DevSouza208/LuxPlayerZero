@@ -233,3 +233,18 @@ test('playlist maior que 20 MiB é aceita em partes até 256 MiB', async () => {
   assert.equal(data.itemCount,repeat);
   assert.equal([...objects.values()][0],content);
 });
+
+test('reconexão explícita não apresenta snapshot antigo como download novo',async()=>{
+ const {env,objects}=mockResources(),c=await cookie(env);
+ const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ const failed=await syncCatalog(req('sync','POST',{url:original,requireFresh:true},c),env,async()=>new Response('erro',{status:502}));
+ assert.equal(failed.status,502);assert.equal(objects.size,1);
+ const saved=await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env);
+ assert.equal(await saved.text(),m3u);
+});
+test('download truncado não substitui a playlist inteira no R2',async()=>{
+ const {env,objects}=mockResources(),c=await cookie(env);
+ await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock);
+ const failed=await syncCatalog(req('sync','POST',{url:original,requireFresh:true},c),env,async()=>new Response(m3u,{headers:{'content-length':String(new TextEncoder().encode(m3u).length+1000)}}));
+ assert.equal(failed.status,502);assert.match((await failed.json()).error,/incompleto/);assert.equal(objects.size,1);
+});

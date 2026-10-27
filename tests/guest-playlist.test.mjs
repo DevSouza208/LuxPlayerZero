@@ -41,3 +41,8 @@ test('cliente de importação não solicita connect nem envia chave',async()=>{
  assert.deepEqual(calls,[{path:'/api/bridge/import',body:{url:'http://source.example/list'}}]);assert.equal(bridge.isConnected(),false);
  }finally{globalThis.fetch=original}
 });
+
+test('download truncado no modo visitante falha em vez de salvar lista parcial',async()=>{
+ const response=await importGuestPlaylist(req(),env,async()=>new Response(m3u,{headers:{'content-length':String(new TextEncoder().encode(m3u).length+100)}}));
+ await assert.rejects(()=>response.text(),/concluir a importação/);
+});
