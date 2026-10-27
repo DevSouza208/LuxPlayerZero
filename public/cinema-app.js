@@ -699,7 +699,6 @@ void (async () => {
     bootProgress('Não foi possível restaurar automaticamente.');
   } finally {
     // Somente mostra a Home após tentar a restauração, nunca o catálogo em branco primeiro.
-    bootProgress('Preparando as capas da sua biblioteca…');
-    try { await homeCall('prepareInitialArtwork'); } finally { finishBoot(); }
+    finishBoot();
   }
 })();
