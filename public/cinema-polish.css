@@ -227,3 +227,16 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
   .cinema-shell .now-playing h3{max-width:100%}
   .cinema-shell .now-playing .state-pill{flex-shrink:0;font-size:9px}
 }
+
+/* Phone navigation stays within thumb reach, above the home indicator. */
+@media(max-width:760px){
+  body:has(.cinema-shell){padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+  html:has(.cinema-shell){scroll-padding-top:calc(70px + env(safe-area-inset-top,0px));scroll-padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+  .cinema-shell .cinema-header{background:#0b090ff5;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .cinema-shell .cinema-nav{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:35;height:calc(64px + env(safe-area-inset-bottom,0px));padding:5px max(6px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));border:0;border-top:1px solid #ffffff18;border-radius:0;background:#0c0913f5;box-shadow:0 -8px 28px #0005;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  .cinema-shell .cinema-nav-link{min-height:52px;border-radius:12px;gap:4px;color:#b2aabb}
+  .cinema-shell .cinema-nav-link.is-active{color:#d8c3ff;background:#b38aff15;box-shadow:none}
+  .cinema-shell .feature-hero{margin-top:0}
+  .cinema-shell.is-browsing .browse-screen{margin-top:0}
+  .cinema-shell .home-rails{scroll-margin-top:70px}
+}
