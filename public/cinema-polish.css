@@ -140,3 +140,40 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
   body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for],.upload){transition:none}
   body :is(button,a[href],[role="button"]):hover{transform:none}
 }
+
+/* Mobile cinema: artwork, complete titles and compact navigation. */
+@media(max-width:760px){
+  .cinema-shell .cinema-header{height:calc(58px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 64px 0 12px;gap:8px}
+  .cinema-shell .cinema-brand-word{display:none}
+  .cinema-shell .cinema-brand-mark{width:32px;height:32px}
+  .cinema-shell .cinema-header-actions{gap:2px}
+  .cinema-shell .cinema-icon-button,.cinema-shell .cinema-search{width:44px;min-width:44px;height:44px}
+  .cinema-shell .cinema-search{padding:0 11px}
+  .cinema-shell .cinema-search input{font-size:16px}
+  .cinema-shell .cinema-search:focus-within{left:12px;right:12px;top:calc(7px + env(safe-area-inset-top,0px));width:auto}
+  .cinema-shell .lux-vod-launch{width:44px;min-width:44px;height:44px;padding:10px;gap:0;font-size:0}
+  .cinema-shell .lux-vod-launch svg{width:20px;height:20px}
+  .cinema-shell .cinema-nav{top:calc(58px + env(safe-area-inset-top,0px));height:56px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:3px 6px;overflow:visible}
+  .cinema-shell .cinema-nav-link{flex-direction:column;gap:3px;padding:4px 0;min-width:0;min-height:48px;font-size:10px;border-radius:10px}
+  .cinema-shell .cinema-nav-link svg{width:19px;height:19px}
+  .cinema-shell .cinema-nav-symbol{display:flex}
+  body .account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;bottom:auto;z-index:36;width:44px;height:44px;min-height:44px;padding:11px;margin:0;border:1px solid #b38aff40;border-radius:12px;background:#19121f}
+  body .account-link span{display:none}
+  .cinema-shell .feature-hero{height:auto;min-height:450px;max-height:none;margin-top:56px;overflow:hidden}
+  .cinema-shell .hero-content{height:auto;width:auto;max-width:none;margin:0;padding:140px 20px 24px;justify-content:flex-end}
+  .cinema-shell .hero-content>*{flex-shrink:0}
+  .cinema-shell .hero-poster,.cinema-shell .hero-edition{display:none}
+  .cinema-shell .hero-kicker{font-size:9px;letter-spacing:1.4px}
+  .cinema-shell .hero-content h1{display:block;max-width:100%;height:auto;max-height:none;overflow:visible;white-space:normal;font-size:clamp(28px,8vw,36px);line-height:1.12;margin:12px 0;overflow-wrap:anywhere}
+  .cinema-shell #hero-subtitle{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;max-height:none;margin:0}
+  .cinema-shell .hero-facts{font-size:11px;line-height:1.6;margin-top:10px;overflow-wrap:anywhere}
+  .cinema-shell .hero-tagline{font-size:12px;line-height:1.5}
+  .cinema-shell .hero-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:18px}
+  .cinema-shell .hero-actions .hero-primary,.cinema-shell .hero-actions .hero-secondary{min-width:0;min-height:44px;padding:10px 8px;font-size:12px;gap:6px}
+  .cinema-shell .hero-actions svg{width:18px;height:18px;flex-shrink:0}
+  .cinema-shell .hero-meta{margin-top:16px;font-size:10px;line-height:1.5}
+  .cinema-shell .hero-art{opacity:.55;object-position:center top}
+  .cinema-shell .hero-overlay{background:linear-gradient(0deg,#060609 0%,#060609ed 25%,#060609a8 65%,#06060920)}
+  .cinema-shell .lux-last-channel{margin:8px 0 20px;font-size:12px;line-height:1.5;padding:12px;white-space:normal}
+  .cinema-shell.is-browsing .browse-screen{margin-top:56px}
+}
