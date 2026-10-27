@@ -1,3 +1,4 @@
+import {createImagePreloader} from './artwork-preload.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
 import {detailFacts} from './tmdb-rich-view.js';
 import {isGuestMode,createGuestStore} from './guest-mode.js';
@@ -86,6 +87,10 @@ export function createHome({ play } = {}) {
   const tmdbPending = new Map();
   const tmdbQueued = new Set();
   const tmdbQueue = [];
+  const preparation = new Map();
+  const preloadImage = createImagePreloader();
+  let artworkRenderFrame = null;
+  let initialArtworkPromise = null;
   let tmdbCalls = 0;
   let autoEnriched = 0;
   let tmdbInFlight = 0;
@@ -334,7 +339,7 @@ export function createHome({ play } = {}) {
   function artworkFor(item) {
     return item?catalogArtwork(providerArtwork(item),cachedMetadata(item),config.imageEngine,classifyRole(item)):'';
   }
-  async function metadataFor(item) {
+  async function metadataFor(item, {preload=false} = {}) {
     const query = queryFor(item);
     if (!query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
@@ -350,7 +355,7 @@ export function createHome({ play } = {}) {
     if (tmdbCalls >= MAX_TMDB_CALLS) return null;
     tmdbCalls++;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 35000);
+    const timeout = setTimeout(() => controller.abort(), preload?8000:35000);
     const promise = requestTmdb(query, fetch, controller.signal)
       .catch(() => null)
       .then(data => {
@@ -364,32 +369,69 @@ export function createHome({ play } = {}) {
     tmdbPending.set(key, promise);
     return promise;
   }
+  function scheduleArtworkRender() {
+    if(artworkRenderFrame!==null)return;
+    artworkRenderFrame=requestAnimationFrame(()=>{artworkRenderFrame=null;render()});
+  }
+  async function warmItemImages(item) {
+    const data=cachedMetadata(item);
+    await Promise.all([preloadImage(artworkFor(item)),preloadImage(item===heroItem?safeImage(data?.backdrop):'')]);
+  }
   function pumpTmdbQueue() {
     while (tmdbInFlight < MAX_SIMULTANEOUS_TMDB && tmdbQueue.length) {
-      const { item, epoch } = tmdbQueue.shift();
-      if (epoch !== tmdbEpoch) continue;
+      const { item, epoch, resolve } = tmdbQueue.shift();
+      if (epoch !== tmdbEpoch) {resolve?.(null);continue;}
       tmdbInFlight++;
-      void metadataFor(item).then(data => {
-        if (!data || epoch !== tmdbEpoch) return;
-        const index = Number(String(item.id || '').slice(1));
-        if (items[index] === item) render();
-      }).finally(() => {
-        tmdbInFlight--;
-        pumpTmdbQueue();
-      });
+      void metadataFor(item,{preload:true}).then(async data => {
+        if(epoch!==tmdbEpoch)return null;
+        await warmItemImages(item);
+        const index=Number(String(item.id||'').slice(1));
+        if(items[index]===item)scheduleArtworkRender();
+        return data;
+      }).catch(()=>null).then(resolve).finally(()=>{tmdbInFlight--;pumpTmdbQueue()});
     }
   }
-  function autoArtRequest(item) {
-    if (!item || autoEnriched >= MAX_AUTO_ENRICH ||
-      config.imageEngine === 'playlist') return;
-    const query = queryFor(item);
-    if (!query) return;
-    const key = keyForQuery(query);
-    if (tmdbQueued.has(key) || tmdbPending.has(key) || tmdbResolved.has(key)) return;
-    tmdbQueued.add(key);
-    autoEnriched++;
-    tmdbQueue.push({ item, epoch: tmdbEpoch });
-    pumpTmdbQueue();
+  function autoArtRequest(item,{priority=false}={}) {
+    if(!item)return Promise.resolve(null);
+    const role=classifyRole(item);
+    if(role==='tv'||config.imageEngine==='playlist')return preloadImage(providerArtwork(item));
+    const query=queryFor(item);if(!query)return Promise.resolve(null);
+    const key=keyForQuery(query);
+    if(tmdbResolved.has(key))return warmItemImages(item);
+    if(preparation.has(key)){
+      if(priority){const index=tmdbQueue.findIndex(task=>keyForQuery(queryFor(task.item))===key);if(index>0)tmdbQueue.unshift(...tmdbQueue.splice(index,1));}
+      return preparation.get(key);
+    }
+    if(autoEnriched>=MAX_AUTO_ENRICH)return Promise.resolve(null);
+    tmdbQueued.add(key);autoEnriched++;
+    let resolve;const promise=new Promise(done=>{resolve=done});preparation.set(key,promise);
+    const task={item,epoch:tmdbEpoch,resolve};
+    if(priority){const index=tmdbQueue.findIndex(task=>!task.priority);task.priority=true;if(index<0)tmdbQueue.push(task);else tmdbQueue.splice(index,0,task);}else tmdbQueue.push(task);
+    pumpTmdbQueue();return promise;
+  }
+  function prepareItems(rows,options={}) {
+    return Promise.all([...new Set(rows.filter(Boolean))].map(item=>autoArtRequest(item,options)));
+  }
+  function prepareInitialArtwork() {
+    if(initialArtworkPromise)return initialArtworkPromise;
+    if(!items.length)return Promise.resolve();
+    const epoch=tmdbEpoch;
+    const firstPages=['tv','movies','series'].map(role=>browsePageData(browseSource(role),{page:1}).entries);
+    const homeItems=[heroItem,...showcase.rails.movies,...seriesIndex.representatives.slice(0,16),...tvIndex.representatives.slice(0,16),...recent.map(row=>itemFromKey(row.key)),...favorites.map(row=>itemFromKey(row.key))];
+    const all=prepareItems([...homeItems,...firstPages.flat()],{priority:true});
+    initialArtworkPromise=new Promise(resolve=>{
+      const timer=setTimeout(resolve,60000);
+      all.finally(()=>{clearTimeout(timer);resolve()});
+    }).then(()=>{
+      if(epoch!==tmdbEpoch)return;
+      render();
+      // Depois das primeiras páginas, prepara somente a página seguinte de cada seção.
+      for(const role of ['tv','movies','series']){
+        const source=browseSource(role),page=browsePageData(source,{page:2});
+        if(page.page===2)void prepareItems(page.entries);
+      }
+    });
+    return initialArtworkPromise;
   }
   function itemFromKey(key) { return showcase.matches.get(key); }
   function savedKeys() { return [...new Set([...favorites, ...recent].map(x => x.key))]; }
@@ -430,6 +472,10 @@ export function createHome({ play } = {}) {
     return showcase.catalogs?.[role] || [];
   }
   let sectionTransitionTimer;
+  let sectionMinimumDone=true,sectionArtworkDone=true;
+  let preparedBrowseKey='';
+  let sectionGeneration=0;
+  function finishSectionTransition(){if(sectionMinimumDone&&sectionArtworkDone)sectionTransition.hidden=true;}
   const sectionTransition = document.createElement('div');
   sectionTransition.className = 'lux-section-loading';
   sectionTransition.hidden = true;
@@ -438,11 +484,13 @@ export function createHome({ play } = {}) {
   document.body.append(sectionTransition);
   function animateSection(role) {
     clearTimeout(sectionTransitionTimer);
+    sectionGeneration++;preparedBrowseKey='';
     sectionTransition.textContent = {movies:'Luz, câmera… filmes!',series:'Só mais um episódio…',tv:'Entrando no ar…',favorites:'Seus favoritos, bem aqui.'}[role] || 'De volta ao seu Lux…';
+    sectionMinimumDone=false;sectionArtworkDone=false;
     sectionTransition.hidden = false;
     sectionTransition.classList.remove('is-animating');
     requestAnimationFrame(() => sectionTransition.classList.add('is-animating'));
-    sectionTransitionTimer = setTimeout(() => { sectionTransition.hidden = true; }, 2000);
+    sectionTransitionTimer = setTimeout(() => { sectionMinimumDone=true;finishSectionTransition(); }, 2000);
   }
   function activateBrowse(nextRole, options = {}) {
     if (!browseRoot) return;
@@ -472,6 +520,7 @@ export function createHome({ play } = {}) {
       else link.removeAttribute('aria-current');
     });
     if (valid) renderBrowse();
+    else {const generation=sectionGeneration;void prepareItems([heroItem,...showcase.rails.movies,...seriesIndex.representatives.slice(0,16)],{priority:true}).then(()=>{if(generation!==sectionGeneration)return;sectionArtworkDone=true;finishSectionTransition()});}
     if (options.scroll !== false) window.scrollTo(0, 0);
   }
   function renderBrowse() {
@@ -569,6 +618,7 @@ export function createHome({ play } = {}) {
         button.dataset.browseConnect = 'true';
       }
       browseGrid.replaceChildren(empty);
+      sectionArtworkDone=true;finishSectionTransition();
       return;
     }
     const fragment = document.createDocumentFragment();
@@ -590,9 +640,20 @@ export function createHome({ play } = {}) {
       fragment.append(card);
     }
     browseGrid.replaceChildren(fragment);
-    // Buscar capas da página aberta; deduplicar e limitar concorrência.
-    if (metadataNeeded(config, 'auto')) {
-      for (const item of page.entries) autoArtRequest(item);
+    // A página atual tem prioridade; depois dela aquece apenas a próxima.
+    if(preparedBrowseKey!==requestKey){
+      preparedBrowseKey=requestKey;const epoch=tmdbEpoch,generation=sectionGeneration;
+      const ready=prepareItems(page.entries,{priority:true});
+      let timer;
+      Promise.race([ready,new Promise(resolve=>{timer=setTimeout(resolve,30000)})]).then(()=>{
+        clearTimeout(timer);
+        if(epoch!==tmdbEpoch||preparedBrowseKey!==requestKey||generation!==sectionGeneration)return;
+        sectionArtworkDone=true;finishSectionTransition();
+        if(page.page<page.pageCount){
+          const next=browsePageData(source,{page:page.page+1,query:browseSearch,group:browseGroup,year:browseYear,genre:browseGenre,language:browseLanguage,sort:browseSort});
+          void prepareItems(next.entries);
+        }
+      });
     }
   }
   tvCategorySelect?.addEventListener('change',()=>{
@@ -610,6 +671,7 @@ export function createHome({ play } = {}) {
   browseRoot?.addEventListener('click', event => {
     const button = event.target.closest('[data-browse-page]');
     if (button) {
+      animateSection(browseRole);
       const action = button.dataset.browsePage;
       const count = Number(browsePageInput.max) || 1;
       browsePage = action === 'first' ? 1 : action === 'last' ? count
@@ -632,6 +694,8 @@ export function createHome({ play } = {}) {
     }
   });
   function browseGoToPage() {
+    animateSection(browseRole);
+    preparedBrowseKey='';
     browsePage = Number(browsePageInput?.value || 1);
     renderBrowse();
     window.scrollTo(0, 0);
@@ -840,7 +904,7 @@ export function createHome({ play } = {}) {
     $('nav-series').textContent = configRaw.seriesTitle ? settingsTitle('series') : 'Séries';
     if (items.length && metadataNeeded(config, 'auto')) {
       // Priorizar o banner e as primeiras capas realmente visíveis.
-      // Os demais títulos recebem metadados se o usuário abrir Detalhes.
+      // A preparação inicial e a paginação aquecem o restante das páginas necessárias.
       autoArtRequest(heroItem);
       const visible = [...showcase.rails.movies.slice(0, 7), ...seriesIndex.representatives.slice(0, 7)];
       for (const item of visible) {
@@ -1031,7 +1095,8 @@ export function createHome({ play } = {}) {
       autoEnriched = 0;
       tmdbEpoch++;
       tmdbQueued.clear();
-      tmdbQueue.length = 0;
+      for(const task of tmdbQueue.splice(0))task.resolve?.(null);
+      preparation.clear();initialArtworkPromise=null;preparedBrowseKey='';
       tmdbReadiness = null;
       tmdbResolved.clear();
     }
@@ -1111,6 +1176,7 @@ export function createHome({ play } = {}) {
   // Links diretos /cinema/#destaques-filmes etc. também abrem a página completa.
   activateBrowse(browseRoleFromHash(location.hash), { scroll: false });
   return {
+    prepareInitialArtwork,
     tvVariants(entry){return tvIndex.byItemId.get(entry?.id)?.variants||[]},
     playbackTitle(entry){
       const group=seriesIndex.byItemId.get(entry?.id);
@@ -1124,7 +1190,8 @@ export function createHome({ play } = {}) {
       quickGuide.select(null);continuation.cancel();
       // Descarta buscas automáticas pendentes da biblioteca anterior.
       tmdbEpoch++;
-      tmdbQueue.length = 0;
+      for(const task of tmdbQueue.splice(0))task.resolve?.(null);
+      preparation.clear();initialArtworkPromise=null;preparedBrowseKey='';
       tmdbQueued.clear();
       autoEnriched = 0;
       catalogueEpoch++;searchCatalog=createCatalogSearch();requestedKey=remoteKey='';remotePage=null;
@@ -1135,12 +1202,14 @@ export function createHome({ play } = {}) {
       if(navSearch)navSearch.value='';
       active=null;rebuild();
       render();
+      void prepareInitialArtwork();
       // O formulário original permanece na gaveta; só fecha ao importar com sucesso.
       closeDrawer();
     },
     clear() {
       tmdbEpoch++;
-      tmdbQueue.length = 0;
+      for(const task of tmdbQueue.splice(0))task.resolve?.(null);
+      preparation.clear();initialArtworkPromise=null;preparedBrowseKey='';
       tmdbQueued.clear();
       autoEnriched = 0;
       quickGuide.select(null);continuation.cancel();returnButton.hidden=true;
