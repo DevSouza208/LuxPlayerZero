@@ -3,7 +3,7 @@ import {createPlayerModal} from '/player-modal.js';
 import {createPlayerControls} from '/player-controls.js';
 import {createQuickGuide} from '/quick-guide.js';
 const params=new URLSearchParams(location.search);
-if(params.has('width')){const width=Number(params.get('width'));document.querySelector('#test-launch').hidden=true;const f=document.createElement('iframe');f.id='player-test-frame';f.title='Reprodutor em tela reduzida';f.src=location.pathname+'?frame=1';f.style.cssText='width:'+width+'px;height:'+(width===320?700:390)+'px;border:1px solid #888;max-width:100%';f.allowFullscreen=true;document.body.append(f)}
+if(params.has('width')){const width=Number(params.get('width'));const markup=document.documentElement.outerHTML;document.querySelector('#test-launch').hidden=true;const f=document.createElement('iframe');f.id='player-test-frame';f.title='Reprodutor em tela reduzida';f.srcdoc=markup;f.style.cssText='width:'+width+'px;height:'+(width===320?700:390)+'px;border:1px solid #888;max-width:100%';f.allowFullscreen=true;document.body.append(f)}
 else{
 const host=document.createElement('section');host.id='reproduzir';host.className='watch-area';
 host.innerHTML='<p id="message" class="message" role="status">Fonte aberta. Monitorando reprodução.</p><div class="workspace"><div class="player-column"><div class="video-wrap"><video id="video" playsinline loop muted></video><audio id="audio" hidden></audio></div><div class="now-playing"><h3 id="playing-title">Clipe de teste do Lux</h3></div></div></div>';
