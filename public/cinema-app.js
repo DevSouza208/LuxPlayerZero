@@ -15,7 +15,7 @@ const $ = id => document.getElementById(id);
 const bootSplash = $('lux-boot');
 const bootMessage = $('lux-boot-status');
 const bootSkip = $('lux-boot-skip');
-const MIN_BOOT_MS = 10000;
+const MIN_BOOT_MS = 5000;
 const bootStartedAt = window.__luxBootStarted ?? performance.now();
 let bootFinishTimer = null;
 let bootFinished = false;
@@ -475,231 +475,283 @@ async function importSource(event) {
   try {
     if (mode === 'direct') {
       checkProtocol(input);
-      if (generation === sourceLoad) setChannels([{ name: 'Mídia conectada', group: 'URL direta', kind: inferKind('Mídia conectada', input), url: input }], 'URL direta');
-    } else if (mode === 'm3u') {
-      const text = await request(input);
-      const entries = attachCinemaTmdbIds(text, parseM3u(text, input), input);
-      if (!entries.length) throw new Error('A lista não contém mídias HTTP/HTTPS válidas.');
-      if (generation === sourceLoad) {
-        setChannels(entries, 'M3U', lastSnapshotId);
-        await saveAccountSource(input,lastSnapshotId);
-      }
-    } else {
-      const base = normalizeXtreamBase(input);
-      checkProtocol(base);
-      const user = els.user.value.trim();
-      const pass = els.pass.value;
-      if (!user || !pass) throw new Error('Informe usuário e senha Xtream.');
-      // Primeiro a lista original, exatamente como o Lux antigo fazia.
-      const m3uUrl = xtreamM3uUrl(base, user, pass);
-      let entries;
-      try {
-        const playlistText = await request(m3uUrl);
-        entries = attachCinemaTmdbIds(playlistText, parseM3u(playlistText, m3uUrl), m3uUrl);
-        if (!entries.length) throw new Error('M3U vazia.');
-        log('Xtream', 'M3U original importada; links preservados');
-      } catch (m3uError) {
-        // Alternativa para fornecedores sem get.php disponível.
-        log('Xtream', 'M3U indisponível; tentando catálogo da API');
-        const authUrl = base + '/player_api.php?username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass);
-        const auth = await request(authUrl, 'json');
-        if (!auth?.user_info || Number(auth.user_info.auth) !== 1) throw new Error('Credenciais Xtream recusadas pelo servidor.');
-        const extension = Array.isArray(auth.user_info.allowed_output_formats) &&
-          (auth.user_info.allowed_output_formats.includes('m3u8') || auth.user_info.allowed_output_formats.includes('hls')) ? 'm3u8' : 'ts';
-        const streams = await request(authUrl + '&action=get_live_streams', 'json');
-        if (!Array.isArray(streams)) throw new Error('API Xtream não retornou canais válidos.');
-        entries = streams.slice(0, 20000).filter(stream => /^\d+$/.test(String(stream.stream_id))).map(stream => ({
-          name: String(stream.name || 'Canal sem nome'), group: 'Categoria ' + String(stream.category_id ?? 'geral'),
-          kind: inferKind(String(stream.name || ''), '', stream.stream_type === 'radio'),
-          url: buildXtreamLiveUrl(base, user, pass, stream.stream_id, extension)
-        }));
-      }
-      if (generation === sourceLoad) setChannels(entries, 'Xtream', lastSnapshotId);
-    }
-  } catch (error) {
-    if (generation === sourceLoad) fail(errorText(error));
-  } finally {
-    if (generation === sourceLoad) {
-      els.connect.disabled = false;
-      els.connect.innerHTML = 'Conectar fonte <span aria-hidden="true">↗</span>';
-    }
-  }
-}
-els.type.addEventListener('change', updateForm);
-els.form.addEventListener('submit', event => { void importSource(event); });
-els.file.addEventListener('change', async () => {
-  const generation = ++sourceLoad;
-  const file = els.file.files?.[0];
-  if (!file) return;
-  try {
-    if (file.size > 256 * 1024 * 1024) throw new Error('Arquivo excede 256 MB.');
-    const contents = await file.text();
-    const entries = attachCinemaTmdbIds(contents, parseM3u(contents));
-    if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
-    if (generation === sourceLoad) {
-      setChannels(entries, file.name);
-      updateBridgePanel();
-    }
-  } catch (error) { fail(errorText(error)); }
-  finally { els.file.value = ''; }
-});
-els.search.addEventListener('input', render);
-els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { sourceLoad++; showDeliveryLink(null); void guestCatalogCache?.clear(); forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
-els.demo.addEventListener('click', async () => {
-  const generation = ++sourceLoad;
-  const url = new URL('/demo/playlist.m3u', location.href).href;
-  els.demo.disabled = true;
-  note('Importando playlist de demonstração...', 'info');
-  try {
-    const text = await request(url);
-    const entries = attachCinemaTmdbIds(text, parseM3u(text, url), url);
-    if (!entries.length) throw new Error('A playlist de demonstração não possui fontes válidas.');
-    if (generation === sourceLoad) setChannels(entries, 'playlist M3U de demonstração');
-  } catch (error) {
-    if (generation === sourceLoad) fail(errorText(error));
-  } finally {
-    els.demo.disabled = false;
-  }
-});
-/**
- * Não precisamos guardar 260 mil itens nem URLs com senha no localStorage.
- * O snapshot privado foi salvo em R2; só salvamos seu ID aleatório no dispositivo.
- * A resposta HTTP é autenticada pelo cookie HttpOnly válido por 7 dias.
- */
-async function restoreSavedLibrary() {
-  const id = savedSnapshot();
-  // Com sessão válida, lê sempre a versão atual do link fixo, antes do cache local.
-  if (guestCatalogCache && (!id || !bridgeStatus?.connected || !bridgeStatus?.snapshotReady)) {
-    const generation = sourceLoad;
-    const cached = await guestCatalogCache.read();
-    if (generation !== sourceLoad || channels.length) return;
-    if (Array.isArray(cached?.items) && cached.items.length) {
-      setChannels(cached.items, 'cache deste dispositivo', id, false);
-      note(cached.items.length.toLocaleString('pt-BR') + ' títulos restaurados do cache. Importe novamente para atualizar a lista.', 'info');
-    }
-    return;
-  }
-  if (!id || channels.length) return;
-  if (!bridgeStatus?.snapshotReady) {
-    note('A biblioteca anterior está referenciada no dispositivo, mas o R2 está indisponível.', 'info');
-    return;
-  }
-  if (!bridgeStatus.connected) {
-    note('Sua biblioteca foi lembrada. Reconecte a chave do gateway para recuperar a lista do R2.', 'info');
-    return;
-  }
-  const generation = sourceLoad;
-  showBootPhrase();
-  note('Restaurando sua biblioteca privada do R2…', 'info');
-  try {
-    const result = await readSavedSnapshot(id);
-    if (generation !== sourceLoad) return;
-    if (result.kind === 'needs-session') {
-      note('Sessão expirada. Reconecte o gateway para recuperar sua biblioteca salva.', 'info');
-      return;
-    }
-    if (result.kind === 'not-found') {
-      forgetSnapshot();
-      note('O snapshot antigo não foi encontrado. Conecte sua lista para gerar um novo.', 'info');
-      return;
-    }
-    if (result.kind !== 'ok') {
-      note('Não foi possível recuperar a playlist do R2. A referência foi preservada para tentar novamente.', 'info');
-      return;
-    }
-    showBootPhrase();
-    const entries = attachCinemaTmdbIds(result.content, parseM3u(result.content));
-    if (!entries.length) throw new Error('O snapshot salvo não tem mídias válidas.');
-    if (generation === sourceLoad) {
-      setChannels(entries, 'R2 (biblioteca restaurada)', id);
-      note(entries.length.toLocaleString('pt-BR') + ' títulos restaurados automaticamente do R2.', 'info');
-    }
-  } catch {
-    if (generation === sourceLoad) {
-      note('Falha ao restaurar o catálogo. A referência no R2 foi mantida para a próxima tentativa.', 'info');
-      log('Biblioteca', 'Restauração privada falhou');
-    }
-  }
-}
-$('restore-library')?.addEventListener('click', async () => {
-  if (!savedSnapshot()) { note('Nenhuma biblioteca guardada para recuperar.', 'info'); return; }
-  const button = $('restore-library');
-  button.disabled = true;
-  button.textContent = 'Validando sessão…';
-  try {
-    const response = await fetch('/api/bridge/connect', {
-      method: 'POST', credentials: 'same-origin', cache: 'no-store',
-      referrerPolicy: 'no-referrer',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({})
-    });
-    els.bridgeKey.value = '';
-    if (!response.ok) {
-      note('Entre na sua conta Lux ID para restaurar sua biblioteca.', 'error');
-      return;
-    }
-    await refreshBridgeStatus();
-    await restoreSavedLibrary();
-  } catch {
-    note('Não foi possível restabelecer a sessão privada. Tente novamente.', 'error');
-  } finally {
-    els.bridgeKey.value = '';
-    button.disabled = false;
-    button.innerHTML = '↺ &nbsp; Reconectar e restaurar biblioteca';
-  }
-});
-async function saveAccountSource(source,id) {
-  if(isGuestMode())return;
-  const url=new URL(source,location.href);
-  const response=await fetch('/api/account/source',{method:'POST',credentials:'same-origin',cache:'no-store',
-    headers:{'content-type':'application/json'},body:JSON.stringify({lista_http:url.protocol==='http:'?url.href:null,
-      lista_https:id?new URL(snapshotPath(id),location.origin).href:url.protocol==='https:'?url.href:null})});
-  if(!response.ok&&response.status!==404)note('Lista carregada, mas não foi possível salvar o endereço na conta.','info');
-}
-async function loadAccountSource() {
-  if(isGuestMode())return false;
-  const response=await fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'});
-  if(response.status===404)return false;
-  if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
-  const source=await response.json(),generation=sourceLoad;
-  if(!source.lista_https&&!source.lista_http){note('Sua conta está pronta. Conecte uma lista para começar.','info');return true;}
-  els.url.value=source.lista_http||source.lista_https;
-  try {
-    let content,id=null;
-    if(source.lista_https){
-      const url=new URL(source.lista_https);
-      if(url.origin===location.origin&&url.pathname==='/api/bridge/playlist'){
-        id=url.searchParams.get('id');const saved=await readSavedSnapshot(id);
-        if(saved.kind!=='ok')throw new Error('Não foi possível recuperar sua lista HTTPS.');content=saved.content;
-      }else content=await request(source.lista_https);
-    }else{content=await request(source.lista_http);id=lastSnapshotId;}
-    const entries=attachCinemaTmdbIds(content,parseM3u(content));
-    if(!entries.length)throw new Error('A lista da conta não contém mídias válidas.');
-    if(generation===sourceLoad){setChannels(entries,'sua conta',id);if(id&&!source.lista_https)await saveAccountSource(source.lista_http,id);}
-  } catch(error){
-    if(source.lista_https&&source.lista_http&&generation===sourceLoad){
-      try{
-        const content=await request(source.lista_http),entries=attachCinemaTmdbIds(content,parseM3u(content));
-        if(!entries.length)throw error;
-        if(generation===sourceLoad){setChannels(entries,'sua conta',lastSnapshotId);await saveAccountSource(source.lista_http,lastSnapshotId);}
-      }catch(fallbackError){if(generation===sourceLoad)note(errorText(fallbackError),'error');}
-    }else if(generation===sourceLoad)note(errorText(error),'error');
-  }
-  return true;
-}
-updateForm();
-void (async () => {
-  try {
-    showBootPhrase();
-    await refreshBridgeStatus();
-    if(!await loadAccountSource())await restoreSavedLibrary();
-  } catch {
-    // Erros de boot não impedem abrir o formulário manual de conexão.
-    bootProgress('Não foi possível restaurar automaticamente.');
-  } finally {
-    // Somente mostra a Home após tentar a restauração, nunca o catálogo em branco primeiro.
-    bootProgress('Preparando as capas da sua biblioteca…');
-    try { await homeCall('prepareInitialArtwork'); } finally { finishBoot(); }
-  }
-})();
+      if (generation === sourceLoad) setCha…10396 tokens truncated…tylesheet" href="/home.css">
+  <link rel="stylesheet" href="/cinema-premium.css">
+  <link rel="stylesheet" href="/cinema-polish.css">
+  <link rel="stylesheet" href="/cinema-browse.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
+  <style>
+    /* Primeiro paint: a biblioteca só aparece depois da recuperação do R2. */
+    .lux-boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;background:#030305;color:#e8d1ff;font-family:'Outfit',system-ui,sans-serif;opacity:1;transition:opacity .28s ease}
+    .lux-boot[hidden]{display:none!important}
+    .lux-boot.is-leaving{opacity:0;pointer-events:none}
+    .lux-boot-title{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(17px,2.4vw,22px);font-weight:400}
+    .lux-boot-symbol{font-size:32px;line-height:1;color:#c79aec;animation:lux-boot-breathe 1.7s ease-in-out infinite}
+    .lux-boot-status{font-size:12px;color:#90869e;letter-spacing:.035em;min-height:18px}
+    .lux-boot-skip{border:1px solid #4d405f;background:#1a1322;border-radius:9px;color:#d6b9f4;font:600 12px 'Outfit',system-ui,sans-serif;padding:10px 16px;cursor:pointer}
+    .lux-boot-skip[hidden]{display:none!important}
+
+    .lux-boot{overflow:hidden;isolation:isolate}
+    .lux-galaxy{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#05050d 5%,#08091b 55%,#020207 100%)}
+    .lux-galaxy::before,.lux-galaxy::after{content:"";position:absolute;inset:-35%;border-radius:50%;will-change:transform;animation:lux-nebula-orbit 36s linear infinite;background:radial-gradient(ellipse at 30% 40%,#7139ad88 0%,transparent 34%),radial-gradient(ellipse at 68% 65%,#185ca488 0%,transparent 35%),radial-gradient(ellipse at 60% 28%,#9b377c55 0%,transparent 28%);opacity:.9}
+    .lux-galaxy::after{animation-direction:reverse;animation-duration:51s;background:radial-gradient(ellipse at 65% 45%,#7138b366,transparent 30%),radial-gradient(ellipse at 30% 72%,#258b9955,transparent 32%)}
+    .lux-galaxy-stars{position:absolute;inset:-12%;background-image:radial-gradient(1px 1px at 23px 37px,#eee5ffdd 98%,transparent),radial-gradient(1px 1px at 117px 92px,#98bbffbb 98%,transparent),radial-gradient(1.5px 1.5px at 202px 173px,#dcc7ffcc 98%,transparent);background-size:247px 229px,313px 277px,389px 347px;animation:lux-stars-drift 24s ease-in-out infinite alternate;opacity:.8}
+    .lux-galaxy-stars:nth-child(2){transform:rotate(17deg);background-size:379px 337px,457px 419px,521px 487px;animation:lux-stars-drift 35s ease-in-out infinite alternate-reverse;opacity:.5}
+    .lux-galaxy-shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,#030305dd 0%,#03030588 25%,transparent 65%),linear-gradient(0deg,#030305bb,transparent 30%,transparent 75%,#03030588)}
+    .lux-boot-title,.lux-boot-status{position:relative;text-shadow:0 2px 18px #000}
+    @keyframes lux-nebula-orbit{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(342deg) scale(1)}}
+    @keyframes lux-stars-drift{from{transform:translate3d(-1%,-1%,0) scale(1);opacity:.45}to{transform:translate3d(3%,2%,0) scale(1.08);opacity:.95}}
+    @media(max-width:600px){.lux-galaxy::before,.lux-galaxy::after{inset:-15%}}
+    @media(prefers-reduced-motion:reduce){.lux-galaxy::before,.lux-galaxy::after,.lux-galaxy-stars{animation:none;will-change:auto}}
+    @keyframes lux-boot-breathe{0%,100%{opacity:.52;transform:scale(.93)}50%{opacity:1;transform:scale(1.07)}}
+    @media(prefers-reduced-motion:reduce){.lux-boot,.lux-boot-symbol{transition:none;animation:none}}
+  </style>
+  <script type="module" src="/cinema-app.js"></script>
+  <script defer src="/cinema/install.js"></script>
+<link rel="stylesheet" href="/cinema-detail-page.css"><link rel="stylesheet" href="/lux-tag-palette.css"><link rel="stylesheet" href="/connectivity.css"><script type="module" src="/connectivity.js"></script><script type="module" src="/catalog-navigation.js"></script></head>
+<body>
+<div id="lux-boot" class="lux-boot" role="status" aria-live="polite" aria-label="Carregando Lux Player">
+  <div class="lux-galaxy" aria-hidden="true"><span class="lux-galaxy-stars"></span><span class="lux-galaxy-stars"></span><span class="lux-galaxy-shade"></span></div>
+  <div class="lux-boot-title"><span class="lux-boot-symbol" aria-hidden="true">✧</span><span>Abrindo seu Lux Player...</span></div>
+  <span id="lux-boot-status" class="lux-boot-status">A pipoca fica por sua conta 🍿</span>
+  <button id="lux-boot-skip" class="lux-boot-skip" type="button" hidden>Entrar mesmo assim</button>
+</div>
+<script>
+  // Garantia: nunca deixar a tela presa se o bundle falhar ou a rede parar.
+  window.__luxBootStarted = performance.now();
+  window.setTimeout(() => { const screen = document.getElementById('lux-boot'); if (screen) screen.remove(); }, 75000);
+</script>
+<div class="shell cinema-shell">
+  <header class="cinema-header" aria-label="Navegação Lux Player">
+    <a class="cinema-brand" href="#inicio" aria-label="Lux Player — Início">
+      <span class="cinema-brand-mark"><img src="/assets/lux-icon.png" alt=""></span><span class="cinema-brand-word">LUX <span>PLAYER</span></span>
+    </a>
+    <nav class="cinema-nav" aria-label="Seções">
+      <a href="#inicio" class="cinema-nav-link is-active"><span class="cinema-nav-symbol">⌂</span>Início</a>
+      <a href="#destaques-tv" class="cinema-nav-link"><span class="cinema-nav-symbol">▣</span>Ao vivo</a>
+      <a href="#destaques-filmes" class="cinema-nav-link" id="nav-movies">Filmes</a>
+      <a href="#destaques-series" class="cinema-nav-link" id="nav-series">Séries</a>
+      <a href="#minha-lista" class="cinema-nav-link">Minha lista</a>
+    </nav>
+    <div class="cinema-header-actions">
+      <label class="cinema-search" for="nav-search"><span aria-hidden="true">⌕</span><input id="nav-search" type="search" placeholder="Buscar no catálogo..." autocomplete="off" aria-label="Buscar no catálogo"></label>
+      <button type="button" id="open-source" class="cinema-icon-button" title="Conectar fonte" aria-label="Gerenciar fontes">＋</button>
+      <button type="button" id="open-admin" class="cinema-icon-button" title="Personalizar" aria-label="Painel de personalização">⚙</button>
+      <span class="cinema-avatar" aria-hidden="true">L</span>
+    </div>
+  </header>
+  <div id="source-overlay" class="source-overlay" hidden></div>
+  <aside id="source-drawer" class="source-drawer" role="dialog" aria-modal="true" aria-label="Gerenciar fonte" aria-hidden="true" inert>
+    <div class="source-drawer-top"><div><span class="eyebrow">SUA BIBLIOTECA</span><h2>Conectar conteúdo</h2></div><button id="drawer-close" class="drawer-close" type="button" aria-label="Fechar painel">×</button></div>
+    <p class="source-drawer-note">Sua fonte, seus títulos. O motor de importação continua o mesmo.</p>
+    <section id="minha-fonte" class="source-card" aria-label="Gerenciar fonte de conteúdo">
+      <div class="source-heading"><span class="source-signal"></span><div><strong>Minha fonte</strong><small>Conecte sua biblioteca</small></div></div>
+      <form id="source-form" autocomplete="off">
+        <label for="source-type">TIPO DE FONTE</label>
+        <select id="source-type" name="type">
+          <option value="m3u" selected>Playlist M3U</option>
+          <option value="xtream">Xtream Codes</option>
+          <option value="direct">URL de vídeo / rádio</option>
+        </select>
+        <label for="source-url" id="source-url-label">URL DA PLAYLIST</label>
+        <input id="source-url" type="url" inputmode="url" placeholder="https://.../lista.m3u" spellcheck="false">
+        <div id="bridge-settings" class="bridge-settings" hidden>
+          <div class="bridge-settings-head"><span>CONEXÃO SEGURA</span><span class="bridge-pill">HTTPS</span></div>
+          <p id="bridge-availability" role="status" aria-live="polite">Verificando conexão...</p>
+          <div id="bridge-key-wrap" hidden><input id="bridge-key" type="hidden" value=""></div>
+        </div>
+        <div id="credentials-fields" hidden>
+          <label for="xc-user">USUÁRIO</label>
+          <input id="xc-user" type="text" spellcheck="false" autocapitalize="off" autocomplete="off">
+          <label for="xc-pass">SENHA</label>
+          <input id="xc-pass" type="password" autocomplete="new-password">
+        </div>
+        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
+        <div id="file-fields" hidden>
+          <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
+          <label for="m3u-file" class="upload">Selecionar arquivo .m3u / .txt</label>
+          <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
+        </div>
+      </form>
+    </section>
+    <div id="restore-library-panel" class="restore-library-panel" hidden>
+      <strong>Biblioteca anterior encontrada</strong>
+      <p>O catálogo já está no R2. Se a sessão venceu, digite a chave do gateway acima e recupere seus títulos, sem reenviar a M3U do fornecedor.</p>
+      <button id="restore-library" type="button">↺ &nbsp; Reconectar e restaurar biblioteca</button>
+    </div>
+    <p class="drawer-footnote">O Lux Player é um reprodutor independente e não fornece conteúdo.</p>
+  </aside>
+
+  <main class="main" id="inicio">
+    <section class="feature-hero" aria-label="Destaque da sua biblioteca">
+      <img id="hero-art" class="hero-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="hero-kicker"><span class="hero-spark"></span><span id="hero-category">SUA PRÓXIMA HISTÓRIA COMEÇA AQUI</span></span>
+        <div class="hero-edition">LUX <span>ORIGINALS</span> <span class="hero-edition-line"></span> ZERO EDITION</div>
+        <h1 id="hero-title">Seu universo.<br>Seu próximo play.</h1>
+        <p id="hero-subtitle">Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.</p>
+        <p id="hero-tagline" class="hero-tagline" hidden></p><div id="hero-facts" class="hero-facts" hidden></div>
+        <div class="hero-actions">
+          <button id="hero-play" class="hero-primary" type="button" hidden><span aria-hidden="true">▶</span> Assistir agora</button>
+          <button id="hero-connect" class="hero-primary" type="button"><span aria-hidden="true">＋</span> Conectar fonte</button>
+          <button id="hero-details" class="hero-secondary" type="button" hidden>Mais informações</button>
+          <button id="hero-add" class="hero-secondary" type="button" hidden>＋ Minha lista</button>
+          <a class="hero-secondary" href="#home-rails">Explorar biblioteca <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero-meta"><span class="hero-meta-line"></span><span id="catalog-total">Seu conteúdo, suas escolhas.</span></div>
+      </div>
+      <div class="hero-poster" aria-hidden="true"><div class="poster-glow"></div><img id="hero-poster" src="/assets/lux-icon.png" alt="" referrerpolicy="no-referrer"><span>SELEÇÃO LUX</span></div>
+      <div class="hero-number" aria-hidden="true">01 <span>/ SEU UNIVERSO</span></div>
+    </section>
+    <div id="home-rails" class="home-rails" aria-label="Destaques e vitrines da sua biblioteca"></div>
+    <section id="cinema-browse" class="browse-screen" aria-label="Catálogo completo" hidden>
+      <div class="browse-heading">
+        <div><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1></div>
+        <div class="browse-pager" aria-label="Navegação entre páginas">
+          <span id="browse-page-label">Página 1 de 1</span>
+          <button type="button" data-browse-page="first" aria-label="Primeira página">«</button>
+          <button type="button" data-browse-page="prev" aria-label="Página anterior">‹</button>
+          <label class="browse-page-entry"><input id="browse-page-input" type="number" min="1" value="1" aria-label="Número da página"></label>
+          <button id="browse-page-go" type="button" class="browse-go" aria-label="Ir para página">Ir</button>
+          <button type="button" data-browse-page="next" aria-label="Próxima página">›</button>
+          <button type="button" data-browse-page="last" aria-label="Última página">»</button>
+        </div>
+      </div>
+      <div class="browse-toolbar">
+        <label class="browse-group-label" for="browse-group">GRUPO
+          <select id="browse-group" aria-label="Filtrar por grupo"><option value="">Todos os grupos</option></select>
+        </label>
+        <label class="browse-group-label" hidden>CATEGORIA<select id="browse-tv-category"><option value="">Todas as categorias</option></select></label><label class="browse-group-label">ANO<select id="browse-year" aria-label="Filtrar por ano"></select></label><label class="browse-group-label">GÊNERO<select id="browse-genre" aria-label="Filtrar por gênero"></select></label><label class="browse-group-label" hidden>ÁUDIO<select id="browse-language" aria-label="Filtrar por áudio declarado"></select></label><label class="browse-group-label">ORDEM<select id="browse-sort" aria-label="Ordenar catálogo"><option value="source">Ordem do fornecedor</option><option value="title">Título A–Z</option><option value="year">Ano mais recente</option></select></label><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
+      </div>
+      <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
+      <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button">Voltar ao topo ↑</button></div>
+    </section>
+    <section class="watch-area" id="reproduzir" aria-label="Reprodutor e busca completa">
+    <header class="topbar">
+      <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
+      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true">↗</span></a></div>
+    </header>
+
+    <div id="message" class="message" role="status" aria-live="polite">Conecte uma fonte para começar a assistir.</div>
+
+    <section class="workspace" aria-label="TV ao vivo e canais">
+      <div class="player-column">
+        <div class="section-head"><div><span class="eyebrow">SUA TELA</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
+        <div class="video-wrap">
+          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
+          <video id="video" controls playsinline preload="none" hidden></video>
+          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
+        </div>
+        <div class="now-playing"><div><span class="eyebrow">EM REPRODUÇÃO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
+        <p class="disclaimer">O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.</p>
+      </div>
+
+      <section class="library" id="biblioteca" aria-label="Biblioteca de canais">
+        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual">Limpar</button></div>
+        <div class="list-tools"><input id="search" type="search" placeholder="Buscar canais..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">TV</option><option value="radio">Rádio</option></select></div>
+        <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
+      </section>
+    </section>
+    </section>
+    <div class="dev-tools" hidden aria-hidden="true">
+      <div class="demo-row"><button id="demo" type="button">Importar playlist de demonstração</button></div>
+      <details class="diagnostics"><summary>Diagnóstico de reprodução</summary><pre id="diagnostics">Nenhum evento registrado.</pre></details>
+    </div>
+  </main>
+</div>
+<dialog id="admin-dialog" class="lux-admin-dialog" aria-labelledby="admin-dialog-title">
+  <div class="admin-dialog-head">
+    <div><span class="eyebrow">SUA PLATAFORMA, SUAS REGRAS</span><h2 id="admin-dialog-title">Personalizar vitrines</h2></div>
+    <button class="admin-close" type="button" data-close-dialog="admin-dialog" aria-label="Fechar">×</button>
+  </div>
+  <p class="admin-description">Escolha como sua biblioteca aparece. Os nomes e grupos funcionam com IPTV, cursos, aulas e outras playlists M3U.</p>
+  <form id="admin-form" class="admin-form">
+    <div class="admin-field"><label for="admin-heroTitle">TÍTULO DO HERO (QUANDO A LISTA ESTIVER VAZIA)</label><input id="admin-heroTitle" type="text" maxlength="90"></div>
+    <div class="admin-field"><label for="admin-heroSubtitle">DESCRIÇÃO DO HERO</label><input id="admin-heroSubtitle" type="text" maxlength="90"></div>
+    <div class="admin-field-row">
+      <div class="admin-field"><label for="admin-continueTitle">CONTINUAR ASSISTINDO</label><input id="admin-continueTitle" type="text" maxlength="90"></div>
+      <div class="admin-field"><label for="admin-favoritesTitle">MINHA LISTA</label><input id="admin-favoritesTitle" type="text" maxlength="90"></div>
+    </div>
+    <div class="admin-section-title">CURADORIA DO DESTAQUE</div>
+    <div class="admin-field-row">
+      <div class="admin-field"><label for="admin-heroMode">ESCOLHA DO DESTAQUE</label><select id="admin-heroMode"><option value="auto">Automático (com capa)</option><option value="movies">Priorizar filmes / cursos</option><option value="series">Priorizar séries / módulos</option><option value="tv">Priorizar TV</option><option value="pinned">Escolher título específico</option></select></div>
+      <div class="admin-field"><label for="admin-pinnedName">TÍTULO FIXO (NOME DA PLAYLIST)</label><input id="admin-pinnedName" type="text" maxlength="130" placeholder="Digite o título exatamente como aparece"></div>
+    </div>
+    <div class="admin-field"><label for="admin-heroBackdrop">IMAGEM DO DESTAQUE (HTTPS, OPCIONAL)</label><input id="admin-heroBackdrop" type="url" placeholder="https://.../imagem.jpg"></div>
+    <div class="admin-section-title">EXIBIÇÃO DAS VITRINES</div>
+    <div class="admin-field-row">
+      <div class="admin-field"><label for="admin-railOrder">ORDEM NA HOME</label><select id="admin-railOrder"><option value="personal">Continuar assistindo primeiro</option><option value="discovery">Destaques primeiro</option><option value="favorites">Minha lista primeiro</option></select></div>
+      <div class="admin-field"><label for="admin-density">TAMANHO DOS CARTÕES</label><select id="admin-density"><option value="comfortable">Confortável</option><option value="compact">Compacto</option></select></div>
+    </div>
+    <div class="admin-toggle-grid" role="group" aria-label="Escolher seções visíveis">
+      <label><input id="admin-showContinue" type="checkbox" checked> Continuar assistindo</label>
+      <label><input id="admin-showFavorites" type="checkbox" checked> Minha lista</label>
+      <label><input id="admin-showTv" type="checkbox" checked> TV</label>
+      <label><input id="admin-showMovies" type="checkbox" checked> Filmes / Cursos</label>
+      <label><input id="admin-showSeries" type="checkbox" checked> Séries / Módulos</label>
+      <label><input id="admin-autoNext" type="checkbox"> Próximo episódio automático (após 10 segundos)</label><label><input id="admin-personalization" type="checkbox" checked> Recomendações pelo meu histórico</label><label><input id="admin-hideEmpty" type="checkbox" checked> Ocultar vitrines sem títulos</label>
+    </div>
+    <div class="admin-section-title">IMAGENS E SINOPSES · METADADOS</div>
+    <div class="admin-field-row">
+      <div class="admin-field">
+        <label for="admin-imageEngine">MOTOR DAS IMAGENS</label>
+        <select id="admin-imageEngine">
+          <option value="tmdb">TMDB primeiro · capas e banners (padrão)</option>
+          <option value="hybrid">TMDB primeiro + imagens M3U de reserva</option>
+          <option value="playlist">Apenas imagens M3U · TMDB desativado</option>
+        </select>
+      </div>
+      <div class="admin-field">
+        <label for="admin-summaryEngine">MOTOR DAS SINOPSES</label>
+        <select id="admin-summaryEngine">
+          <option value="off">Desativado (mais leve · padrão)</option>
+          <option value="tmdb">TMDB · Sinopse e gêneros sob demanda</option>
+        </select>
+      </div>
+    </div>
+    <p class="admin-engine-note">TMDB é opcional. Não altera o título da playlist nem o que é reproduzido. Sem consultas em massa: máximo de 1 busca por título, cache no D1 e limite diário; em caso de dúvida, mantém os dados originais.</p>
+    <p id="admin-tmdb-status" class="admin-connection-status" role="status" aria-live="polite">Abra o painel para verificar se o TMDB está configurado.</p>
+    <div class="admin-section-title">MODELOS RÁPIDOS PARA SUA BIBLIOTECA</div>
+    <div class="admin-presets" role="group" aria-label="Sugestões de nomes para as vitrines">
+      <button type="button" data-admin-preset="streaming" aria-pressed="false"><span class="preset-icon">▣</span> Streaming</button>
+      <button type="button" data-admin-preset="courses" aria-pressed="false"><span class="preset-icon">▤</span> Cursos e aulas</button>
+      <button type="button" data-admin-preset="generic" aria-pressed="false"><span class="preset-icon">✦</span> Biblioteca livre</button>
+    </div>
+    <p id="admin-preset-status" class="admin-preset-status" role="status" aria-live="polite">Selecione um modelo ou personalize os títulos manualmente.</p>
+    <div class="admin-section-title">VITRINES PERSONALIZÁVEIS</div>
+    <div class="admin-field"><label for="admin-tvTitle">VITRINE 1 · NOME</label><input id="admin-tvTitle" type="text" maxlength="90" placeholder="Destaques da TV"><label for="admin-tvKeywords">GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)</label><input id="admin-tvKeywords" type="text" maxlength="220" placeholder="TV, Esportes, Notícias"></div>
+    <div class="admin-field"><label for="admin-moviesTitle">VITRINE 2 · NOME</label><input id="admin-moviesTitle" type="text" maxlength="90" placeholder="Filmes ou Cursos"><label for="admin-moviesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-moviesKeywords" type="text" maxlength="220" placeholder="Filmes, Cursos, Aulas"></div>
+    <div class="admin-field"><label for="admin-seriesTitle">VITRINE 3 · NOME</label><input id="admin-seriesTitle" type="text" maxlength="90" placeholder="Séries ou Módulos"><label for="admin-seriesKeywords">GRUPOS DA PLAYLIST</label><input id="admin-seriesKeywords" type="text" maxlength="220" placeholder="Séries, Temporadas, Módulos"></div>
+    <div id="admin-stats" class="admin-stats" role="status">Conecte uma fonte para ver estatísticas do catálogo.</div>
+    <div class="admin-groups"><strong>Grupos detectados na sua playlist</strong><p id="detected-groups">Conecte uma playlist para identificar os grupos disponíveis.</p></div>
+    <p class="admin-notice">A personalização é privada do perfil selecionado e sincronizada entre dispositivos.</p>
+    <p id="admin-save-status" class="admin-save-status" role="status" aria-live="polite">As alterações serão aplicadas na Home e salvas no seu perfil.</p>
+    <div class="admin-actions"><button type="button" id="admin-export" class="admin-reset" title="Copiar personalização como JSON">Copiar configuração</button><button type="button" id="admin-reset" class="admin-reset">Restaurar padrão</button><button type="submit" class="admin-save">Aplicar e salvar <span aria-hidden="true">↗</span></button></div>
+  </form>
+</dialog>
+<dialog id="details-dialog" class="lux-details-dialog" aria-labelledby="details-title">
+  <button type="button" id="details-close" class="details-close" aria-label="Fechar detalhes">×</button>
+  <div class="details-visual">
+    <img id="details-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
+    <div class="details-shade"></div>
+    <div class="details-poster-frame"><img id="details-poster" alt="" hidden><span id="details-poster-fallback" aria-hidden="true">LUX</span></div>
+    <span id="details-kicker" class="details-kicker">LUX PLAYER · DA SUA BIBLIOTECA</span>
+  </div>
+  <div class="details-body">
+    <h2 id="details-title">Título do conteúdo</h2>
+    <p id="details-group">Sua biblioteca</p>
+    <div id="details-meta" class="details-meta" hidden></div>
+    <p id="details-overview" class="details-overview" hidden></p>
+    <p id="details-metadata-status" class="details-metadata-status" role="status" aria-live="polite"></p>
+    <div id="details-tags" class="lux-tag-strip"></div><label id="details-variants" hidden>Fonte do canal<select id="details-variant-select"></select></label><div class="details-actions">
+      <button type="button" id="details-play" class="details-play"><span aria-hidden="true">▶</span> Assistir agora</button>
+      <button type="button" id="details-favorite" class="details-favorite">＋ Minha lista</button>
+    </div>
+  </div>
+</dialog>
+<div id="cinema-feedback" class="cinema-feedback" role="status" aria-live="polite" hidden></div>
+<a class="account-link" href="/account/">Perfis e conta</a><a class="guide-link" href="/guide/">Guia e esportes</a><footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
+</body>
+</html>
