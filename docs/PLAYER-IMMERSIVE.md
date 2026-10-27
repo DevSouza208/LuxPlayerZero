@@ -14,3 +14,5 @@ Verificações:
 - Menu de episódios abre, Escape fecha somente o menu. Entrada de tela cheia acionada e estado do botão atualizado.
 - Quadros de teste estreito (318x698 úteis) e paisagem (842x388 úteis): vídeo ocupa toda a área, todos os botões dentro da viewport, sem overflow horizontal. Não equivale a teste em aparelho físico.
 - Fixture pública de QA com vídeo próprio removida antes do merge.
+
+Conferência final do menu em paisagem: o topo ficava em -15px; após ajuste, o menu ocupa y=75..288 em viewport de 388px, com cabeçalho e opções dentro da tela. Foco de teclado preservado durante reprodução real e retorno ao botão de abertura ao fechar também confirmados.
