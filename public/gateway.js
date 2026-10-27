@@ -7,6 +7,18 @@ export function isBridgeRequired(url) {
     /^http:\/\//i.test(String(url || '').trim());
 }
 
+export async function bridgeResult(response) {
+  const raw=await response.text();let result={};
+  try { result=JSON.parse(raw); } catch {}
+  if(!response.ok){
+    if(typeof result.error==='string')return {error:result.error};
+    const ray=response.headers.get('cf-ray');
+    const reference=ray&&/^[a-z0-9-]{1,80}$/i.test(ray)?' Referência: '+ray+'.':'';
+    if(/1102|exceeded.*(?:cpu|resource)|CPU time limit/i.test(raw))return {error:'A Cloudflare interrompeu o download por limite de processamento.'+reference};
+    return {error:'A Cloudflare não concluiu a solicitação (HTTP '+response.status+'). A lista anterior foi preservada.'+reference};
+  }
+  return result;
+}
 export function createBridge({ onStatus = () => {} } = {}) {
   let connected = false;
   async function post(action, body) {
@@ -18,7 +30,7 @@ export function createBridge({ onStatus = () => {} } = {}) {
       body: JSON.stringify(body),
       referrerPolicy: 'no-referrer'
     });
-    const result = await response.json().catch(() => ({}));
+    const result = await bridgeResult(response);
     if (!response.ok) {
       if (response.status === 401) connected = false;
       throw new Error(result.error || 'Falha no gateway HTTPS (HTTP ' + response.status + ').');

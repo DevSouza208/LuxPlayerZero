@@ -86,7 +86,8 @@ async function streamCatalogToR2(body, bucket, fileKey, expectedBytes = 0) {
   let lineTail = '';
 
   function inspectLine(raw) {
-    const line = raw.trim();
+    // URLs de mídia são a maior parte do arquivo: não executar regex nelas.
+    const line = !firstLine || raw.charCodeAt(0) <= 32 ? raw.trim() : raw;
     if (!line) return;
     if (!firstLine) {
       firstLine = true;
@@ -96,8 +97,9 @@ async function streamCatalogToR2(body, bucket, fileKey, expectedBytes = 0) {
           : 'O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
       }
     }
-    if (/^#EXTINF:/i.test(line)) itemCount++;
-    if (/^#EXT-X-(?:TARGETDURATION|STREAM-INF|MEDIA-SEQUENCE)/i.test(line)) {
+    if (line.charCodeAt(0) !== 35) return;
+    if (line.startsWith('#EXTINF:')) itemCount++;
+    if (line.startsWith('#EXT-X-') && /^#EXT-X-(?:TARGETDURATION|STREAM-INF|MEDIA-SEQUENCE)/i.test(line)) {
       throw new Error('O fornecedor devolveu um stream HLS, não um catálogo M3U.');
     }
   }
@@ -174,7 +176,9 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     return apiError(503, 'Sincronização indisponível: configure R2 (CATALOG_BUCKET), D1 (DB) e a chave do catálogo na Cloudflare.');
   }
   if (!sameOriginPost(request)) return apiError(403, 'Solicitação de outro site bloqueada.');
-  if (!await session(request, env)) return apiError(401, 'Entre na sua conta Lux ID para conectar sua biblioteca.');
+  try {
+    if (!await session(request, env)) return apiError(401, 'Entre na sua conta Lux ID para conectar sua biblioteca.');
+  } catch { return apiError(503, 'Não foi possível verificar a sessão no D1. Entre novamente e tente conectar a lista.'); }
   if (Number(request.headers.get('content-length') || 0) > 8192) {
     return apiError(413, 'Endereço enviado é grande demais.');
   }
