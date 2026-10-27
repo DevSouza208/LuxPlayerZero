@@ -157,8 +157,9 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
   .cinema-shell .cinema-nav-link{flex-direction:column;gap:3px;padding:4px 0;min-width:0;min-height:48px;font-size:10px;border-radius:10px}
   .cinema-shell .cinema-nav-link svg{width:19px;height:19px}
   .cinema-shell .cinema-nav-symbol{display:flex}
-  body .account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;bottom:auto;z-index:36;width:44px;height:44px;min-height:44px;padding:11px;margin:0;border:1px solid #b38aff40;border-radius:12px;background:#19121f}
-  body .account-link span{display:none}
+  body .account-link{font-size:0;position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;bottom:auto;z-index:36;width:44px;height:44px;min-height:44px;padding:11px;margin:0;border:1px solid #b38aff40;border-radius:12px;background:#19121f}
+  body .account-link span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  body .account-link:not(:has(svg))::before{content:'↗';font-size:22px}
   .cinema-shell .feature-hero{height:auto;min-height:450px;max-height:none;margin-top:56px;overflow:hidden}
   .cinema-shell .hero-content{height:auto;width:auto;max-width:none;margin:0;padding:140px 20px 24px;justify-content:flex-end}
   .cinema-shell .hero-content>*{flex-shrink:0}
