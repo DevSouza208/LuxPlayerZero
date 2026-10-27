@@ -349,7 +349,7 @@ export function createHome({ play } = {}) {
     if(local?.status==='matched'){tmdbResolved.set(key,local);return local;}
     // Não consultar servidor sem chave/D1: evita uma sequência de erros 503.
     if (!tmdbReadiness) tmdbReadiness = tmdbConfigured();
-    if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') return null;
+    if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') {tmdbResolved.set(key,{status:'unavailable'});return null;}
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
     if (tmdbPending.has(key)) return tmdbPending.get(key);
     if (tmdbCalls >= MAX_TMDB_CALLS) return null;
@@ -359,7 +359,7 @@ export function createHome({ play } = {}) {
     const promise = requestTmdb(query, fetch, controller.signal)
       .catch(() => null)
       .then(data => {
-        tmdbResolved.set(key, data);
+        tmdbResolved.set(key, data || {status:'unavailable'});
         if(data?.status==='matched')void artworkMetadataCache.put(key,data);
         return data;
       }).finally(() => {
@@ -724,7 +724,7 @@ export function createHome({ play } = {}) {
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
       img.addEventListener('error', () => {
-        const reserve=classifyRole(item)==='series'&&config.imageEngine!=='playlist'?'':providerArtwork(item);
+        const reserve=providerArtwork(item);
         if(reserve && img.src!==reserve){img.src=reserve;return;}
         img.remove();
       });
@@ -941,7 +941,7 @@ export function createHome({ play } = {}) {
       const found=role==='series'?seriesIndex.byItemId.get(item.id):null;
       fullDetails.open(item,{series:found,
         poster:artworkFor(item),
-        fallbackPoster:role==='series'&&config.imageEngine!=='playlist'?'':providerArtwork(item),
+        fallbackPoster:providerArtwork(item),
         backdrop:metadata?.backdrop||''});
       return;
     }

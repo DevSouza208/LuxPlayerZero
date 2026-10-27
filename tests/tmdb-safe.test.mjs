@@ -301,11 +301,13 @@ test('dublado é removido do título antes da identificação sem alterar a font
  }
 });
 
- test('apresentação aguarda TMDB e nunca usa imagem de episódio como capa da série',()=>{
+ test('apresentação aguarda TMDB e usa fornecedor somente após resultado sem capa',()=>{
  const provider='https://example.com/episode.jpg',poster='https://image.tmdb.org/t/p/w500/poster.jpg';
  assert.equal(catalogArtwork(provider,null,'tmdb','series'),'');
- assert.equal(catalogArtwork(provider,{status:'unmatched'},'tmdb','series'),'');
+ assert.equal(catalogArtwork(provider,{status:'unmatched'},'tmdb','series'),provider);
  assert.equal(catalogArtwork(provider,{status:'matched',poster},'tmdb','series'),poster);
+ assert.equal(catalogArtwork(provider,{status:'unavailable'},'tmdb','series'),provider);
+ assert.equal(catalogArtwork(provider,{status:'matched'},'tmdb','series'),provider);
  assert.equal(catalogArtwork(provider,null,'tmdb','movies'),'');
  assert.equal(catalogArtwork(provider,{status:'unmatched'},'tmdb','movies'),provider);
  assert.equal(catalogArtwork(provider,null,'tmdb','tv'),provider);
