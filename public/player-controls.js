@@ -122,7 +122,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  progress.addEventListener('input',()=>{seekPlayer(media(),Number(progress.value)/1000*media().duration);refresh();reveal()});
  for(const m of [video,audio].filter(Boolean))for(const event of ['play','pause','timeupdate','loadedmetadata','durationchange','volumechange','emptied','ended','error'])m.addEventListener(event,()=>{refresh();if(event!=='timeupdate')reveal()});
  host.addEventListener('click',event=>{if(event.target===video||event.target===host){if(keyboardMode)keyboardMode=false;reveal()}});
- shell.addEventListener('pointermove',event=>{if(event.pointerType!=='touch')reveal()});
+ shell.addEventListener('pointermove',event=>{if(event.pointerType!=='touch'){keyboardMode=false;shell.classList.remove('lux-controls-keyboard');reveal()}});
  shell.addEventListener('pointerdown',event=>{
   keyboardMode=false;shell.classList.remove('lux-controls-keyboard');
   dragging=Boolean(event.target.closest('input[type="range"]'));reveal();
