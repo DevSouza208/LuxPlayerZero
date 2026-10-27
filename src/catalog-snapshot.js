@@ -7,7 +7,7 @@
  */
 import {
   apiError, apiOk, bridgeReady, permittedUrl, session,
-  sameOriginPost, fetchAllowed
+  sameOriginPost, fetchAllowed, seal, unseal
 } from './bridge-core.js';
 
 const MAX_CATALOG_BYTES = 256 * 1024 * 1024;
@@ -31,8 +31,14 @@ const SQL_SCHEMA = `CREATE TABLE IF NOT EXISTS catalog_sources (
   size_bytes INTEGER NOT NULL
 )`;
 
+const REFRESH_SCHEMA = `CREATE TABLE IF NOT EXISTS catalog_refresh_sources (
+  source_hash TEXT PRIMARY KEY,
+  source_cipher TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+)`;
 async function ensureSchema(env) {
   await env.DB.prepare(SQL_SCHEMA).run();
+  await env.DB.prepare(REFRESH_SCHEMA).run();
 }
 
 async function sourceHash(url, env) {
@@ -183,6 +189,15 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     return apiError(400, 'Endereço inválido ou servidor não autorizado.');
   }
 
+  return refreshCatalogSource(source, env, fetcher, {requireFresh});
+}
+
+/** Caminho único para importação manual e cron: arquivo intacto, entrega estável. */
+export async function refreshCatalogSource(rawSource, env, fetcher = fetch, {requireFresh = true} = {}) {
+  if (!snapshotReady(env)) return apiError(503, 'Armazenamento da biblioteca indisponível.');
+  let source;
+  try { source = permittedUrl(rawSource, env).href; }
+  catch { return apiError(400, 'Origem não autorizada.'); }
   let sourceId;
   let old;
   try {
@@ -239,6 +254,12 @@ export async function syncCatalog(request, env, fetcher = fetch) {
   };
 
   try {
+    // Guarda a origem cifrada, nunca a senha do fornecedor em texto aberto no D1.
+    const cipher = await seal({scope:'catalog-source',url:source,exp:253402300799000}, env);
+    await env.DB.prepare(`INSERT INTO catalog_refresh_sources(source_hash,source_cipher,updated_at)
+      VALUES (?,?,?) ON CONFLICT(source_hash) DO UPDATE SET
+      source_cipher=excluded.source_cipher,updated_at=excluded.updated_at`)
+      .bind(sourceId,cipher,row.synced_at).run();
     await env.DB.prepare(
       `INSERT INTO catalog_sources (source_hash, catalog_id, r2_key, synced_at, item_count, size_bytes)
        VALUES (?, ?, ?, ?, ?, ?)
@@ -297,4 +318,22 @@ export async function serveCatalog(request, env) {
   } catch {
     return apiError(502, 'Não foi possível ler a playlist no R2.');
   }
+}
+
+/** Atualização diária com as mesmas regras de download e substituição da importação. */
+export async function refreshDailyCatalogs(env, fetcher = fetch) {
+  if (!snapshotReady(env)) throw new Error('Configure DB, CATALOG_BUCKET e os segredos do catálogo no Worker.');
+  await ensureSchema(env);
+  const {results=[]} = await env.DB.prepare('SELECT source_hash,source_cipher FROM catalog_refresh_sources').all();
+  const result={updated:0,failed:0};
+  for(const row of results){
+    try {
+      const source=await unseal(row.source_cipher,env);
+      if(source.scope!=='catalog-source')throw new Error('Origem inválida.');
+      const response=await refreshCatalogSource(source.url,env,fetcher);
+      if(!response.ok)throw new Error('Download indisponível.');
+      result.updated++;
+    } catch { result.failed++; }
+  }
+  return result;
 }

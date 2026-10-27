@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { syncCatalog, serveCatalog, snapshotReady } from '../src/catalog-snapshot.js';
+import { syncCatalog, serveCatalog, snapshotReady, refreshDailyCatalogs } from '../src/catalog-snapshot.js';
 import { connect, status } from '../src/bridge-core.js';
 
 const origin = 'https://luxzero.example';
@@ -14,6 +14,7 @@ const m3u = '#EXTM3U\n#EXTINF:-1 group-title="Ao vivo",Canal de teste\nhttp://li
 function mockResources() {
   const objects = new Map();
   const rows = new Map();
+  const refreshRows = new Map();
   let failD1 = false;
   const database = {
     prepare(query) {
@@ -29,12 +30,14 @@ function mockResources() {
             async run() {
               if (!sql.startsWith('INSERT INTO')) throw new Error('Comando inesperado');
               if (failD1) throw new Error('Falha do banco de teste');
+              if(sql.startsWith('INSERT INTO CATALOG_REFRESH_SOURCES')) {refreshRows.set(params[0],{source_hash:params[0],source_cipher:params[1]});return {success:true};}
               const [source_hash, catalog_id, r2_key, synced_at, item_count, size_bytes] = params;
               rows.set(source_hash, { source_hash, catalog_id, r2_key, synced_at, item_count, size_bytes });
               return { success: true };
             }
           };
         },
+        async all() { return {results:[...refreshRows.values()]}; },
         async run() {
           if (sql.startsWith('CREATE TABLE IF NOT EXISTS')) return { success: true };
           throw new Error('Comando inesperado: ' + sql);
@@ -72,7 +75,7 @@ function mockResources() {
   };
   return {
     env: { ...baseEnv, DB: database, CATALOG_BUCKET: bucket },
-    objects, rows, failDatabase(value) { failD1 = value; }
+    objects, rows, refreshRows, failDatabase(value) { failD1 = value; }
   };
 }
 function req(path, method='GET', body, cookie='') {
@@ -247,4 +250,21 @@ test('download truncado não substitui a playlist inteira no R2',async()=>{
  await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock);
  const failed=await syncCatalog(req('sync','POST',{url:original,requireFresh:true},c),env,async()=>new Response(m3u,{headers:{'content-length':String(new TextEncoder().encode(m3u).length+1000)}}));
  assert.equal(failed.status,502);assert.match((await failed.json()).error,/incompleto/);assert.equal(objects.size,1);
+});
+
+
+test('cron baixa novamente a origem, preserva entrega HTTPS e substitui arquivo inteiro',async()=>{
+ const {env,objects,refreshRows}=mockResources(),c=await cookie(env);
+ const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ assert.equal(refreshRows.size,1);
+ assert.ok(!JSON.stringify([...refreshRows.values()]).includes('password='));
+ const updated=m3u+'#EXTINF:-1 group-title="TV",Outro canal\nhttp://lista.example.org:8080/live/cliente/privada/2.m3u8\n';
+ let calls=0;
+ const result=await refreshDailyCatalogs(env,async(url)=>{assert.equal(url,original);calls++;return new Response(updated)});
+ assert.deepEqual(result,{updated:1,failed:0});assert.equal(calls,1);assert.equal(objects.size,1);
+ const delivered=await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env);
+ assert.equal(await delivered.text(),updated);
+ const failed=await refreshDailyCatalogs(env,async()=>new Response('indisponível',{status:503}));
+ assert.deepEqual(failed,{updated:0,failed:1});assert.equal(objects.size,1);
+ assert.equal(await(await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env)).text(),updated);
 });

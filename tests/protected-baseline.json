@@ -1,10 +1,10 @@
 {
   "src/bridge-core.js": "a714adaa1208c472df21ba3d5d003ac4c78cc8ad0bb7790780df3818704b0d74",
-  "src/catalog-snapshot.js": "4fd2f2a1efb59e8f26c56c8c05c599225831e3396f38f217ee514e86a2adba52",
+  "src/catalog-snapshot.js": "7832dfa89bfa659cc498ca949ad7dea3d0ef063a1b009389afad7a457b975613",
   "public/gateway.js": "4e32022d45d92afeaef400af2be171e5e4bbe1065ea7b4d10fad6c12233f99e7",
   "public/direct-source.js": "d244a9c7685b4df370fe8be4c5c62fa11aaf8d8d00206f466f357e77877aac89",
   "public/app.js": "6a15c953c73bb92f7550763a651eb766efcee903b0c6fec6340411e92de7635b",
-  "public/cinema-app.js": "ca3aa7368b56d2333afcb103afef1d87fd550dbc64ee7718098599cc746a8ec6",
+  "public/cinema-app.js": "29cbbf05405acace3f45f652b2e0ce8ba046c136d6451060918757748c50085e",
   "functions/api/bridge/connect.js": "4bd1e21d82d5c63fc248f32fa911cbe7293dc80390738ceecfef9c28e72ffa3c",
   "functions/api/bridge/sync.js": "508b26be6dba078aedb54011b428ee56357f873ea058223f99706415b9315d2c",
   "functions/api/bridge/status.js": "dbebc83c0d2f54cdeb28560788ca709ff93b656baa5926a2de13a27a683d5e64",
