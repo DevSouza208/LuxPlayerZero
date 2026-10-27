@@ -15,8 +15,8 @@ test('capas visíveis são reutilizadas e o cache elimina as mais antigas',async
  async function load(url){const request=new Request(url);Object.defineProperty(request,'destination',{value:'image'});let result;handlers.fetch({request,respondWith:p=>result=p});return result?await result:null}
  const url='https://image.tmdb.org/t/p/w500/a.jpg';
  await load(url);await load(url);assert.equal(requests,1);
- for(let i=0;i<125;i++)await load(`https://image.tmdb.org/t/p/w500/${i}.jpg`);
- assert.equal(data.size,120);assert.equal(data.has(url),false);
+ for(let i=0;i<605;i++)await load(`https://image.tmdb.org/t/p/w500/${i}.jpg`);
+ assert.equal(data.size,600);assert.equal(data.has(url),false);
  assert.equal(await image('https://provider.example/poster.jpg?password=secret'),null);
  assert.equal(await image('http://provider.example/poster.jpg'),null);
  assert.equal(await image('https://provider.example/movie/stream.ts'),null);

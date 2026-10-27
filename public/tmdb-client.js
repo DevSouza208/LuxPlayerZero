@@ -64,3 +64,11 @@ export async function requestTmdb(query, fetcher = fetch, signal) {
   const data = await response.json();
   return data && data.status === 'matched' ? data : null;
 }
+
+/** Aguarda TMDB antes de mostrar arte; logo de episódio nunca vira capa de série. */
+export function catalogArtwork(original,matched,imageEngine,role){
+ if(imageEngine==='playlist'||role==='tv')return original||'';
+ if(matched?.status==='matched')return matched.poster||(role==='series'?'':original||'');
+ if(!matched)return '';
+ return role==='series'?'':original||'';
+}

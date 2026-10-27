@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { chooseExactMatch, chooseIdMatch, validateQuery, TMDB_LIMITS } from '../src/tmdb-safe.js';
 import { lookupTmdb } from '../src/tmdb-metadata.js';
-import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from '../public/tmdb-client.js';
+import { tmdbQueryForItem, metadataNeeded, chooseArtwork, catalogArtwork, requestTmdb } from '../public/tmdb-client.js';
 import { normalizeSettings, DEFAULT_SETTINGS } from '../public/home-model.js';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
@@ -299,4 +299,15 @@ test('dublado é removido do título antes da identificação sem alterar a font
   assert.equal(JSON.stringify(source),original);
   assert.deepEqual(presentationForEntry(source),presentationForEntry(source));
  }
+});
+
+ test('apresentação aguarda TMDB e nunca usa imagem de episódio como capa da série',()=>{
+ const provider='https://example.com/episode.jpg',poster='https://image.tmdb.org/t/p/w500/poster.jpg';
+ assert.equal(catalogArtwork(provider,null,'tmdb','series'),'');
+ assert.equal(catalogArtwork(provider,{status:'unmatched'},'tmdb','series'),'');
+ assert.equal(catalogArtwork(provider,{status:'matched',poster},'tmdb','series'),poster);
+ assert.equal(catalogArtwork(provider,null,'tmdb','movies'),'');
+ assert.equal(catalogArtwork(provider,{status:'unmatched'},'tmdb','movies'),provider);
+ assert.equal(catalogArtwork(provider,null,'tmdb','tv'),provider);
+ assert.equal(catalogArtwork(provider,null,'playlist','series'),provider);
 });

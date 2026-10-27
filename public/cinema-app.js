@@ -15,6 +15,9 @@ const $ = id => document.getElementById(id);
 const bootSplash = $('lux-boot');
 const bootMessage = $('lux-boot-status');
 const bootSkip = $('lux-boot-skip');
+const MIN_BOOT_MS = 10000;
+const bootStartedAt = window.__luxBootStarted ?? performance.now();
+let bootFinishTimer = null;
 let bootFinished = false;
 const bootPhrases = ['A pipoca fica por sua conta 🍿', 'Qual vai ser a boa de hoje?', 'Só mais um episódio… a gente entende.', 'Seu próximo favorito pode estar aqui.', 'Acomode-se. O Lux já vai começar.'];
 let bootPhraseIndex = Math.floor(Math.random() * bootPhrases.length);
@@ -28,6 +31,11 @@ function bootProgress(message) {
 }
 function finishBoot() {
   if (bootFinished) return;
+  const remaining = MIN_BOOT_MS - (performance.now() - bootStartedAt);
+  if (remaining > 0) {
+    if (bootFinishTimer === null) bootFinishTimer = setTimeout(() => { bootFinishTimer = null; finishBoot(); }, remaining);
+    return;
+  }
   bootFinished = true;
   clearTimeout(slowBootTimer);
   clearInterval(bootPhraseTimer);

@@ -1,3 +1,4 @@
+import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
 import {detailFacts} from './tmdb-rich-view.js';
 import {isGuestMode,createGuestStore} from './guest-mode.js';
 import {relationIndex,resolveRelations} from './catalog-relations.js';
@@ -5,7 +6,7 @@ import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
 import { recommendationIndex, recommend, afterWatchRecommendations } from './recommendations.js';
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
-import { tmdbQueryForItem, metadataNeeded, chooseArtwork, requestTmdb } from './tmdb-client.js';
+import { tmdbQueryForItem, metadataNeeded, catalogArtwork, requestTmdb } from './tmdb-client.js';
 import { titleForDisplay } from './cinema-title.js';
 import { tagColor } from './lux-tag-palette.js';
 import {createEpisodeContinuation} from './episode-continuation.js';
@@ -81,6 +82,7 @@ export function createHome({ play } = {}) {
   // Enriquecer somente títulos visíveis: 10 automáticos por sessão, não os 262 mil.
   // Limite de 3 buscas simultâneas e 8 adicionais reservadas aos detalhes.
   const tmdbResolved = new Map();
+  const artworkMetadataCache = createArtworkMetadataCache();
   const tmdbPending = new Map();
   const tmdbQueued = new Set();
   const tmdbQueue = [];
@@ -329,12 +331,17 @@ export function createHome({ play } = {}) {
     const query = queryFor(item);
     return query ? tmdbResolved.get(keyForQuery(query)) || null : null;
   }
+  function artworkFor(item) {
+    return item?catalogArtwork(providerArtwork(item),cachedMetadata(item),config.imageEngine,classifyRole(item)):'';
+  }
   async function metadataFor(item) {
     const query = queryFor(item);
     if (!query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
     if (tmdbPending.has(key)) return tmdbPending.get(key);
+    const local = await artworkMetadataCache.get(key);
+    if(local?.status==='matched'){tmdbResolved.set(key,local);return local;}
     // Não consultar servidor sem chave/D1: evita uma sequência de erros 503.
     if (!tmdbReadiness) tmdbReadiness = tmdbConfigured();
     if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') return null;
@@ -348,6 +355,7 @@ export function createHome({ play } = {}) {
       .catch(() => null)
       .then(data => {
         tmdbResolved.set(key, data);
+        if(data?.status==='matched')void artworkMetadataCache.put(key,data);
         return data;
       }).finally(() => {
         clearTimeout(timeout);
@@ -434,7 +442,7 @@ export function createHome({ play } = {}) {
     sectionTransition.hidden = false;
     sectionTransition.classList.remove('is-animating');
     requestAnimationFrame(() => sectionTransition.classList.add('is-animating'));
-    sectionTransitionTimer = setTimeout(() => { sectionTransition.hidden = true; }, 800);
+    sectionTransitionTimer = setTimeout(() => { sectionTransition.hidden = true; }, 2000);
   }
   function activateBrowse(nextRole, options = {}) {
     if (!browseRoot) return;
@@ -642,7 +650,8 @@ export function createHome({ play } = {}) {
     visual.className = 'media-visual';
     visual.dataset.details = item.id;
     visual.setAttribute('aria-label', 'Ver detalhes de ' + titleForDisplay(item));
-    const image = chooseArtwork(providerArtwork(item), cachedMetadata(item), config.imageEngine);
+    const image = artworkFor(item);
+    if(!image&&config.imageEngine!=='playlist'&&classifyRole(item)!=='tv'&&!cachedMetadata(item))visual.classList.add('is-art-loading');
     if (image) {
       const img = document.createElement('img');
       img.src = image;
@@ -651,7 +660,7 @@ export function createHome({ play } = {}) {
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
       img.addEventListener('error', () => {
-        const reserve=providerArtwork(item);
+        const reserve=classifyRole(item)==='series'&&config.imageEngine!=='playlist'?'':providerArtwork(item);
         if(reserve && img.src!==reserve){img.src=reserve;return;}
         img.remove();
       });
@@ -759,7 +768,6 @@ export function createHome({ play } = {}) {
     $('hero-category').textContent = heroItem ? 'SELECIONADO PARA VOCÊ' : 'BEM-VINDO AO SEU UNIVERSO';
     // O hero mantém o cenário cinematográfico; logos pequenos ficam em um cartão próprio.
     const poster = $('hero-poster');
-    const artwork = heroItem && providerArtwork(heroItem);
     const data = cachedMetadata(heroItem);
     const enriched = data?.status === 'matched' && config.imageEngine !== 'playlist';
     const richKey=data?.tmdbId?queryFor(heroItem)?.type+':'+data.tmdbId:'';
@@ -783,7 +791,7 @@ export function createHome({ play } = {}) {
       heroArt.referrerPolicy = 'no-referrer';
     }
     if (poster) {
-      poster.src = chooseArtwork(artwork, data, config.imageEngine) || '/assets/lux-icon.png';
+      poster.src = artworkFor(heroItem) || '/assets/lux-icon.png';
       poster.referrerPolicy = 'no-referrer';
     }
     $('hero-play').hidden = !heroItem;
@@ -867,10 +875,9 @@ export function createHome({ play } = {}) {
     const role=classifyRole(item);
     if(role==='movies'||role==='series'){
       const found=role==='series'?seriesIndex.byItemId.get(item.id):null;
-      const metadata=cachedMetadata(item);
       fullDetails.open(item,{series:found,
-        poster:chooseArtwork(providerArtwork(item),metadata,config.imageEngine),
-        fallbackPoster:providerArtwork(item),
+        poster:artworkFor(item),
+        fallbackPoster:role==='series'&&config.imageEngine!=='playlist'?'':providerArtwork(item),
         backdrop:metadata?.backdrop||''});
       return;
     }
@@ -1112,7 +1119,7 @@ export function createHome({ play } = {}) {
         (entry?.displayName||entry?.name||'');
     },
     resumeDetails(){return fullDetails.resume()},
-    backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||providerArtwork(entry))},
+    backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||artworkFor(entry))},
     setItems(next) {
       quickGuide.select(null);continuation.cancel();
       // Descarta buscas automáticas pendentes da biblioteca anterior.
