@@ -1,0 +1,985 @@
+<!doctype html><meta charset="utf-8"><style>body{background:#292530;display:flex;gap:16px;margin:12px}iframe{border:0;flex:none}</style><iframe id="w320" width="320" height="850" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#08070d&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-capable&quot; content=&quot;yes&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-status-bar-style&quot; content=&quot;black-translucent&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-title&quot; content=&quot;Lux Zero&quot;>
+  &lt;meta name=&quot;mobile-web-app-capable&quot; content=&quot;yes&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero — sua biblioteca e reprodução em um só lugar.&quot;>
+  &lt;title>Lux Player Zero · Seu universo&lt;/title>
+  &lt;link rel=&quot;icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;manifest&quot; href=&quot;/cinema/manifest.webmanifest&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/style.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/home.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-premium.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-polish.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-browse.css&quot;>
+  
+  
+  &lt;style>
+    /* Primeiro paint: a biblioteca só aparece depois da recuperação do R2. */
+    .lux-boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;background:#030305;color:#e8d1ff;font-family:'Outfit',system-ui,sans-serif;opacity:1;transition:opacity .28s ease}
+    .lux-boot[hidden]{display:none!important}
+    .lux-boot.is-leaving{opacity:0;pointer-events:none}
+    .lux-boot-title{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(17px,2.4vw,22px);font-weight:400}
+    .lux-boot-symbol{font-size:32px;line-height:1;color:#c79aec;animation:lux-boot-breathe 1.7s ease-in-out infinite}
+    .lux-boot-status{font-size:12px;color:#90869e;letter-spacing:.035em;min-height:18px}
+    .lux-boot-skip{border:1px solid #4d405f;background:#1a1322;border-radius:9px;color:#d6b9f4;font:600 12px 'Outfit',system-ui,sans-serif;padding:10px 16px;cursor:pointer}
+    .lux-boot-skip[hidden]{display:none!important}
+
+    .lux-boot{overflow:hidden;isolation:isolate}
+    .lux-galaxy{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#05050d 5%,#08091b 55%,#020207 100%)}
+    .lux-galaxy::before,.lux-galaxy::after{content:&quot;&quot;;position:absolute;inset:-35%;border-radius:50%;will-change:transform;animation:lux-nebula-orbit 36s linear infinite;background:radial-gradient(ellipse at 30% 40%,#7139ad88 0%,transparent 34%),radial-gradient(ellipse at 68% 65%,#185ca488 0%,transparent 35%),radial-gradient(ellipse at 60% 28%,#9b377c55 0%,transparent 28%);opacity:.9}
+    .lux-galaxy::after{animation-direction:reverse;animation-duration:51s;background:radial-gradient(ellipse at 65% 45%,#7138b366,transparent 30%),radial-gradient(ellipse at 30% 72%,#258b9955,transparent 32%)}
+    .lux-galaxy-stars{position:absolute;inset:-12%;background-image:radial-gradient(1px 1px at 23px 37px,#eee5ffdd 98%,transparent),radial-gradient(1px 1px at 117px 92px,#98bbffbb 98%,transparent),radial-gradient(1.5px 1.5px at 202px 173px,#dcc7ffcc 98%,transparent);background-size:247px 229px,313px 277px,389px 347px;animation:lux-stars-drift 24s ease-in-out infinite alternate;opacity:.8}
+    .lux-galaxy-stars:nth-child(2){transform:rotate(17deg);background-size:379px 337px,457px 419px,521px 487px;animation:lux-stars-drift 35s ease-in-out infinite alternate-reverse;opacity:.5}
+    .lux-galaxy-shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,#030305dd 0%,#03030588 25%,transparent 65%),linear-gradient(0deg,#030305bb,transparent 30%,transparent 75%,#03030588)}
+    .lux-boot-title,.lux-boot-status{position:relative;text-shadow:0 2px 18px #000}
+    @keyframes lux-nebula-orbit{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(342deg) scale(1)}}
+    @keyframes lux-stars-drift{from{transform:translate3d(-1%,-1%,0) scale(1);opacity:.45}to{transform:translate3d(3%,2%,0) scale(1.08);opacity:.95}}
+    @media(max-width:600px){.lux-galaxy::before,.lux-galaxy::after{inset:-15%}}
+    @media(prefers-reduced-motion:reduce){.lux-galaxy::before,.lux-galaxy::after,.lux-galaxy-stars{animation:none;will-change:auto}}
+    @keyframes lux-boot-breathe{0%,100%{opacity:.52;transform:scale(.93)}50%{opacity:1;transform:scale(1.07)}}
+    @media(prefers-reduced-motion:reduce){.lux-boot,.lux-boot-symbol{transition:none;animation:none}}
+  &lt;/style>
+  
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-detail-page.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-tag-palette.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;style>
+/* Mobile cinema: artwork, complete titles and compact navigation. */
+@media(max-width:760px){
+  .cinema-shell .cinema-header{height:calc(58px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 64px 0 12px;gap:8px}
+  .cinema-shell .cinema-brand-word{display:none}
+  .cinema-shell .cinema-brand-mark{width:32px;height:32px}
+  .cinema-shell .cinema-header-actions{gap:2px}
+  .cinema-shell .cinema-icon-button,.cinema-shell .cinema-search{width:44px;min-width:44px;height:44px}
+  .cinema-shell .cinema-search{padding:0 11px}
+  .cinema-shell .cinema-search input{font-size:16px}
+  .cinema-shell .cinema-search:focus-within{left:12px;right:12px;top:calc(7px + env(safe-area-inset-top,0px));width:auto}
+  .cinema-shell .lux-vod-launch{width:44px;min-width:44px;height:44px;padding:10px;gap:0;font-size:0}
+  .cinema-shell .lux-vod-launch svg{width:20px;height:20px}
+  .cinema-shell .cinema-nav{top:calc(58px + env(safe-area-inset-top,0px));height:56px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:3px 6px;overflow:visible}
+  .cinema-shell .cinema-nav-link{flex-direction:column;gap:3px;padding:4px 0;min-width:0;min-height:48px;font-size:10px;border-radius:10px}
+  .cinema-shell .cinema-nav-link svg{width:19px;height:19px}
+  .cinema-shell .cinema-nav-symbol{display:flex}
+  body .account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;bottom:auto;z-index:36;width:44px;height:44px;min-height:44px;padding:11px;margin:0;border:1px solid #b38aff40;border-radius:12px;background:#19121f}
+  body .account-link span{display:none}
+  .cinema-shell .feature-hero{height:auto;min-height:450px;max-height:none;margin-top:56px;overflow:hidden}
+  .cinema-shell .hero-content{height:auto;width:auto;max-width:none;margin:0;padding:140px 20px 24px;justify-content:flex-end}
+  .cinema-shell .hero-content>*{flex-shrink:0}
+  .cinema-shell .hero-poster,.cinema-shell .hero-edition{display:none}
+  .cinema-shell .hero-kicker{font-size:9px;letter-spacing:1.4px}
+  .cinema-shell .hero-content h1{display:block;max-width:100%;height:auto;max-height:none;overflow:visible;white-space:normal;font-size:clamp(28px,8vw,36px);line-height:1.12;margin:12px 0;overflow-wrap:anywhere}
+  .cinema-shell #hero-subtitle{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;max-height:none;margin:0}
+  .cinema-shell .hero-facts{font-size:11px;line-height:1.6;margin-top:10px;overflow-wrap:anywhere}
+  .cinema-shell .hero-tagline{font-size:12px;line-height:1.5}
+  .cinema-shell .hero-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:18px}
+  .cinema-shell .hero-actions .hero-primary,.cinema-shell .hero-actions .hero-secondary{min-width:0;min-height:44px;padding:10px 8px;font-size:12px;gap:6px}
+  .cinema-shell .hero-actions svg{width:18px;height:18px;flex-shrink:0}
+  .cinema-shell .hero-meta{margin-top:16px;font-size:10px;line-height:1.5}
+  .cinema-shell .hero-art{opacity:.55;object-position:center top}
+  .cinema-shell .hero-overlay{background:linear-gradient(0deg,#060609 0%,#060609ed 25%,#060609a8 65%,#06060920)}
+  .cinema-shell .lux-last-channel{margin:8px 0 20px;font-size:12px;line-height:1.5;padding:12px;white-space:normal}
+  .cinema-shell.is-browsing .browse-screen{margin-top:56px}
+}
+&lt;/style>&lt;/head>
+&lt;body>
+&lt;div id=&quot;lux-boot&quot; hidden class=&quot;lux-boot&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; aria-label=&quot;Carregando Lux Player&quot;>
+  &lt;div class=&quot;lux-galaxy&quot; aria-hidden=&quot;true&quot;>&lt;span class=&quot;lux-galaxy-stars&quot;>&lt;/span>&lt;span class=&quot;lux-galaxy-stars&quot;>&lt;/span>&lt;span class=&quot;lux-galaxy-shade&quot;>&lt;/span>&lt;/div>
+  &lt;div class=&quot;lux-boot-title&quot;>&lt;span class=&quot;lux-boot-symbol&quot; aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot;/>&lt;/svg>&lt;/span>&lt;span>Abrindo seu Lux Player...&lt;/span>&lt;/div>
+  &lt;span id=&quot;lux-boot-status&quot; class=&quot;lux-boot-status&quot;>A pipoca fica por sua conta 🍿&lt;/span>
+  &lt;button id=&quot;lux-boot-skip&quot; class=&quot;lux-boot-skip&quot; type=&quot;button&quot; hidden>Entrar mesmo assim&lt;/button>
+&lt;/div>
+
+&lt;div class=&quot;shell cinema-shell&quot;>
+  &lt;header class=&quot;cinema-header&quot; aria-label=&quot;Navegação Lux Player&quot;>
+    &lt;a class=&quot;cinema-brand&quot; href=&quot;#inicio&quot; aria-label=&quot;Lux Player — Início&quot;>
+      &lt;span class=&quot;cinema-brand-mark&quot;>&lt;img src=&quot;/assets/lux-icon.png&quot; alt=&quot;&quot;>&lt;/span>&lt;span class=&quot;cinema-brand-word&quot;>LUX &lt;span>PLAYER&lt;/span>&lt;/span>
+    &lt;/a>
+    &lt;nav class=&quot;cinema-nav&quot; aria-label=&quot;Seções&quot;>
+      &lt;a href=&quot;#inicio&quot; class=&quot;cinema-nav-link is-active&quot;>&lt;span class=&quot;cinema-nav-symbol&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z&quot;/>&lt;polyline points=&quot;9 22 9 12 15 12 15 22&quot;/>&lt;/svg>&lt;/span>Início&lt;/a>
+      &lt;a href=&quot;#destaques-tv&quot; class=&quot;cinema-nav-link&quot;>&lt;span class=&quot;cinema-nav-symbol&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;7&quot; width=&quot;20&quot; height=&quot;15&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;polyline points=&quot;17 2 12 7 7 2&quot;/>&lt;/svg>&lt;/span>Ao vivo&lt;/a>
+      &lt;a href=&quot;#destaques-filmes&quot; class=&quot;cinema-nav-link&quot; id=&quot;nav-movies&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;2&quot; width=&quot;20&quot; height=&quot;20&quot; rx=&quot;2.18&quot; ry=&quot;2.18&quot;/>&lt;line x1=&quot;7&quot; y1=&quot;2&quot; x2=&quot;7&quot; y2=&quot;22&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;2&quot; x2=&quot;17&quot; y2=&quot;22&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;12&quot; x2=&quot;22&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;7&quot; x2=&quot;7&quot; y2=&quot;7&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;17&quot; x2=&quot;7&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;17&quot; x2=&quot;22&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;7&quot; x2=&quot;22&quot; y2=&quot;7&quot;/>&lt;/svg>Filmes&lt;/a>
+      &lt;a href=&quot;#destaques-series&quot; class=&quot;cinema-nav-link&quot; id=&quot;nav-series&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 2 7 12 12 22 7 12 2&quot;/>&lt;polyline points=&quot;2 17 12 22 22 17&quot;/>&lt;polyline points=&quot;2 12 12 17 22 12&quot;/>&lt;/svg>Séries&lt;/a>
+      &lt;a href=&quot;#minha-lista&quot; class=&quot;cinema-nav-link&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z&quot;/>&lt;/svg>Minha lista&lt;/a>
+    &lt;/nav>
+    &lt;div class=&quot;cinema-header-actions&quot;>
+      &lt;label class=&quot;cinema-search&quot; for=&quot;nav-search&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;/>&lt;line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;/>&lt;/svg>&lt;/span>&lt;input id=&quot;nav-search&quot; type=&quot;search&quot; placeholder=&quot;Buscar no catálogo...&quot; autocomplete=&quot;off&quot; aria-label=&quot;Buscar no catálogo&quot;>&lt;/label>
+      &lt;button type=&quot;button&quot; id=&quot;open-source&quot; class=&quot;cinema-icon-button&quot; title=&quot;Conectar fonte&quot; aria-label=&quot;Gerenciar fontes&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg>&lt;/button>
+      &lt;button type=&quot;button&quot; id=&quot;open-admin&quot; class=&quot;cinema-icon-button&quot; title=&quot;Personalizar&quot; aria-label=&quot;Painel de personalização&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;path d=&quot;M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z&quot;/>&lt;/svg>&lt;/button>
+      &lt;span class=&quot;cinema-avatar&quot; aria-hidden=&quot;true&quot;>L&lt;/span>
+    &lt;/div>
+  &lt;/header>
+  &lt;div id=&quot;source-overlay&quot; class=&quot;source-overlay&quot; hidden>&lt;/div>
+  &lt;aside id=&quot;source-drawer&quot; class=&quot;source-drawer&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-label=&quot;Gerenciar fonte&quot; aria-hidden=&quot;true&quot; inert>
+    &lt;div class=&quot;source-drawer-top&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>SUA BIBLIOTECA&lt;/span>&lt;h2>Conectar conteúdo&lt;/h2>&lt;/div>&lt;button id=&quot;drawer-close&quot; class=&quot;drawer-close&quot; type=&quot;button&quot; aria-label=&quot;Fechar painel&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>&lt;/div>
+    &lt;p class=&quot;source-drawer-note&quot;>Sua fonte, seus títulos. O motor de importação continua o mesmo.&lt;/p>
+    &lt;section id=&quot;minha-fonte&quot; class=&quot;source-card&quot; aria-label=&quot;Gerenciar fonte de conteúdo&quot;>
+      &lt;div class=&quot;source-heading&quot;>&lt;span class=&quot;source-signal&quot;>&lt;/span>&lt;div>&lt;strong>Minha fonte&lt;/strong>&lt;small>Conecte sua biblioteca&lt;/small>&lt;/div>&lt;/div>
+      &lt;form id=&quot;source-form&quot; autocomplete=&quot;off&quot;>
+        &lt;label for=&quot;source-type&quot;>TIPO DE FONTE&lt;/label>
+        &lt;select id=&quot;source-type&quot; name=&quot;type&quot;>
+          &lt;option value=&quot;m3u&quot; selected>Playlist M3U&lt;/option>
+          &lt;option value=&quot;xtream&quot;>Xtream Codes&lt;/option>
+          &lt;option value=&quot;direct&quot;>URL de vídeo / rádio&lt;/option>
+        &lt;/select>
+        &lt;label for=&quot;source-url&quot; id=&quot;source-url-label&quot;>URL DA PLAYLIST&lt;/label>
+        &lt;input id=&quot;source-url&quot; type=&quot;url&quot; inputmode=&quot;url&quot; placeholder=&quot;https://.../lista.m3u&quot; spellcheck=&quot;false&quot;>
+        &lt;div id=&quot;bridge-settings&quot; class=&quot;bridge-settings&quot; hidden>
+          &lt;div class=&quot;bridge-settings-head&quot;>&lt;span>CONEXÃO SEGURA&lt;/span>&lt;span class=&quot;bridge-pill&quot;>HTTPS&lt;/span>&lt;/div>
+          &lt;p id=&quot;bridge-availability&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Verificando conexão...&lt;/p>
+          &lt;div id=&quot;bridge-key-wrap&quot; hidden>&lt;input id=&quot;bridge-key&quot; type=&quot;hidden&quot; value=&quot;&quot;>&lt;/div>
+        &lt;/div>
+        &lt;div id=&quot;credentials-fields&quot; hidden>
+          &lt;label for=&quot;xc-user&quot;>USUÁRIO&lt;/label>
+          &lt;input id=&quot;xc-user&quot; type=&quot;text&quot; spellcheck=&quot;false&quot; autocapitalize=&quot;off&quot; autocomplete=&quot;off&quot;>
+          &lt;label for=&quot;xc-pass&quot;>SENHA&lt;/label>
+          &lt;input id=&quot;xc-pass&quot; type=&quot;password&quot; autocomplete=&quot;new-password&quot;>
+        &lt;/div>
+        &lt;button id=&quot;connect&quot; class=&quot;primary-btn&quot; type=&quot;submit&quot;>Conectar fonte &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/button>
+        &lt;div id=&quot;file-fields&quot; hidden>
+          &lt;div class=&quot;divider-text&quot;>OU IMPORTE UM ARQUIVO&lt;/div>
+          &lt;label for=&quot;m3u-file&quot; class=&quot;upload&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;/>&lt;polyline points=&quot;17 8 12 3 7 8&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;/>&lt;/svg>&lt;span>Selecionar arquivo .m3u / .txt&lt;/span>&lt;/label>
+          &lt;input id=&quot;m3u-file&quot; type=&quot;file&quot; accept=&quot;.m3u,.m3u8,.txt,audio/x-mpegurl&quot; hidden>
+        &lt;/div>
+      &lt;/form>
+    &lt;/section>
+    &lt;div id=&quot;restore-library-panel&quot; class=&quot;restore-library-panel&quot; hidden>
+      &lt;strong>Biblioteca anterior encontrada&lt;/strong>
+      &lt;p>O catálogo já está no R2. Se a sessão venceu, digite a chave do gateway acima e recupere seus títulos, sem reenviar a M3U do fornecedor.&lt;/p>
+      &lt;button id=&quot;restore-library&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;23 4 23 10 17 10&quot;/>&lt;polyline points=&quot;1 20 1 14 7 14&quot;/>&lt;path d=&quot;M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15&quot;/>&lt;/svg> &amp;nbsp; Reconectar e restaurar biblioteca&lt;/button>
+    &lt;/div>
+    &lt;p class=&quot;drawer-footnote&quot;>O Lux Player é um reprodutor independente e não fornece conteúdo.&lt;/p>
+  &lt;/aside>
+
+  &lt;main class=&quot;main&quot; id=&quot;inicio&quot;>
+    &lt;section class=&quot;feature-hero&quot; aria-label=&quot;Destaque da sua biblioteca&quot;>
+      &lt;img id=&quot;hero-art&quot; class=&quot;hero-art&quot; src=&quot;/assets/login-scene.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>
+      &lt;div class=&quot;hero-overlay&quot;>&lt;/div>
+      &lt;div class=&quot;hero-content&quot;>
+        &lt;span class=&quot;hero-kicker&quot;>&lt;span class=&quot;hero-spark&quot;>&lt;/span>&lt;span id=&quot;hero-category&quot;>SUA PRÓXIMA HISTÓRIA COMEÇA AQUI&lt;/span>&lt;/span>
+        &lt;div class=&quot;hero-edition&quot;>LUX &lt;span>ORIGINALS&lt;/span> &lt;span class=&quot;hero-edition-line&quot;>&lt;/span> ZERO EDITION&lt;/div>
+        &lt;h1 id=&quot;hero-title&quot;>A Morte do Demônio em Chamas&lt;/h1>
+        &lt;p id=&quot;hero-subtitle&quot;>Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.&lt;/p>
+        &lt;p id=&quot;hero-tagline&quot; class=&quot;hero-tagline&quot; hidden>&lt;/p>&lt;div id=&quot;hero-facts&quot; class=&quot;hero-facts&quot;>&lt;/div>
+        &lt;div class=&quot;hero-actions&quot;>
+          &lt;button id=&quot;hero-play&quot; class=&quot;hero-primary&quot; type=&quot;button&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/span> Assistir agora&lt;/button>
+          &lt;button id=&quot;hero-connect&quot; hidden class=&quot;hero-primary&quot; type=&quot;button&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg>&lt;/span> Conectar fonte&lt;/button>
+          &lt;button id=&quot;hero-details&quot; class=&quot;hero-secondary&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;16&quot; x2=&quot;12&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;8&quot; x2=&quot;12.01&quot; y2=&quot;8&quot;/>&lt;/svg>&lt;span>Mais informações&lt;/span>&lt;/button>
+          &lt;button id=&quot;hero-add&quot; class=&quot;hero-secondary&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg> Minha lista&lt;/button>
+          &lt;a class=&quot;hero-secondary&quot; href=&quot;#home-rails&quot;>Explorar biblioteca &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;polyline points=&quot;19 12 12 19 5 12&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+        &lt;div class=&quot;hero-meta&quot;>&lt;span class=&quot;hero-meta-line&quot;>&lt;/span>&lt;span id=&quot;catalog-total&quot;>Seu conteúdo, suas escolhas.&lt;/span>&lt;/div>
+      &lt;/div>
+      &lt;div class=&quot;hero-poster&quot; aria-hidden=&quot;true&quot;>&lt;div class=&quot;poster-glow&quot;>&lt;/div>&lt;img id=&quot;hero-poster&quot; src=&quot;/assets/lux-icon.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>&lt;span>SELEÇÃO LUX&lt;/span>&lt;/div>
+      &lt;div class=&quot;hero-number&quot; aria-hidden=&quot;true&quot;>01 &lt;span>/ SEU UNIVERSO&lt;/span>&lt;/div>
+    &lt;/section>
+    &lt;div id=&quot;home-rails&quot; class=&quot;home-rails&quot; aria-label=&quot;Destaques e vitrines da sua biblioteca&quot;>&lt;/div>
+    &lt;section id=&quot;cinema-browse&quot; class=&quot;browse-screen&quot; aria-label=&quot;Catálogo completo&quot; hidden>
+      &lt;div class=&quot;browse-heading&quot;>
+        &lt;div>&lt;span class=&quot;browse-kicker&quot;>CATÁLOGO COMPLETO&lt;/span>&lt;h1 id=&quot;browse-title&quot;>Filmes&lt;/h1>&lt;/div>
+        &lt;div class=&quot;browse-pager&quot; aria-label=&quot;Navegação entre páginas&quot;>
+          &lt;span id=&quot;browse-page-label&quot;>Página 1 de 1&lt;/span>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;first&quot; aria-label=&quot;Primeira página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;11 17 6 12 11 7&quot;/>&lt;polyline points=&quot;18 17 13 12 18 7&quot;/>&lt;/svg>&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;prev&quot; aria-label=&quot;Página anterior&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;15 18 9 12 15 6&quot;/>&lt;/svg>&lt;/button>
+          &lt;label class=&quot;browse-page-entry&quot;>&lt;input id=&quot;browse-page-input&quot; type=&quot;number&quot; min=&quot;1&quot; value=&quot;1&quot; aria-label=&quot;Número da página&quot;>&lt;/label>
+          &lt;button id=&quot;browse-page-go&quot; type=&quot;button&quot; class=&quot;browse-go&quot; aria-label=&quot;Ir para página&quot;>Ir&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;next&quot; aria-label=&quot;Próxima página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;9 18 15 12 9 6&quot;/>&lt;/svg>&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;last&quot; aria-label=&quot;Última página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;6 17 11 12 6 7&quot;/>&lt;polyline points=&quot;13 17 18 12 13 7&quot;/>&lt;/svg>&lt;/button>
+        &lt;/div>
+      &lt;/div>
+      &lt;div class=&quot;browse-toolbar&quot;>
+        &lt;label class=&quot;browse-group-label&quot; hidden>CATEGORIA&lt;select id=&quot;browse-tv-category&quot;>&lt;option value=&quot;&quot;>Todas as categorias&lt;/option>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>ANO&lt;select id=&quot;browse-year&quot; aria-label=&quot;Filtrar por ano&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>GÊNERO&lt;select id=&quot;browse-genre&quot; aria-label=&quot;Filtrar por gênero&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot; hidden>ÁUDIO&lt;select id=&quot;browse-language&quot; aria-label=&quot;Filtrar por áudio declarado&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>ORDEM&lt;select id=&quot;browse-sort&quot; aria-label=&quot;Ordenar catálogo&quot;>&lt;option value=&quot;source&quot;>Ordem do fornecedor&lt;/option>&lt;option value=&quot;title&quot;>Título A–Z&lt;/option>&lt;option value=&quot;year&quot;>Ano mais recente&lt;/option>&lt;/select>&lt;/label>&lt;span id=&quot;browse-filter-label&quot; class=&quot;browse-filter-label&quot;>Explore sua biblioteca&lt;/span>
+      &lt;/div>
+      &lt;div id=&quot;browse-grid&quot; class=&quot;browse-grid&quot; aria-live=&quot;polite&quot;>&lt;/div>
+      &lt;div class=&quot;browse-foot&quot;>&lt;span id=&quot;browse-foot-count&quot;>0 títulos&lt;/span>&lt;button id=&quot;browse-top&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;19&quot; x2=&quot;12&quot; y2=&quot;5&quot;/>&lt;polyline points=&quot;5 12 12 5 19 12&quot;/>&lt;/svg>&lt;span>Voltar ao topo&lt;/span>&lt;/button>&lt;/div>
+    &lt;/section>
+    &lt;section class=&quot;watch-area&quot; id=&quot;reproduzir&quot; aria-label=&quot;Reprodutor e busca completa&quot;>
+    &lt;header class=&quot;topbar&quot;>
+      &lt;div class=&quot;topbar-title&quot;>&lt;span class=&quot;eyebrow&quot;>SEU ENTRETENIMENTO, DO SEU JEITO&lt;/span>&lt;h1>TV ao vivo&lt;span class=&quot;title-accent&quot;>.&lt;/span>&lt;/h1>&lt;/div>
+      &lt;div class=&quot;topbar-actions&quot;>&lt;span class=&quot;topbar-live&quot;>&lt;span>&lt;/span> AO VIVO&lt;/span>&lt;a class=&quot;source-shortcut&quot; href=&quot;#minha-fonte&quot;>Gerenciar fonte &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>&lt;/div>
+    &lt;/header>
+
+    &lt;div id=&quot;message&quot; class=&quot;message&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Conecte uma fonte para começar a assistir.&lt;/div>
+
+    &lt;section class=&quot;workspace&quot; aria-label=&quot;TV ao vivo e canais&quot;>
+      &lt;div class=&quot;player-column&quot;>
+        &lt;div class=&quot;section-head&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>SUA TELA&lt;/span>&lt;h2>Agora assistindo&lt;/h2>&lt;/div>&lt;span id=&quot;format&quot; class=&quot;format-pill&quot;>SEM FONTE&lt;/span>&lt;/div>
+        &lt;div class=&quot;video-wrap&quot;>
+          &lt;div id=&quot;idle-stage&quot; class=&quot;idle-stage&quot;>&lt;div class=&quot;play-orbit&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/div>&lt;p>Sua programação começa aqui&lt;/p>&lt;span>Conecte uma fonte e selecione o que assistir.&lt;/span>&lt;/div>
+          &lt;video id=&quot;video&quot; controls playsinline preload=&quot;none&quot; hidden>&lt;/video>
+          &lt;div id=&quot;audio-stage&quot; class=&quot;audio-stage&quot; hidden>&lt;div class=&quot;radio-glyph&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M9 18V5l12-2v13&quot;/>&lt;circle cx=&quot;6&quot; cy=&quot;18&quot; r=&quot;3&quot;/>&lt;circle cx=&quot;18&quot; cy=&quot;16&quot; r=&quot;3&quot;/>&lt;/svg>&lt;/div>&lt;h3 id=&quot;radio-title&quot;>Rádio&lt;/h3>&lt;p>Reprodução de áudio&lt;/p>&lt;audio id=&quot;audio&quot; controls preload=&quot;none&quot;>&lt;/audio>&lt;/div>
+        &lt;/div>
+        &lt;div class=&quot;now-playing&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>EM REPRODUÇÃO&lt;/span>&lt;h3 id=&quot;playing-title&quot;>Nenhuma mídia selecionada&lt;/h3>&lt;/div>&lt;span id=&quot;playback-state&quot; class=&quot;state-pill&quot;>AGUARDANDO&lt;/span>&lt;/div>
+        &lt;p class=&quot;disclaimer&quot;>O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.&lt;/p>
+      &lt;/div>
+
+      &lt;section class=&quot;library&quot; id=&quot;biblioteca&quot; aria-label=&quot;Biblioteca de canais&quot;>
+        &lt;div class=&quot;section-head&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>ENCONTRE O QUE ASSISTIR&lt;/span>&lt;h2>Seus canais &lt;span id=&quot;channel-count&quot;>00&lt;/span>&lt;/h2>&lt;/div>&lt;button id=&quot;clear&quot; class=&quot;text-button&quot; type=&quot;button&quot; title=&quot;Desconectar a lista atual&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;3 6 5 6 21 6&quot;/>&lt;path d=&quot;M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2&quot;/>&lt;line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/>&lt;/svg>&lt;span>Limpar&lt;/span>&lt;/button>&lt;/div>
+        &lt;div class=&quot;list-tools&quot;>&lt;input id=&quot;search&quot; type=&quot;search&quot; placeholder=&quot;Buscar canais...&quot; aria-label=&quot;Buscar canais&quot;>&lt;select id=&quot;kind-filter&quot; aria-label=&quot;Filtrar tipo&quot;>&lt;option value=&quot;all&quot;>Todos&lt;/option>&lt;option value=&quot;tv&quot;>TV&lt;/option>&lt;option value=&quot;radio&quot;>Rádio&lt;/option>&lt;/select>&lt;/div>
+        &lt;div id=&quot;channels&quot; class=&quot;channels&quot; role=&quot;list&quot;>&lt;div class=&quot;list-empty&quot;>Seus canais aparecem aqui quando você conectar uma fonte.&lt;/div>&lt;/div>
+      &lt;/section>
+    &lt;/section>
+    &lt;/section>
+    &lt;div class=&quot;dev-tools&quot; hidden aria-hidden=&quot;true&quot;>
+      &lt;div class=&quot;demo-row&quot;>&lt;button id=&quot;demo&quot; type=&quot;button&quot;>Importar playlist de demonstração&lt;/button>&lt;/div>
+      &lt;details class=&quot;diagnostics&quot;>&lt;summary>Diagnóstico de reprodução&lt;/summary>&lt;pre id=&quot;diagnostics&quot;>Nenhum evento registrado.&lt;/pre>&lt;/details>
+    &lt;/div>
+  &lt;/main>
+&lt;/div>
+&lt;dialog id=&quot;admin-dialog&quot; class=&quot;lux-admin-dialog&quot; aria-labelledby=&quot;admin-dialog-title&quot;>
+  &lt;div class=&quot;admin-dialog-head&quot;>
+    &lt;div>&lt;span class=&quot;eyebrow&quot;>SUA PLATAFORMA, SUAS REGRAS&lt;/span>&lt;h2 id=&quot;admin-dialog-title&quot;>Personalizar vitrines&lt;/h2>&lt;/div>
+    &lt;button class=&quot;admin-close&quot; type=&quot;button&quot; data-close-dialog=&quot;admin-dialog&quot; aria-label=&quot;Fechar&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>
+  &lt;/div>
+  &lt;p class=&quot;admin-description&quot;>Escolha como sua biblioteca aparece. Os nomes e grupos funcionam com IPTV, cursos, aulas e outras playlists M3U.&lt;/p>
+  &lt;form id=&quot;admin-form&quot; class=&quot;admin-form&quot;>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroTitle&quot;>TÍTULO DO HERO (QUANDO A LISTA ESTIVER VAZIA)&lt;/label>&lt;input id=&quot;admin-heroTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroSubtitle&quot;>DESCRIÇÃO DO HERO&lt;/label>&lt;input id=&quot;admin-heroSubtitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-continueTitle&quot;>CONTINUAR ASSISTINDO&lt;/label>&lt;input id=&quot;admin-continueTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-favoritesTitle&quot;>MINHA LISTA&lt;/label>&lt;input id=&quot;admin-favoritesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>CURADORIA DO DESTAQUE&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroMode&quot;>ESCOLHA DO DESTAQUE&lt;/label>&lt;select id=&quot;admin-heroMode&quot;>&lt;option value=&quot;auto&quot;>Automático (com capa)&lt;/option>&lt;option value=&quot;movies&quot;>Priorizar filmes / cursos&lt;/option>&lt;option value=&quot;series&quot;>Priorizar séries / módulos&lt;/option>&lt;option value=&quot;tv&quot;>Priorizar TV&lt;/option>&lt;option value=&quot;pinned&quot;>Escolher título específico&lt;/option>&lt;/select>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-pinnedName&quot;>TÍTULO FIXO (NOME DA PLAYLIST)&lt;/label>&lt;input id=&quot;admin-pinnedName&quot; type=&quot;text&quot; maxlength=&quot;130&quot; placeholder=&quot;Digite o título exatamente como aparece&quot;>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroBackdrop&quot;>IMAGEM DO DESTAQUE (HTTPS, OPCIONAL)&lt;/label>&lt;input id=&quot;admin-heroBackdrop&quot; type=&quot;url&quot; placeholder=&quot;https://.../imagem.jpg&quot;>&lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>EXIBIÇÃO DAS VITRINES&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-railOrder&quot;>ORDEM NA HOME&lt;/label>&lt;select id=&quot;admin-railOrder&quot;>&lt;option value=&quot;personal&quot;>Continuar assistindo primeiro&lt;/option>&lt;option value=&quot;discovery&quot;>Destaques primeiro&lt;/option>&lt;option value=&quot;favorites&quot;>Minha lista primeiro&lt;/option>&lt;/select>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-density&quot;>TAMANHO DOS CARTÕES&lt;/label>&lt;select id=&quot;admin-density&quot;>&lt;option value=&quot;comfortable&quot;>Confortável&lt;/option>&lt;option value=&quot;compact&quot;>Compacto&lt;/option>&lt;/select>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-toggle-grid&quot; role=&quot;group&quot; aria-label=&quot;Escolher seções visíveis&quot;>
+      &lt;label>&lt;input id=&quot;admin-showContinue&quot; type=&quot;checkbox&quot; checked> Continuar assistindo&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showFavorites&quot; type=&quot;checkbox&quot; checked> Minha lista&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showTv&quot; type=&quot;checkbox&quot; checked> TV&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showMovies&quot; type=&quot;checkbox&quot; checked> Filmes / Cursos&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showSeries&quot; type=&quot;checkbox&quot; checked> Séries / Módulos&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-autoNext&quot; type=&quot;checkbox&quot;> Próximo episódio automático (após 10 segundos)&lt;/label>&lt;label>&lt;input id=&quot;admin-personalization&quot; type=&quot;checkbox&quot; checked> Recomendações pelo meu histórico&lt;/label>&lt;label>&lt;input id=&quot;admin-hideEmpty&quot; type=&quot;checkbox&quot; checked> Ocultar vitrines sem títulos&lt;/label>
+    &lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>IMAGENS E SINOPSES · METADADOS&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>
+        &lt;label for=&quot;admin-imageEngine&quot;>MOTOR DAS IMAGENS&lt;/label>
+        &lt;select id=&quot;admin-imageEngine&quot;>
+          &lt;option value=&quot;tmdb&quot;>TMDB primeiro · capas e banners (padrão)&lt;/option>
+          &lt;option value=&quot;hybrid&quot;>TMDB primeiro + imagens M3U de reserva&lt;/option>
+          &lt;option value=&quot;playlist&quot;>Apenas imagens M3U · TMDB desativado&lt;/option>
+        &lt;/select>
+      &lt;/div>
+      &lt;div class=&quot;admin-field&quot;>
+        &lt;label for=&quot;admin-summaryEngine&quot;>MOTOR DAS SINOPSES&lt;/label>
+        &lt;select id=&quot;admin-summaryEngine&quot;>
+          &lt;option value=&quot;off&quot;>Desativado (mais leve · padrão)&lt;/option>
+          &lt;option value=&quot;tmdb&quot;>TMDB · Sinopse e gêneros sob demanda&lt;/option>
+        &lt;/select>
+      &lt;/div>
+    &lt;/div>
+    &lt;p class=&quot;admin-engine-note&quot;>TMDB é opcional. Não altera o título da playlist nem o que é reproduzido. Sem consultas em massa: máximo de 1 busca por título, cache no D1 e limite diário; em caso de dúvida, mantém os dados originais.&lt;/p>
+    &lt;p id=&quot;admin-tmdb-status&quot; class=&quot;admin-connection-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Abra o painel para verificar se o TMDB está configurado.&lt;/p>
+    &lt;div class=&quot;admin-section-title&quot;>MODELOS RÁPIDOS PARA SUA BIBLIOTECA&lt;/div>
+    &lt;div class=&quot;admin-presets&quot; role=&quot;group&quot; aria-label=&quot;Sugestões de nomes para as vitrines&quot;>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;streaming&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;7&quot; width=&quot;20&quot; height=&quot;15&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;polyline points=&quot;17 2 12 7 7 2&quot;/>&lt;/svg>&lt;/span> Streaming&lt;/button>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;courses&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z&quot;/>&lt;path d=&quot;M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z&quot;/>&lt;/svg>&lt;/span> Cursos e aulas&lt;/button>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;generic&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot;/>&lt;/svg>&lt;/span> Biblioteca livre&lt;/button>
+    &lt;/div>
+    &lt;p id=&quot;admin-preset-status&quot; class=&quot;admin-preset-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Selecione um modelo ou personalize os títulos manualmente.&lt;/p>
+    &lt;div class=&quot;admin-section-title&quot;>VITRINES PERSONALIZÁVEIS&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-tvTitle&quot;>VITRINE 1 · NOME&lt;/label>&lt;input id=&quot;admin-tvTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Destaques da TV&quot;>&lt;label for=&quot;admin-tvKeywords&quot;>GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)&lt;/label>&lt;input id=&quot;admin-tvKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;TV, Esportes, Notícias&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-moviesTitle&quot;>VITRINE 2 · NOME&lt;/label>&lt;input id=&quot;admin-moviesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Filmes ou Cursos&quot;>&lt;label for=&quot;admin-moviesKeywords&quot;>GRUPOS DA PLAYLIST&lt;/label>&lt;input id=&quot;admin-moviesKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;Filmes, Cursos, Aulas&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-seriesTitle&quot;>VITRINE 3 · NOME&lt;/label>&lt;input id=&quot;admin-seriesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Séries ou Módulos&quot;>&lt;label for=&quot;admin-seriesKeywords&quot;>GRUPOS DA PLAYLIST&lt;/label>&lt;input id=&quot;admin-seriesKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;Séries, Temporadas, Módulos&quot;>&lt;/div>
+    &lt;div id=&quot;admin-stats&quot; class=&quot;admin-stats&quot; role=&quot;status&quot;>Conecte uma fonte para ver estatísticas do catálogo.&lt;/div>
+    &lt;div class=&quot;admin-groups&quot;>&lt;strong>Grupos detectados na sua playlist&lt;/strong>&lt;p id=&quot;detected-groups&quot;>Conecte uma playlist para identificar os grupos disponíveis.&lt;/p>&lt;/div>
+    &lt;p class=&quot;admin-notice&quot;>A personalização é privada do perfil selecionado e sincronizada entre dispositivos.&lt;/p>
+    &lt;p id=&quot;admin-save-status&quot; class=&quot;admin-save-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>As alterações serão aplicadas na Home e salvas no seu perfil.&lt;/p>
+    &lt;div class=&quot;admin-actions&quot;>&lt;button type=&quot;button&quot; id=&quot;admin-export&quot; class=&quot;admin-reset&quot; title=&quot;Copiar personalização como JSON&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;9&quot; y=&quot;9&quot; width=&quot;13&quot; height=&quot;13&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1&quot;/>&lt;/svg>&lt;span>Copiar configuração&lt;/span>&lt;/button>&lt;button type=&quot;button&quot; id=&quot;admin-reset&quot; class=&quot;admin-reset&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;1 4 1 10 7 10&quot;/>&lt;path d=&quot;M3.51 15a9 9 0 1 0 2.13-9.36L1 10&quot;/>&lt;/svg>&lt;span>Restaurar padrão&lt;/span>&lt;/button>&lt;button type=&quot;submit&quot; class=&quot;admin-save&quot;>Aplicar e salvar &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/button>&lt;/div>
+  &lt;/form>
+&lt;/dialog>
+&lt;dialog id=&quot;details-dialog&quot; class=&quot;lux-details-dialog&quot; aria-labelledby=&quot;details-title&quot;>
+  &lt;button type=&quot;button&quot; id=&quot;details-close&quot; class=&quot;details-close&quot; aria-label=&quot;Fechar detalhes&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>
+  &lt;div class=&quot;details-visual&quot;>
+    &lt;img id=&quot;details-art&quot; src=&quot;/assets/login-scene.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>
+    &lt;div class=&quot;details-shade&quot;>&lt;/div>
+    &lt;div class=&quot;details-poster-frame&quot;>&lt;img id=&quot;details-poster&quot; alt=&quot;&quot; hidden>&lt;span id=&quot;details-poster-fallback&quot; aria-hidden=&quot;true&quot;>LUX&lt;/span>&lt;/div>
+    &lt;span id=&quot;details-kicker&quot; class=&quot;details-kicker&quot;>LUX PLAYER · DA SUA BIBLIOTECA&lt;/span>
+  &lt;/div>
+  &lt;div class=&quot;details-body&quot;>
+    &lt;h2 id=&quot;details-title&quot;>Título do conteúdo&lt;/h2>
+    &lt;p id=&quot;details-group&quot;>Sua biblioteca&lt;/p>
+    &lt;div id=&quot;details-meta&quot; class=&quot;details-meta&quot; hidden>&lt;/div>
+    &lt;p id=&quot;details-overview&quot; class=&quot;details-overview&quot; hidden>&lt;/p>
+    &lt;p id=&quot;details-metadata-status&quot; class=&quot;details-metadata-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>&lt;/p>
+    &lt;div id=&quot;details-tags&quot; class=&quot;lux-tag-strip&quot;>&lt;/div>&lt;label id=&quot;details-variants&quot; hidden>Fonte do canal&lt;select id=&quot;details-variant-select&quot;>&lt;/select>&lt;/label>&lt;div class=&quot;details-actions&quot;>
+      &lt;button type=&quot;button&quot; id=&quot;details-play&quot; class=&quot;details-play&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/span> Assistir agora&lt;/button>
+      &lt;button type=&quot;button&quot; id=&quot;details-favorite&quot; class=&quot;details-favorite&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg> Minha lista&lt;/button>
+    &lt;/div>
+  &lt;/div>
+&lt;/dialog>
+&lt;div id=&quot;cinema-feedback&quot; class=&quot;cinema-feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+&lt;a class=&quot;account-link&quot; href=&quot;/account/&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/svg>&lt;span>Perfis e conta&lt;/span>&lt;/a>&lt;a class=&quot;guide-link&quot; href=&quot;/guide/&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;8&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;/>&lt;line x1=&quot;8&quot; y1=&quot;12&quot; x2=&quot;21&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;8&quot; y1=&quot;18&quot; x2=&quot;21&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;6&quot; x2=&quot;3.01&quot; y2=&quot;6&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;12&quot; x2=&quot;3.01&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;18&quot; x2=&quot;3.01&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;span>Guia e esportes&lt;/span>&lt;/a>&lt;footer class=&quot;cinema-credits&quot; aria-label=&quot;Créditos e informações&quot;>&lt;span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.&lt;/span>&lt;span>Metadados opcionais: &lt;a href=&quot;https://www.themoviedb.org&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;>TMDB&lt;/a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.&lt;/span>&lt;/footer>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>"></iframe><iframe id="w390" width="390" height="850" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#08070d&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-capable&quot; content=&quot;yes&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-status-bar-style&quot; content=&quot;black-translucent&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-title&quot; content=&quot;Lux Zero&quot;>
+  &lt;meta name=&quot;mobile-web-app-capable&quot; content=&quot;yes&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero — sua biblioteca e reprodução em um só lugar.&quot;>
+  &lt;title>Lux Player Zero · Seu universo&lt;/title>
+  &lt;link rel=&quot;icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;manifest&quot; href=&quot;/cinema/manifest.webmanifest&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/style.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/home.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-premium.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-polish.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-browse.css&quot;>
+  
+  
+  &lt;style>
+    /* Primeiro paint: a biblioteca só aparece depois da recuperação do R2. */
+    .lux-boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;background:#030305;color:#e8d1ff;font-family:'Outfit',system-ui,sans-serif;opacity:1;transition:opacity .28s ease}
+    .lux-boot[hidden]{display:none!important}
+    .lux-boot.is-leaving{opacity:0;pointer-events:none}
+    .lux-boot-title{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(17px,2.4vw,22px);font-weight:400}
+    .lux-boot-symbol{font-size:32px;line-height:1;color:#c79aec;animation:lux-boot-breathe 1.7s ease-in-out infinite}
+    .lux-boot-status{font-size:12px;color:#90869e;letter-spacing:.035em;min-height:18px}
+    .lux-boot-skip{border:1px solid #4d405f;background:#1a1322;border-radius:9px;color:#d6b9f4;font:600 12px 'Outfit',system-ui,sans-serif;padding:10px 16px;cursor:pointer}
+    .lux-boot-skip[hidden]{display:none!important}
+
+    .lux-boot{overflow:hidden;isolation:isolate}
+    .lux-galaxy{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#05050d 5%,#08091b 55%,#020207 100%)}
+    .lux-galaxy::before,.lux-galaxy::after{content:&quot;&quot;;position:absolute;inset:-35%;border-radius:50%;will-change:transform;animation:lux-nebula-orbit 36s linear infinite;background:radial-gradient(ellipse at 30% 40%,#7139ad88 0%,transparent 34%),radial-gradient(ellipse at 68% 65%,#185ca488 0%,transparent 35%),radial-gradient(ellipse at 60% 28%,#9b377c55 0%,transparent 28%);opacity:.9}
+    .lux-galaxy::after{animation-direction:reverse;animation-duration:51s;background:radial-gradient(ellipse at 65% 45%,#7138b366,transparent 30%),radial-gradient(ellipse at 30% 72%,#258b9955,transparent 32%)}
+    .lux-galaxy-stars{position:absolute;inset:-12%;background-image:radial-gradient(1px 1px at 23px 37px,#eee5ffdd 98%,transparent),radial-gradient(1px 1px at 117px 92px,#98bbffbb 98%,transparent),radial-gradient(1.5px 1.5px at 202px 173px,#dcc7ffcc 98%,transparent);background-size:247px 229px,313px 277px,389px 347px;animation:lux-stars-drift 24s ease-in-out infinite alternate;opacity:.8}
+    .lux-galaxy-stars:nth-child(2){transform:rotate(17deg);background-size:379px 337px,457px 419px,521px 487px;animation:lux-stars-drift 35s ease-in-out infinite alternate-reverse;opacity:.5}
+    .lux-galaxy-shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,#030305dd 0%,#03030588 25%,transparent 65%),linear-gradient(0deg,#030305bb,transparent 30%,transparent 75%,#03030588)}
+    .lux-boot-title,.lux-boot-status{position:relative;text-shadow:0 2px 18px #000}
+    @keyframes lux-nebula-orbit{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(342deg) scale(1)}}
+    @keyframes lux-stars-drift{from{transform:translate3d(-1%,-1%,0) scale(1);opacity:.45}to{transform:translate3d(3%,2%,0) scale(1.08);opacity:.95}}
+    @media(max-width:600px){.lux-galaxy::before,.lux-galaxy::after{inset:-15%}}
+    @media(prefers-reduced-motion:reduce){.lux-galaxy::before,.lux-galaxy::after,.lux-galaxy-stars{animation:none;will-change:auto}}
+    @keyframes lux-boot-breathe{0%,100%{opacity:.52;transform:scale(.93)}50%{opacity:1;transform:scale(1.07)}}
+    @media(prefers-reduced-motion:reduce){.lux-boot,.lux-boot-symbol{transition:none;animation:none}}
+  &lt;/style>
+  
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-detail-page.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-tag-palette.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;style>
+/* Mobile cinema: artwork, complete titles and compact navigation. */
+@media(max-width:760px){
+  .cinema-shell .cinema-header{height:calc(58px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 64px 0 12px;gap:8px}
+  .cinema-shell .cinema-brand-word{display:none}
+  .cinema-shell .cinema-brand-mark{width:32px;height:32px}
+  .cinema-shell .cinema-header-actions{gap:2px}
+  .cinema-shell .cinema-icon-button,.cinema-shell .cinema-search{width:44px;min-width:44px;height:44px}
+  .cinema-shell .cinema-search{padding:0 11px}
+  .cinema-shell .cinema-search input{font-size:16px}
+  .cinema-shell .cinema-search:focus-within{left:12px;right:12px;top:calc(7px + env(safe-area-inset-top,0px));width:auto}
+  .cinema-shell .lux-vod-launch{width:44px;min-width:44px;height:44px;padding:10px;gap:0;font-size:0}
+  .cinema-shell .lux-vod-launch svg{width:20px;height:20px}
+  .cinema-shell .cinema-nav{top:calc(58px + env(safe-area-inset-top,0px));height:56px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:3px 6px;overflow:visible}
+  .cinema-shell .cinema-nav-link{flex-direction:column;gap:3px;padding:4px 0;min-width:0;min-height:48px;font-size:10px;border-radius:10px}
+  .cinema-shell .cinema-nav-link svg{width:19px;height:19px}
+  .cinema-shell .cinema-nav-symbol{display:flex}
+  body .account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;bottom:auto;z-index:36;width:44px;height:44px;min-height:44px;padding:11px;margin:0;border:1px solid #b38aff40;border-radius:12px;background:#19121f}
+  body .account-link span{display:none}
+  .cinema-shell .feature-hero{height:auto;min-height:450px;max-height:none;margin-top:56px;overflow:hidden}
+  .cinema-shell .hero-content{height:auto;width:auto;max-width:none;margin:0;padding:140px 20px 24px;justify-content:flex-end}
+  .cinema-shell .hero-content>*{flex-shrink:0}
+  .cinema-shell .hero-poster,.cinema-shell .hero-edition{display:none}
+  .cinema-shell .hero-kicker{font-size:9px;letter-spacing:1.4px}
+  .cinema-shell .hero-content h1{display:block;max-width:100%;height:auto;max-height:none;overflow:visible;white-space:normal;font-size:clamp(28px,8vw,36px);line-height:1.12;margin:12px 0;overflow-wrap:anywhere}
+  .cinema-shell #hero-subtitle{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;max-height:none;margin:0}
+  .cinema-shell .hero-facts{font-size:11px;line-height:1.6;margin-top:10px;overflow-wrap:anywhere}
+  .cinema-shell .hero-tagline{font-size:12px;line-height:1.5}
+  .cinema-shell .hero-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:18px}
+  .cinema-shell .hero-actions .hero-primary,.cinema-shell .hero-actions .hero-secondary{min-width:0;min-height:44px;padding:10px 8px;font-size:12px;gap:6px}
+  .cinema-shell .hero-actions svg{width:18px;height:18px;flex-shrink:0}
+  .cinema-shell .hero-meta{margin-top:16px;font-size:10px;line-height:1.5}
+  .cinema-shell .hero-art{opacity:.55;object-position:center top}
+  .cinema-shell .hero-overlay{background:linear-gradient(0deg,#060609 0%,#060609ed 25%,#060609a8 65%,#06060920)}
+  .cinema-shell .lux-last-channel{margin:8px 0 20px;font-size:12px;line-height:1.5;padding:12px;white-space:normal}
+  .cinema-shell.is-browsing .browse-screen{margin-top:56px}
+}
+&lt;/style>&lt;/head>
+&lt;body>
+&lt;div id=&quot;lux-boot&quot; hidden class=&quot;lux-boot&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; aria-label=&quot;Carregando Lux Player&quot;>
+  &lt;div class=&quot;lux-galaxy&quot; aria-hidden=&quot;true&quot;>&lt;span class=&quot;lux-galaxy-stars&quot;>&lt;/span>&lt;span class=&quot;lux-galaxy-stars&quot;>&lt;/span>&lt;span class=&quot;lux-galaxy-shade&quot;>&lt;/span>&lt;/div>
+  &lt;div class=&quot;lux-boot-title&quot;>&lt;span class=&quot;lux-boot-symbol&quot; aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot;/>&lt;/svg>&lt;/span>&lt;span>Abrindo seu Lux Player...&lt;/span>&lt;/div>
+  &lt;span id=&quot;lux-boot-status&quot; class=&quot;lux-boot-status&quot;>A pipoca fica por sua conta 🍿&lt;/span>
+  &lt;button id=&quot;lux-boot-skip&quot; class=&quot;lux-boot-skip&quot; type=&quot;button&quot; hidden>Entrar mesmo assim&lt;/button>
+&lt;/div>
+
+&lt;div class=&quot;shell cinema-shell&quot;>
+  &lt;header class=&quot;cinema-header&quot; aria-label=&quot;Navegação Lux Player&quot;>
+    &lt;a class=&quot;cinema-brand&quot; href=&quot;#inicio&quot; aria-label=&quot;Lux Player — Início&quot;>
+      &lt;span class=&quot;cinema-brand-mark&quot;>&lt;img src=&quot;/assets/lux-icon.png&quot; alt=&quot;&quot;>&lt;/span>&lt;span class=&quot;cinema-brand-word&quot;>LUX &lt;span>PLAYER&lt;/span>&lt;/span>
+    &lt;/a>
+    &lt;nav class=&quot;cinema-nav&quot; aria-label=&quot;Seções&quot;>
+      &lt;a href=&quot;#inicio&quot; class=&quot;cinema-nav-link is-active&quot;>&lt;span class=&quot;cinema-nav-symbol&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z&quot;/>&lt;polyline points=&quot;9 22 9 12 15 12 15 22&quot;/>&lt;/svg>&lt;/span>Início&lt;/a>
+      &lt;a href=&quot;#destaques-tv&quot; class=&quot;cinema-nav-link&quot;>&lt;span class=&quot;cinema-nav-symbol&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;7&quot; width=&quot;20&quot; height=&quot;15&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;polyline points=&quot;17 2 12 7 7 2&quot;/>&lt;/svg>&lt;/span>Ao vivo&lt;/a>
+      &lt;a href=&quot;#destaques-filmes&quot; class=&quot;cinema-nav-link&quot; id=&quot;nav-movies&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;2&quot; width=&quot;20&quot; height=&quot;20&quot; rx=&quot;2.18&quot; ry=&quot;2.18&quot;/>&lt;line x1=&quot;7&quot; y1=&quot;2&quot; x2=&quot;7&quot; y2=&quot;22&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;2&quot; x2=&quot;17&quot; y2=&quot;22&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;12&quot; x2=&quot;22&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;7&quot; x2=&quot;7&quot; y2=&quot;7&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;17&quot; x2=&quot;7&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;17&quot; x2=&quot;22&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;7&quot; x2=&quot;22&quot; y2=&quot;7&quot;/>&lt;/svg>Filmes&lt;/a>
+      &lt;a href=&quot;#destaques-series&quot; class=&quot;cinema-nav-link&quot; id=&quot;nav-series&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 2 7 12 12 22 7 12 2&quot;/>&lt;polyline points=&quot;2 17 12 22 22 17&quot;/>&lt;polyline points=&quot;2 12 12 17 22 12&quot;/>&lt;/svg>Séries&lt;/a>
+      &lt;a href=&quot;#minha-lista&quot; class=&quot;cinema-nav-link&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z&quot;/>&lt;/svg>Minha lista&lt;/a>
+    &lt;/nav>
+    &lt;div class=&quot;cinema-header-actions&quot;>
+      &lt;label class=&quot;cinema-search&quot; for=&quot;nav-search&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;/>&lt;line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;/>&lt;/svg>&lt;/span>&lt;input id=&quot;nav-search&quot; type=&quot;search&quot; placeholder=&quot;Buscar no catálogo...&quot; autocomplete=&quot;off&quot; aria-label=&quot;Buscar no catálogo&quot;>&lt;/label>
+      &lt;button type=&quot;button&quot; id=&quot;open-source&quot; class=&quot;cinema-icon-button&quot; title=&quot;Conectar fonte&quot; aria-label=&quot;Gerenciar fontes&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg>&lt;/button>
+      &lt;button type=&quot;button&quot; id=&quot;open-admin&quot; class=&quot;cinema-icon-button&quot; title=&quot;Personalizar&quot; aria-label=&quot;Painel de personalização&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;path d=&quot;M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z&quot;/>&lt;/svg>&lt;/button>
+      &lt;span class=&quot;cinema-avatar&quot; aria-hidden=&quot;true&quot;>L&lt;/span>
+    &lt;/div>
+  &lt;/header>
+  &lt;div id=&quot;source-overlay&quot; class=&quot;source-overlay&quot; hidden>&lt;/div>
+  &lt;aside id=&quot;source-drawer&quot; class=&quot;source-drawer&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-label=&quot;Gerenciar fonte&quot; aria-hidden=&quot;true&quot; inert>
+    &lt;div class=&quot;source-drawer-top&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>SUA BIBLIOTECA&lt;/span>&lt;h2>Conectar conteúdo&lt;/h2>&lt;/div>&lt;button id=&quot;drawer-close&quot; class=&quot;drawer-close&quot; type=&quot;button&quot; aria-label=&quot;Fechar painel&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>&lt;/div>
+    &lt;p class=&quot;source-drawer-note&quot;>Sua fonte, seus títulos. O motor de importação continua o mesmo.&lt;/p>
+    &lt;section id=&quot;minha-fonte&quot; class=&quot;source-card&quot; aria-label=&quot;Gerenciar fonte de conteúdo&quot;>
+      &lt;div class=&quot;source-heading&quot;>&lt;span class=&quot;source-signal&quot;>&lt;/span>&lt;div>&lt;strong>Minha fonte&lt;/strong>&lt;small>Conecte sua biblioteca&lt;/small>&lt;/div>&lt;/div>
+      &lt;form id=&quot;source-form&quot; autocomplete=&quot;off&quot;>
+        &lt;label for=&quot;source-type&quot;>TIPO DE FONTE&lt;/label>
+        &lt;select id=&quot;source-type&quot; name=&quot;type&quot;>
+          &lt;option value=&quot;m3u&quot; selected>Playlist M3U&lt;/option>
+          &lt;option value=&quot;xtream&quot;>Xtream Codes&lt;/option>
+          &lt;option value=&quot;direct&quot;>URL de vídeo / rádio&lt;/option>
+        &lt;/select>
+        &lt;label for=&quot;source-url&quot; id=&quot;source-url-label&quot;>URL DA PLAYLIST&lt;/label>
+        &lt;input id=&quot;source-url&quot; type=&quot;url&quot; inputmode=&quot;url&quot; placeholder=&quot;https://.../lista.m3u&quot; spellcheck=&quot;false&quot;>
+        &lt;div id=&quot;bridge-settings&quot; class=&quot;bridge-settings&quot; hidden>
+          &lt;div class=&quot;bridge-settings-head&quot;>&lt;span>CONEXÃO SEGURA&lt;/span>&lt;span class=&quot;bridge-pill&quot;>HTTPS&lt;/span>&lt;/div>
+          &lt;p id=&quot;bridge-availability&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Verificando conexão...&lt;/p>
+          &lt;div id=&quot;bridge-key-wrap&quot; hidden>&lt;input id=&quot;bridge-key&quot; type=&quot;hidden&quot; value=&quot;&quot;>&lt;/div>
+        &lt;/div>
+        &lt;div id=&quot;credentials-fields&quot; hidden>
+          &lt;label for=&quot;xc-user&quot;>USUÁRIO&lt;/label>
+          &lt;input id=&quot;xc-user&quot; type=&quot;text&quot; spellcheck=&quot;false&quot; autocapitalize=&quot;off&quot; autocomplete=&quot;off&quot;>
+          &lt;label for=&quot;xc-pass&quot;>SENHA&lt;/label>
+          &lt;input id=&quot;xc-pass&quot; type=&quot;password&quot; autocomplete=&quot;new-password&quot;>
+        &lt;/div>
+        &lt;button id=&quot;connect&quot; class=&quot;primary-btn&quot; type=&quot;submit&quot;>Conectar fonte &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/button>
+        &lt;div id=&quot;file-fields&quot; hidden>
+          &lt;div class=&quot;divider-text&quot;>OU IMPORTE UM ARQUIVO&lt;/div>
+          &lt;label for=&quot;m3u-file&quot; class=&quot;upload&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;/>&lt;polyline points=&quot;17 8 12 3 7 8&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;/>&lt;/svg>&lt;span>Selecionar arquivo .m3u / .txt&lt;/span>&lt;/label>
+          &lt;input id=&quot;m3u-file&quot; type=&quot;file&quot; accept=&quot;.m3u,.m3u8,.txt,audio/x-mpegurl&quot; hidden>
+        &lt;/div>
+      &lt;/form>
+    &lt;/section>
+    &lt;div id=&quot;restore-library-panel&quot; class=&quot;restore-library-panel&quot; hidden>
+      &lt;strong>Biblioteca anterior encontrada&lt;/strong>
+      &lt;p>O catálogo já está no R2. Se a sessão venceu, digite a chave do gateway acima e recupere seus títulos, sem reenviar a M3U do fornecedor.&lt;/p>
+      &lt;button id=&quot;restore-library&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;23 4 23 10 17 10&quot;/>&lt;polyline points=&quot;1 20 1 14 7 14&quot;/>&lt;path d=&quot;M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15&quot;/>&lt;/svg> &amp;nbsp; Reconectar e restaurar biblioteca&lt;/button>
+    &lt;/div>
+    &lt;p class=&quot;drawer-footnote&quot;>O Lux Player é um reprodutor independente e não fornece conteúdo.&lt;/p>
+  &lt;/aside>
+
+  &lt;main class=&quot;main&quot; id=&quot;inicio&quot;>
+    &lt;section class=&quot;feature-hero&quot; aria-label=&quot;Destaque da sua biblioteca&quot;>
+      &lt;img id=&quot;hero-art&quot; class=&quot;hero-art&quot; src=&quot;/assets/login-scene.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>
+      &lt;div class=&quot;hero-overlay&quot;>&lt;/div>
+      &lt;div class=&quot;hero-content&quot;>
+        &lt;span class=&quot;hero-kicker&quot;>&lt;span class=&quot;hero-spark&quot;>&lt;/span>&lt;span id=&quot;hero-category&quot;>SUA PRÓXIMA HISTÓRIA COMEÇA AQUI&lt;/span>&lt;/span>
+        &lt;div class=&quot;hero-edition&quot;>LUX &lt;span>ORIGINALS&lt;/span> &lt;span class=&quot;hero-edition-line&quot;>&lt;/span> ZERO EDITION&lt;/div>
+        &lt;h1 id=&quot;hero-title&quot;>A Morte do Demônio em Chamas&lt;/h1>
+        &lt;p id=&quot;hero-subtitle&quot;>Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.&lt;/p>
+        &lt;p id=&quot;hero-tagline&quot; class=&quot;hero-tagline&quot; hidden>&lt;/p>&lt;div id=&quot;hero-facts&quot; class=&quot;hero-facts&quot;>&lt;/div>
+        &lt;div class=&quot;hero-actions&quot;>
+          &lt;button id=&quot;hero-play&quot; class=&quot;hero-primary&quot; type=&quot;button&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/span> Assistir agora&lt;/button>
+          &lt;button id=&quot;hero-connect&quot; hidden class=&quot;hero-primary&quot; type=&quot;button&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg>&lt;/span> Conectar fonte&lt;/button>
+          &lt;button id=&quot;hero-details&quot; class=&quot;hero-secondary&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;16&quot; x2=&quot;12&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;8&quot; x2=&quot;12.01&quot; y2=&quot;8&quot;/>&lt;/svg>&lt;span>Mais informações&lt;/span>&lt;/button>
+          &lt;button id=&quot;hero-add&quot; class=&quot;hero-secondary&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg> Minha lista&lt;/button>
+          &lt;a class=&quot;hero-secondary&quot; href=&quot;#home-rails&quot;>Explorar biblioteca &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;polyline points=&quot;19 12 12 19 5 12&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+        &lt;div class=&quot;hero-meta&quot;>&lt;span class=&quot;hero-meta-line&quot;>&lt;/span>&lt;span id=&quot;catalog-total&quot;>Seu conteúdo, suas escolhas.&lt;/span>&lt;/div>
+      &lt;/div>
+      &lt;div class=&quot;hero-poster&quot; aria-hidden=&quot;true&quot;>&lt;div class=&quot;poster-glow&quot;>&lt;/div>&lt;img id=&quot;hero-poster&quot; src=&quot;/assets/lux-icon.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>&lt;span>SELEÇÃO LUX&lt;/span>&lt;/div>
+      &lt;div class=&quot;hero-number&quot; aria-hidden=&quot;true&quot;>01 &lt;span>/ SEU UNIVERSO&lt;/span>&lt;/div>
+    &lt;/section>
+    &lt;div id=&quot;home-rails&quot; class=&quot;home-rails&quot; aria-label=&quot;Destaques e vitrines da sua biblioteca&quot;>&lt;/div>
+    &lt;section id=&quot;cinema-browse&quot; class=&quot;browse-screen&quot; aria-label=&quot;Catálogo completo&quot; hidden>
+      &lt;div class=&quot;browse-heading&quot;>
+        &lt;div>&lt;span class=&quot;browse-kicker&quot;>CATÁLOGO COMPLETO&lt;/span>&lt;h1 id=&quot;browse-title&quot;>Filmes&lt;/h1>&lt;/div>
+        &lt;div class=&quot;browse-pager&quot; aria-label=&quot;Navegação entre páginas&quot;>
+          &lt;span id=&quot;browse-page-label&quot;>Página 1 de 1&lt;/span>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;first&quot; aria-label=&quot;Primeira página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;11 17 6 12 11 7&quot;/>&lt;polyline points=&quot;18 17 13 12 18 7&quot;/>&lt;/svg>&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;prev&quot; aria-label=&quot;Página anterior&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;15 18 9 12 15 6&quot;/>&lt;/svg>&lt;/button>
+          &lt;label class=&quot;browse-page-entry&quot;>&lt;input id=&quot;browse-page-input&quot; type=&quot;number&quot; min=&quot;1&quot; value=&quot;1&quot; aria-label=&quot;Número da página&quot;>&lt;/label>
+          &lt;button id=&quot;browse-page-go&quot; type=&quot;button&quot; class=&quot;browse-go&quot; aria-label=&quot;Ir para página&quot;>Ir&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;next&quot; aria-label=&quot;Próxima página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;9 18 15 12 9 6&quot;/>&lt;/svg>&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;last&quot; aria-label=&quot;Última página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;6 17 11 12 6 7&quot;/>&lt;polyline points=&quot;13 17 18 12 13 7&quot;/>&lt;/svg>&lt;/button>
+        &lt;/div>
+      &lt;/div>
+      &lt;div class=&quot;browse-toolbar&quot;>
+        &lt;label class=&quot;browse-group-label&quot; hidden>CATEGORIA&lt;select id=&quot;browse-tv-category&quot;>&lt;option value=&quot;&quot;>Todas as categorias&lt;/option>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>ANO&lt;select id=&quot;browse-year&quot; aria-label=&quot;Filtrar por ano&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>GÊNERO&lt;select id=&quot;browse-genre&quot; aria-label=&quot;Filtrar por gênero&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot; hidden>ÁUDIO&lt;select id=&quot;browse-language&quot; aria-label=&quot;Filtrar por áudio declarado&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>ORDEM&lt;select id=&quot;browse-sort&quot; aria-label=&quot;Ordenar catálogo&quot;>&lt;option value=&quot;source&quot;>Ordem do fornecedor&lt;/option>&lt;option value=&quot;title&quot;>Título A–Z&lt;/option>&lt;option value=&quot;year&quot;>Ano mais recente&lt;/option>&lt;/select>&lt;/label>&lt;span id=&quot;browse-filter-label&quot; class=&quot;browse-filter-label&quot;>Explore sua biblioteca&lt;/span>
+      &lt;/div>
+      &lt;div id=&quot;browse-grid&quot; class=&quot;browse-grid&quot; aria-live=&quot;polite&quot;>&lt;/div>
+      &lt;div class=&quot;browse-foot&quot;>&lt;span id=&quot;browse-foot-count&quot;>0 títulos&lt;/span>&lt;button id=&quot;browse-top&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;19&quot; x2=&quot;12&quot; y2=&quot;5&quot;/>&lt;polyline points=&quot;5 12 12 5 19 12&quot;/>&lt;/svg>&lt;span>Voltar ao topo&lt;/span>&lt;/button>&lt;/div>
+    &lt;/section>
+    &lt;section class=&quot;watch-area&quot; id=&quot;reproduzir&quot; aria-label=&quot;Reprodutor e busca completa&quot;>
+    &lt;header class=&quot;topbar&quot;>
+      &lt;div class=&quot;topbar-title&quot;>&lt;span class=&quot;eyebrow&quot;>SEU ENTRETENIMENTO, DO SEU JEITO&lt;/span>&lt;h1>TV ao vivo&lt;span class=&quot;title-accent&quot;>.&lt;/span>&lt;/h1>&lt;/div>
+      &lt;div class=&quot;topbar-actions&quot;>&lt;span class=&quot;topbar-live&quot;>&lt;span>&lt;/span> AO VIVO&lt;/span>&lt;a class=&quot;source-shortcut&quot; href=&quot;#minha-fonte&quot;>Gerenciar fonte &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>&lt;/div>
+    &lt;/header>
+
+    &lt;div id=&quot;message&quot; class=&quot;message&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Conecte uma fonte para começar a assistir.&lt;/div>
+
+    &lt;section class=&quot;workspace&quot; aria-label=&quot;TV ao vivo e canais&quot;>
+      &lt;div class=&quot;player-column&quot;>
+        &lt;div class=&quot;section-head&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>SUA TELA&lt;/span>&lt;h2>Agora assistindo&lt;/h2>&lt;/div>&lt;span id=&quot;format&quot; class=&quot;format-pill&quot;>SEM FONTE&lt;/span>&lt;/div>
+        &lt;div class=&quot;video-wrap&quot;>
+          &lt;div id=&quot;idle-stage&quot; class=&quot;idle-stage&quot;>&lt;div class=&quot;play-orbit&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/div>&lt;p>Sua programação começa aqui&lt;/p>&lt;span>Conecte uma fonte e selecione o que assistir.&lt;/span>&lt;/div>
+          &lt;video id=&quot;video&quot; controls playsinline preload=&quot;none&quot; hidden>&lt;/video>
+          &lt;div id=&quot;audio-stage&quot; class=&quot;audio-stage&quot; hidden>&lt;div class=&quot;radio-glyph&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M9 18V5l12-2v13&quot;/>&lt;circle cx=&quot;6&quot; cy=&quot;18&quot; r=&quot;3&quot;/>&lt;circle cx=&quot;18&quot; cy=&quot;16&quot; r=&quot;3&quot;/>&lt;/svg>&lt;/div>&lt;h3 id=&quot;radio-title&quot;>Rádio&lt;/h3>&lt;p>Reprodução de áudio&lt;/p>&lt;audio id=&quot;audio&quot; controls preload=&quot;none&quot;>&lt;/audio>&lt;/div>
+        &lt;/div>
+        &lt;div class=&quot;now-playing&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>EM REPRODUÇÃO&lt;/span>&lt;h3 id=&quot;playing-title&quot;>Nenhuma mídia selecionada&lt;/h3>&lt;/div>&lt;span id=&quot;playback-state&quot; class=&quot;state-pill&quot;>AGUARDANDO&lt;/span>&lt;/div>
+        &lt;p class=&quot;disclaimer&quot;>O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.&lt;/p>
+      &lt;/div>
+
+      &lt;section class=&quot;library&quot; id=&quot;biblioteca&quot; aria-label=&quot;Biblioteca de canais&quot;>
+        &lt;div class=&quot;section-head&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>ENCONTRE O QUE ASSISTIR&lt;/span>&lt;h2>Seus canais &lt;span id=&quot;channel-count&quot;>00&lt;/span>&lt;/h2>&lt;/div>&lt;button id=&quot;clear&quot; class=&quot;text-button&quot; type=&quot;button&quot; title=&quot;Desconectar a lista atual&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;3 6 5 6 21 6&quot;/>&lt;path d=&quot;M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2&quot;/>&lt;line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/>&lt;/svg>&lt;span>Limpar&lt;/span>&lt;/button>&lt;/div>
+        &lt;div class=&quot;list-tools&quot;>&lt;input id=&quot;search&quot; type=&quot;search&quot; placeholder=&quot;Buscar canais...&quot; aria-label=&quot;Buscar canais&quot;>&lt;select id=&quot;kind-filter&quot; aria-label=&quot;Filtrar tipo&quot;>&lt;option value=&quot;all&quot;>Todos&lt;/option>&lt;option value=&quot;tv&quot;>TV&lt;/option>&lt;option value=&quot;radio&quot;>Rádio&lt;/option>&lt;/select>&lt;/div>
+        &lt;div id=&quot;channels&quot; class=&quot;channels&quot; role=&quot;list&quot;>&lt;div class=&quot;list-empty&quot;>Seus canais aparecem aqui quando você conectar uma fonte.&lt;/div>&lt;/div>
+      &lt;/section>
+    &lt;/section>
+    &lt;/section>
+    &lt;div class=&quot;dev-tools&quot; hidden aria-hidden=&quot;true&quot;>
+      &lt;div class=&quot;demo-row&quot;>&lt;button id=&quot;demo&quot; type=&quot;button&quot;>Importar playlist de demonstração&lt;/button>&lt;/div>
+      &lt;details class=&quot;diagnostics&quot;>&lt;summary>Diagnóstico de reprodução&lt;/summary>&lt;pre id=&quot;diagnostics&quot;>Nenhum evento registrado.&lt;/pre>&lt;/details>
+    &lt;/div>
+  &lt;/main>
+&lt;/div>
+&lt;dialog id=&quot;admin-dialog&quot; class=&quot;lux-admin-dialog&quot; aria-labelledby=&quot;admin-dialog-title&quot;>
+  &lt;div class=&quot;admin-dialog-head&quot;>
+    &lt;div>&lt;span class=&quot;eyebrow&quot;>SUA PLATAFORMA, SUAS REGRAS&lt;/span>&lt;h2 id=&quot;admin-dialog-title&quot;>Personalizar vitrines&lt;/h2>&lt;/div>
+    &lt;button class=&quot;admin-close&quot; type=&quot;button&quot; data-close-dialog=&quot;admin-dialog&quot; aria-label=&quot;Fechar&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>
+  &lt;/div>
+  &lt;p class=&quot;admin-description&quot;>Escolha como sua biblioteca aparece. Os nomes e grupos funcionam com IPTV, cursos, aulas e outras playlists M3U.&lt;/p>
+  &lt;form id=&quot;admin-form&quot; class=&quot;admin-form&quot;>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroTitle&quot;>TÍTULO DO HERO (QUANDO A LISTA ESTIVER VAZIA)&lt;/label>&lt;input id=&quot;admin-heroTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroSubtitle&quot;>DESCRIÇÃO DO HERO&lt;/label>&lt;input id=&quot;admin-heroSubtitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-continueTitle&quot;>CONTINUAR ASSISTINDO&lt;/label>&lt;input id=&quot;admin-continueTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-favoritesTitle&quot;>MINHA LISTA&lt;/label>&lt;input id=&quot;admin-favoritesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>CURADORIA DO DESTAQUE&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroMode&quot;>ESCOLHA DO DESTAQUE&lt;/label>&lt;select id=&quot;admin-heroMode&quot;>&lt;option value=&quot;auto&quot;>Automático (com capa)&lt;/option>&lt;option value=&quot;movies&quot;>Priorizar filmes / cursos&lt;/option>&lt;option value=&quot;series&quot;>Priorizar séries / módulos&lt;/option>&lt;option value=&quot;tv&quot;>Priorizar TV&lt;/option>&lt;option value=&quot;pinned&quot;>Escolher título específico&lt;/option>&lt;/select>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-pinnedName&quot;>TÍTULO FIXO (NOME DA PLAYLIST)&lt;/label>&lt;input id=&quot;admin-pinnedName&quot; type=&quot;text&quot; maxlength=&quot;130&quot; placeholder=&quot;Digite o título exatamente como aparece&quot;>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroBackdrop&quot;>IMAGEM DO DESTAQUE (HTTPS, OPCIONAL)&lt;/label>&lt;input id=&quot;admin-heroBackdrop&quot; type=&quot;url&quot; placeholder=&quot;https://.../imagem.jpg&quot;>&lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>EXIBIÇÃO DAS VITRINES&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-railOrder&quot;>ORDEM NA HOME&lt;/label>&lt;select id=&quot;admin-railOrder&quot;>&lt;option value=&quot;personal&quot;>Continuar assistindo primeiro&lt;/option>&lt;option value=&quot;discovery&quot;>Destaques primeiro&lt;/option>&lt;option value=&quot;favorites&quot;>Minha lista primeiro&lt;/option>&lt;/select>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-density&quot;>TAMANHO DOS CARTÕES&lt;/label>&lt;select id=&quot;admin-density&quot;>&lt;option value=&quot;comfortable&quot;>Confortável&lt;/option>&lt;option value=&quot;compact&quot;>Compacto&lt;/option>&lt;/select>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-toggle-grid&quot; role=&quot;group&quot; aria-label=&quot;Escolher seções visíveis&quot;>
+      &lt;label>&lt;input id=&quot;admin-showContinue&quot; type=&quot;checkbox&quot; checked> Continuar assistindo&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showFavorites&quot; type=&quot;checkbox&quot; checked> Minha lista&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showTv&quot; type=&quot;checkbox&quot; checked> TV&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showMovies&quot; type=&quot;checkbox&quot; checked> Filmes / Cursos&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showSeries&quot; type=&quot;checkbox&quot; checked> Séries / Módulos&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-autoNext&quot; type=&quot;checkbox&quot;> Próximo episódio automático (após 10 segundos)&lt;/label>&lt;label>&lt;input id=&quot;admin-personalization&quot; type=&quot;checkbox&quot; checked> Recomendações pelo meu histórico&lt;/label>&lt;label>&lt;input id=&quot;admin-hideEmpty&quot; type=&quot;checkbox&quot; checked> Ocultar vitrines sem títulos&lt;/label>
+    &lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>IMAGENS E SINOPSES · METADADOS&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>
+        &lt;label for=&quot;admin-imageEngine&quot;>MOTOR DAS IMAGENS&lt;/label>
+        &lt;select id=&quot;admin-imageEngine&quot;>
+          &lt;option value=&quot;tmdb&quot;>TMDB primeiro · capas e banners (padrão)&lt;/option>
+          &lt;option value=&quot;hybrid&quot;>TMDB primeiro + imagens M3U de reserva&lt;/option>
+          &lt;option value=&quot;playlist&quot;>Apenas imagens M3U · TMDB desativado&lt;/option>
+        &lt;/select>
+      &lt;/div>
+      &lt;div class=&quot;admin-field&quot;>
+        &lt;label for=&quot;admin-summaryEngine&quot;>MOTOR DAS SINOPSES&lt;/label>
+        &lt;select id=&quot;admin-summaryEngine&quot;>
+          &lt;option value=&quot;off&quot;>Desativado (mais leve · padrão)&lt;/option>
+          &lt;option value=&quot;tmdb&quot;>TMDB · Sinopse e gêneros sob demanda&lt;/option>
+        &lt;/select>
+      &lt;/div>
+    &lt;/div>
+    &lt;p class=&quot;admin-engine-note&quot;>TMDB é opcional. Não altera o título da playlist nem o que é reproduzido. Sem consultas em massa: máximo de 1 busca por título, cache no D1 e limite diário; em caso de dúvida, mantém os dados originais.&lt;/p>
+    &lt;p id=&quot;admin-tmdb-status&quot; class=&quot;admin-connection-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Abra o painel para verificar se o TMDB está configurado.&lt;/p>
+    &lt;div class=&quot;admin-section-title&quot;>MODELOS RÁPIDOS PARA SUA BIBLIOTECA&lt;/div>
+    &lt;div class=&quot;admin-presets&quot; role=&quot;group&quot; aria-label=&quot;Sugestões de nomes para as vitrines&quot;>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;streaming&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;7&quot; width=&quot;20&quot; height=&quot;15&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;polyline points=&quot;17 2 12 7 7 2&quot;/>&lt;/svg>&lt;/span> Streaming&lt;/button>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;courses&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z&quot;/>&lt;path d=&quot;M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z&quot;/>&lt;/svg>&lt;/span> Cursos e aulas&lt;/button>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;generic&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot;/>&lt;/svg>&lt;/span> Biblioteca livre&lt;/button>
+    &lt;/div>
+    &lt;p id=&quot;admin-preset-status&quot; class=&quot;admin-preset-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Selecione um modelo ou personalize os títulos manualmente.&lt;/p>
+    &lt;div class=&quot;admin-section-title&quot;>VITRINES PERSONALIZÁVEIS&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-tvTitle&quot;>VITRINE 1 · NOME&lt;/label>&lt;input id=&quot;admin-tvTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Destaques da TV&quot;>&lt;label for=&quot;admin-tvKeywords&quot;>GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)&lt;/label>&lt;input id=&quot;admin-tvKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;TV, Esportes, Notícias&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-moviesTitle&quot;>VITRINE 2 · NOME&lt;/label>&lt;input id=&quot;admin-moviesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Filmes ou Cursos&quot;>&lt;label for=&quot;admin-moviesKeywords&quot;>GRUPOS DA PLAYLIST&lt;/label>&lt;input id=&quot;admin-moviesKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;Filmes, Cursos, Aulas&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-seriesTitle&quot;>VITRINE 3 · NOME&lt;/label>&lt;input id=&quot;admin-seriesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Séries ou Módulos&quot;>&lt;label for=&quot;admin-seriesKeywords&quot;>GRUPOS DA PLAYLIST&lt;/label>&lt;input id=&quot;admin-seriesKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;Séries, Temporadas, Módulos&quot;>&lt;/div>
+    &lt;div id=&quot;admin-stats&quot; class=&quot;admin-stats&quot; role=&quot;status&quot;>Conecte uma fonte para ver estatísticas do catálogo.&lt;/div>
+    &lt;div class=&quot;admin-groups&quot;>&lt;strong>Grupos detectados na sua playlist&lt;/strong>&lt;p id=&quot;detected-groups&quot;>Conecte uma playlist para identificar os grupos disponíveis.&lt;/p>&lt;/div>
+    &lt;p class=&quot;admin-notice&quot;>A personalização é privada do perfil selecionado e sincronizada entre dispositivos.&lt;/p>
+    &lt;p id=&quot;admin-save-status&quot; class=&quot;admin-save-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>As alterações serão aplicadas na Home e salvas no seu perfil.&lt;/p>
+    &lt;div class=&quot;admin-actions&quot;>&lt;button type=&quot;button&quot; id=&quot;admin-export&quot; class=&quot;admin-reset&quot; title=&quot;Copiar personalização como JSON&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;9&quot; y=&quot;9&quot; width=&quot;13&quot; height=&quot;13&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1&quot;/>&lt;/svg>&lt;span>Copiar configuração&lt;/span>&lt;/button>&lt;button type=&quot;button&quot; id=&quot;admin-reset&quot; class=&quot;admin-reset&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;1 4 1 10 7 10&quot;/>&lt;path d=&quot;M3.51 15a9 9 0 1 0 2.13-9.36L1 10&quot;/>&lt;/svg>&lt;span>Restaurar padrão&lt;/span>&lt;/button>&lt;button type=&quot;submit&quot; class=&quot;admin-save&quot;>Aplicar e salvar &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/button>&lt;/div>
+  &lt;/form>
+&lt;/dialog>
+&lt;dialog id=&quot;details-dialog&quot; class=&quot;lux-details-dialog&quot; aria-labelledby=&quot;details-title&quot;>
+  &lt;button type=&quot;button&quot; id=&quot;details-close&quot; class=&quot;details-close&quot; aria-label=&quot;Fechar detalhes&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>
+  &lt;div class=&quot;details-visual&quot;>
+    &lt;img id=&quot;details-art&quot; src=&quot;/assets/login-scene.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>
+    &lt;div class=&quot;details-shade&quot;>&lt;/div>
+    &lt;div class=&quot;details-poster-frame&quot;>&lt;img id=&quot;details-poster&quot; alt=&quot;&quot; hidden>&lt;span id=&quot;details-poster-fallback&quot; aria-hidden=&quot;true&quot;>LUX&lt;/span>&lt;/div>
+    &lt;span id=&quot;details-kicker&quot; class=&quot;details-kicker&quot;>LUX PLAYER · DA SUA BIBLIOTECA&lt;/span>
+  &lt;/div>
+  &lt;div class=&quot;details-body&quot;>
+    &lt;h2 id=&quot;details-title&quot;>Título do conteúdo&lt;/h2>
+    &lt;p id=&quot;details-group&quot;>Sua biblioteca&lt;/p>
+    &lt;div id=&quot;details-meta&quot; class=&quot;details-meta&quot; hidden>&lt;/div>
+    &lt;p id=&quot;details-overview&quot; class=&quot;details-overview&quot; hidden>&lt;/p>
+    &lt;p id=&quot;details-metadata-status&quot; class=&quot;details-metadata-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>&lt;/p>
+    &lt;div id=&quot;details-tags&quot; class=&quot;lux-tag-strip&quot;>&lt;/div>&lt;label id=&quot;details-variants&quot; hidden>Fonte do canal&lt;select id=&quot;details-variant-select&quot;>&lt;/select>&lt;/label>&lt;div class=&quot;details-actions&quot;>
+      &lt;button type=&quot;button&quot; id=&quot;details-play&quot; class=&quot;details-play&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/span> Assistir agora&lt;/button>
+      &lt;button type=&quot;button&quot; id=&quot;details-favorite&quot; class=&quot;details-favorite&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg> Minha lista&lt;/button>
+    &lt;/div>
+  &lt;/div>
+&lt;/dialog>
+&lt;div id=&quot;cinema-feedback&quot; class=&quot;cinema-feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+&lt;a class=&quot;account-link&quot; href=&quot;/account/&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/svg>&lt;span>Perfis e conta&lt;/span>&lt;/a>&lt;a class=&quot;guide-link&quot; href=&quot;/guide/&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;8&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;/>&lt;line x1=&quot;8&quot; y1=&quot;12&quot; x2=&quot;21&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;8&quot; y1=&quot;18&quot; x2=&quot;21&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;6&quot; x2=&quot;3.01&quot; y2=&quot;6&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;12&quot; x2=&quot;3.01&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;18&quot; x2=&quot;3.01&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;span>Guia e esportes&lt;/span>&lt;/a>&lt;footer class=&quot;cinema-credits&quot; aria-label=&quot;Créditos e informações&quot;>&lt;span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.&lt;/span>&lt;span>Metadados opcionais: &lt;a href=&quot;https://www.themoviedb.org&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;>TMDB&lt;/a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.&lt;/span>&lt;/footer>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>"></iframe><iframe id="w760" width="760" height="850" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#08070d&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-capable&quot; content=&quot;yes&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-status-bar-style&quot; content=&quot;black-translucent&quot;>
+  &lt;meta name=&quot;apple-mobile-web-app-title&quot; content=&quot;Lux Zero&quot;>
+  &lt;meta name=&quot;mobile-web-app-capable&quot; content=&quot;yes&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero — sua biblioteca e reprodução em um só lugar.&quot;>
+  &lt;title>Lux Player Zero · Seu universo&lt;/title>
+  &lt;link rel=&quot;icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;manifest&quot; href=&quot;/cinema/manifest.webmanifest&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/style.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/home.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-premium.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-polish.css&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-browse.css&quot;>
+  
+  
+  &lt;style>
+    /* Primeiro paint: a biblioteca só aparece depois da recuperação do R2. */
+    .lux-boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;background:#030305;color:#e8d1ff;font-family:'Outfit',system-ui,sans-serif;opacity:1;transition:opacity .28s ease}
+    .lux-boot[hidden]{display:none!important}
+    .lux-boot.is-leaving{opacity:0;pointer-events:none}
+    .lux-boot-title{display:flex;align-items:center;justify-content:center;gap:14px;font-size:clamp(17px,2.4vw,22px);font-weight:400}
+    .lux-boot-symbol{font-size:32px;line-height:1;color:#c79aec;animation:lux-boot-breathe 1.7s ease-in-out infinite}
+    .lux-boot-status{font-size:12px;color:#90869e;letter-spacing:.035em;min-height:18px}
+    .lux-boot-skip{border:1px solid #4d405f;background:#1a1322;border-radius:9px;color:#d6b9f4;font:600 12px 'Outfit',system-ui,sans-serif;padding:10px 16px;cursor:pointer}
+    .lux-boot-skip[hidden]{display:none!important}
+
+    .lux-boot{overflow:hidden;isolation:isolate}
+    .lux-galaxy{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,#05050d 5%,#08091b 55%,#020207 100%)}
+    .lux-galaxy::before,.lux-galaxy::after{content:&quot;&quot;;position:absolute;inset:-35%;border-radius:50%;will-change:transform;animation:lux-nebula-orbit 36s linear infinite;background:radial-gradient(ellipse at 30% 40%,#7139ad88 0%,transparent 34%),radial-gradient(ellipse at 68% 65%,#185ca488 0%,transparent 35%),radial-gradient(ellipse at 60% 28%,#9b377c55 0%,transparent 28%);opacity:.9}
+    .lux-galaxy::after{animation-direction:reverse;animation-duration:51s;background:radial-gradient(ellipse at 65% 45%,#7138b366,transparent 30%),radial-gradient(ellipse at 30% 72%,#258b9955,transparent 32%)}
+    .lux-galaxy-stars{position:absolute;inset:-12%;background-image:radial-gradient(1px 1px at 23px 37px,#eee5ffdd 98%,transparent),radial-gradient(1px 1px at 117px 92px,#98bbffbb 98%,transparent),radial-gradient(1.5px 1.5px at 202px 173px,#dcc7ffcc 98%,transparent);background-size:247px 229px,313px 277px,389px 347px;animation:lux-stars-drift 24s ease-in-out infinite alternate;opacity:.8}
+    .lux-galaxy-stars:nth-child(2){transform:rotate(17deg);background-size:379px 337px,457px 419px,521px 487px;animation:lux-stars-drift 35s ease-in-out infinite alternate-reverse;opacity:.5}
+    .lux-galaxy-shade{position:absolute;inset:0;background:radial-gradient(ellipse at center,#030305dd 0%,#03030588 25%,transparent 65%),linear-gradient(0deg,#030305bb,transparent 30%,transparent 75%,#03030588)}
+    .lux-boot-title,.lux-boot-status{position:relative;text-shadow:0 2px 18px #000}
+    @keyframes lux-nebula-orbit{from{transform:rotate(-18deg) scale(1)}to{transform:rotate(342deg) scale(1)}}
+    @keyframes lux-stars-drift{from{transform:translate3d(-1%,-1%,0) scale(1);opacity:.45}to{transform:translate3d(3%,2%,0) scale(1.08);opacity:.95}}
+    @media(max-width:600px){.lux-galaxy::before,.lux-galaxy::after{inset:-15%}}
+    @media(prefers-reduced-motion:reduce){.lux-galaxy::before,.lux-galaxy::after,.lux-galaxy-stars{animation:none;will-change:auto}}
+    @keyframes lux-boot-breathe{0%,100%{opacity:.52;transform:scale(.93)}50%{opacity:1;transform:scale(1.07)}}
+    @media(prefers-reduced-motion:reduce){.lux-boot,.lux-boot-symbol{transition:none;animation:none}}
+  &lt;/style>
+  
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/cinema-detail-page.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-tag-palette.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;style>
+/* Mobile cinema: artwork, complete titles and compact navigation. */
+@media(max-width:760px){
+  .cinema-shell .cinema-header{height:calc(58px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 64px 0 12px;gap:8px}
+  .cinema-shell .cinema-brand-word{display:none}
+  .cinema-shell .cinema-brand-mark{width:32px;height:32px}
+  .cinema-shell .cinema-header-actions{gap:2px}
+  .cinema-shell .cinema-icon-button,.cinema-shell .cinema-search{width:44px;min-width:44px;height:44px}
+  .cinema-shell .cinema-search{padding:0 11px}
+  .cinema-shell .cinema-search input{font-size:16px}
+  .cinema-shell .cinema-search:focus-within{left:12px;right:12px;top:calc(7px + env(safe-area-inset-top,0px));width:auto}
+  .cinema-shell .lux-vod-launch{width:44px;min-width:44px;height:44px;padding:10px;gap:0;font-size:0}
+  .cinema-shell .lux-vod-launch svg{width:20px;height:20px}
+  .cinema-shell .cinema-nav{top:calc(58px + env(safe-area-inset-top,0px));height:56px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:3px 6px;overflow:visible}
+  .cinema-shell .cinema-nav-link{flex-direction:column;gap:3px;padding:4px 0;min-width:0;min-height:48px;font-size:10px;border-radius:10px}
+  .cinema-shell .cinema-nav-link svg{width:19px;height:19px}
+  .cinema-shell .cinema-nav-symbol{display:flex}
+  body .account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;bottom:auto;z-index:36;width:44px;height:44px;min-height:44px;padding:11px;margin:0;border:1px solid #b38aff40;border-radius:12px;background:#19121f}
+  body .account-link span{display:none}
+  .cinema-shell .feature-hero{height:auto;min-height:450px;max-height:none;margin-top:56px;overflow:hidden}
+  .cinema-shell .hero-content{height:auto;width:auto;max-width:none;margin:0;padding:140px 20px 24px;justify-content:flex-end}
+  .cinema-shell .hero-content>*{flex-shrink:0}
+  .cinema-shell .hero-poster,.cinema-shell .hero-edition{display:none}
+  .cinema-shell .hero-kicker{font-size:9px;letter-spacing:1.4px}
+  .cinema-shell .hero-content h1{display:block;max-width:100%;height:auto;max-height:none;overflow:visible;white-space:normal;font-size:clamp(28px,8vw,36px);line-height:1.12;margin:12px 0;overflow-wrap:anywhere}
+  .cinema-shell #hero-subtitle{font-size:13px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;max-height:none;margin:0}
+  .cinema-shell .hero-facts{font-size:11px;line-height:1.6;margin-top:10px;overflow-wrap:anywhere}
+  .cinema-shell .hero-tagline{font-size:12px;line-height:1.5}
+  .cinema-shell .hero-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:18px}
+  .cinema-shell .hero-actions .hero-primary,.cinema-shell .hero-actions .hero-secondary{min-width:0;min-height:44px;padding:10px 8px;font-size:12px;gap:6px}
+  .cinema-shell .hero-actions svg{width:18px;height:18px;flex-shrink:0}
+  .cinema-shell .hero-meta{margin-top:16px;font-size:10px;line-height:1.5}
+  .cinema-shell .hero-art{opacity:.55;object-position:center top}
+  .cinema-shell .hero-overlay{background:linear-gradient(0deg,#060609 0%,#060609ed 25%,#060609a8 65%,#06060920)}
+  .cinema-shell .lux-last-channel{margin:8px 0 20px;font-size:12px;line-height:1.5;padding:12px;white-space:normal}
+  .cinema-shell.is-browsing .browse-screen{margin-top:56px}
+}
+&lt;/style>&lt;/head>
+&lt;body>
+&lt;div id=&quot;lux-boot&quot; hidden class=&quot;lux-boot&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; aria-label=&quot;Carregando Lux Player&quot;>
+  &lt;div class=&quot;lux-galaxy&quot; aria-hidden=&quot;true&quot;>&lt;span class=&quot;lux-galaxy-stars&quot;>&lt;/span>&lt;span class=&quot;lux-galaxy-stars&quot;>&lt;/span>&lt;span class=&quot;lux-galaxy-shade&quot;>&lt;/span>&lt;/div>
+  &lt;div class=&quot;lux-boot-title&quot;>&lt;span class=&quot;lux-boot-symbol&quot; aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot;/>&lt;/svg>&lt;/span>&lt;span>Abrindo seu Lux Player...&lt;/span>&lt;/div>
+  &lt;span id=&quot;lux-boot-status&quot; class=&quot;lux-boot-status&quot;>A pipoca fica por sua conta 🍿&lt;/span>
+  &lt;button id=&quot;lux-boot-skip&quot; class=&quot;lux-boot-skip&quot; type=&quot;button&quot; hidden>Entrar mesmo assim&lt;/button>
+&lt;/div>
+
+&lt;div class=&quot;shell cinema-shell&quot;>
+  &lt;header class=&quot;cinema-header&quot; aria-label=&quot;Navegação Lux Player&quot;>
+    &lt;a class=&quot;cinema-brand&quot; href=&quot;#inicio&quot; aria-label=&quot;Lux Player — Início&quot;>
+      &lt;span class=&quot;cinema-brand-mark&quot;>&lt;img src=&quot;/assets/lux-icon.png&quot; alt=&quot;&quot;>&lt;/span>&lt;span class=&quot;cinema-brand-word&quot;>LUX &lt;span>PLAYER&lt;/span>&lt;/span>
+    &lt;/a>
+    &lt;nav class=&quot;cinema-nav&quot; aria-label=&quot;Seções&quot;>
+      &lt;a href=&quot;#inicio&quot; class=&quot;cinema-nav-link is-active&quot;>&lt;span class=&quot;cinema-nav-symbol&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z&quot;/>&lt;polyline points=&quot;9 22 9 12 15 12 15 22&quot;/>&lt;/svg>&lt;/span>Início&lt;/a>
+      &lt;a href=&quot;#destaques-tv&quot; class=&quot;cinema-nav-link&quot;>&lt;span class=&quot;cinema-nav-symbol&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;7&quot; width=&quot;20&quot; height=&quot;15&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;polyline points=&quot;17 2 12 7 7 2&quot;/>&lt;/svg>&lt;/span>Ao vivo&lt;/a>
+      &lt;a href=&quot;#destaques-filmes&quot; class=&quot;cinema-nav-link&quot; id=&quot;nav-movies&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;2&quot; width=&quot;20&quot; height=&quot;20&quot; rx=&quot;2.18&quot; ry=&quot;2.18&quot;/>&lt;line x1=&quot;7&quot; y1=&quot;2&quot; x2=&quot;7&quot; y2=&quot;22&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;2&quot; x2=&quot;17&quot; y2=&quot;22&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;12&quot; x2=&quot;22&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;7&quot; x2=&quot;7&quot; y2=&quot;7&quot;/>&lt;line x1=&quot;2&quot; y1=&quot;17&quot; x2=&quot;7&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;17&quot; x2=&quot;22&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;17&quot; y1=&quot;7&quot; x2=&quot;22&quot; y2=&quot;7&quot;/>&lt;/svg>Filmes&lt;/a>
+      &lt;a href=&quot;#destaques-series&quot; class=&quot;cinema-nav-link&quot; id=&quot;nav-series&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 2 7 12 12 22 7 12 2&quot;/>&lt;polyline points=&quot;2 17 12 22 22 17&quot;/>&lt;polyline points=&quot;2 12 12 17 22 12&quot;/>&lt;/svg>Séries&lt;/a>
+      &lt;a href=&quot;#minha-lista&quot; class=&quot;cinema-nav-link&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z&quot;/>&lt;/svg>Minha lista&lt;/a>
+    &lt;/nav>
+    &lt;div class=&quot;cinema-header-actions&quot;>
+      &lt;label class=&quot;cinema-search&quot; for=&quot;nav-search&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;/>&lt;line x1=&quot;21&quot; y1=&quot;21&quot; x2=&quot;16.65&quot; y2=&quot;16.65&quot;/>&lt;/svg>&lt;/span>&lt;input id=&quot;nav-search&quot; type=&quot;search&quot; placeholder=&quot;Buscar no catálogo...&quot; autocomplete=&quot;off&quot; aria-label=&quot;Buscar no catálogo&quot;>&lt;/label>
+      &lt;button type=&quot;button&quot; id=&quot;open-source&quot; class=&quot;cinema-icon-button&quot; title=&quot;Conectar fonte&quot; aria-label=&quot;Gerenciar fontes&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg>&lt;/button>
+      &lt;button type=&quot;button&quot; id=&quot;open-admin&quot; class=&quot;cinema-icon-button&quot; title=&quot;Personalizar&quot; aria-label=&quot;Painel de personalização&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;path d=&quot;M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z&quot;/>&lt;/svg>&lt;/button>
+      &lt;span class=&quot;cinema-avatar&quot; aria-hidden=&quot;true&quot;>L&lt;/span>
+    &lt;/div>
+  &lt;/header>
+  &lt;div id=&quot;source-overlay&quot; class=&quot;source-overlay&quot; hidden>&lt;/div>
+  &lt;aside id=&quot;source-drawer&quot; class=&quot;source-drawer&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-label=&quot;Gerenciar fonte&quot; aria-hidden=&quot;true&quot; inert>
+    &lt;div class=&quot;source-drawer-top&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>SUA BIBLIOTECA&lt;/span>&lt;h2>Conectar conteúdo&lt;/h2>&lt;/div>&lt;button id=&quot;drawer-close&quot; class=&quot;drawer-close&quot; type=&quot;button&quot; aria-label=&quot;Fechar painel&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>&lt;/div>
+    &lt;p class=&quot;source-drawer-note&quot;>Sua fonte, seus títulos. O motor de importação continua o mesmo.&lt;/p>
+    &lt;section id=&quot;minha-fonte&quot; class=&quot;source-card&quot; aria-label=&quot;Gerenciar fonte de conteúdo&quot;>
+      &lt;div class=&quot;source-heading&quot;>&lt;span class=&quot;source-signal&quot;>&lt;/span>&lt;div>&lt;strong>Minha fonte&lt;/strong>&lt;small>Conecte sua biblioteca&lt;/small>&lt;/div>&lt;/div>
+      &lt;form id=&quot;source-form&quot; autocomplete=&quot;off&quot;>
+        &lt;label for=&quot;source-type&quot;>TIPO DE FONTE&lt;/label>
+        &lt;select id=&quot;source-type&quot; name=&quot;type&quot;>
+          &lt;option value=&quot;m3u&quot; selected>Playlist M3U&lt;/option>
+          &lt;option value=&quot;xtream&quot;>Xtream Codes&lt;/option>
+          &lt;option value=&quot;direct&quot;>URL de vídeo / rádio&lt;/option>
+        &lt;/select>
+        &lt;label for=&quot;source-url&quot; id=&quot;source-url-label&quot;>URL DA PLAYLIST&lt;/label>
+        &lt;input id=&quot;source-url&quot; type=&quot;url&quot; inputmode=&quot;url&quot; placeholder=&quot;https://.../lista.m3u&quot; spellcheck=&quot;false&quot;>
+        &lt;div id=&quot;bridge-settings&quot; class=&quot;bridge-settings&quot; hidden>
+          &lt;div class=&quot;bridge-settings-head&quot;>&lt;span>CONEXÃO SEGURA&lt;/span>&lt;span class=&quot;bridge-pill&quot;>HTTPS&lt;/span>&lt;/div>
+          &lt;p id=&quot;bridge-availability&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Verificando conexão...&lt;/p>
+          &lt;div id=&quot;bridge-key-wrap&quot; hidden>&lt;input id=&quot;bridge-key&quot; type=&quot;hidden&quot; value=&quot;&quot;>&lt;/div>
+        &lt;/div>
+        &lt;div id=&quot;credentials-fields&quot; hidden>
+          &lt;label for=&quot;xc-user&quot;>USUÁRIO&lt;/label>
+          &lt;input id=&quot;xc-user&quot; type=&quot;text&quot; spellcheck=&quot;false&quot; autocapitalize=&quot;off&quot; autocomplete=&quot;off&quot;>
+          &lt;label for=&quot;xc-pass&quot;>SENHA&lt;/label>
+          &lt;input id=&quot;xc-pass&quot; type=&quot;password&quot; autocomplete=&quot;new-password&quot;>
+        &lt;/div>
+        &lt;button id=&quot;connect&quot; class=&quot;primary-btn&quot; type=&quot;submit&quot;>Conectar fonte &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/button>
+        &lt;div id=&quot;file-fields&quot; hidden>
+          &lt;div class=&quot;divider-text&quot;>OU IMPORTE UM ARQUIVO&lt;/div>
+          &lt;label for=&quot;m3u-file&quot; class=&quot;upload&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4&quot;/>&lt;polyline points=&quot;17 8 12 3 7 8&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;3&quot; x2=&quot;12&quot; y2=&quot;15&quot;/>&lt;/svg>&lt;span>Selecionar arquivo .m3u / .txt&lt;/span>&lt;/label>
+          &lt;input id=&quot;m3u-file&quot; type=&quot;file&quot; accept=&quot;.m3u,.m3u8,.txt,audio/x-mpegurl&quot; hidden>
+        &lt;/div>
+      &lt;/form>
+    &lt;/section>
+    &lt;div id=&quot;restore-library-panel&quot; class=&quot;restore-library-panel&quot; hidden>
+      &lt;strong>Biblioteca anterior encontrada&lt;/strong>
+      &lt;p>O catálogo já está no R2. Se a sessão venceu, digite a chave do gateway acima e recupere seus títulos, sem reenviar a M3U do fornecedor.&lt;/p>
+      &lt;button id=&quot;restore-library&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;23 4 23 10 17 10&quot;/>&lt;polyline points=&quot;1 20 1 14 7 14&quot;/>&lt;path d=&quot;M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15&quot;/>&lt;/svg> &amp;nbsp; Reconectar e restaurar biblioteca&lt;/button>
+    &lt;/div>
+    &lt;p class=&quot;drawer-footnote&quot;>O Lux Player é um reprodutor independente e não fornece conteúdo.&lt;/p>
+  &lt;/aside>
+
+  &lt;main class=&quot;main&quot; id=&quot;inicio&quot;>
+    &lt;section class=&quot;feature-hero&quot; aria-label=&quot;Destaque da sua biblioteca&quot;>
+      &lt;img id=&quot;hero-art&quot; class=&quot;hero-art&quot; src=&quot;/assets/login-scene.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>
+      &lt;div class=&quot;hero-overlay&quot;>&lt;/div>
+      &lt;div class=&quot;hero-content&quot;>
+        &lt;span class=&quot;hero-kicker&quot;>&lt;span class=&quot;hero-spark&quot;>&lt;/span>&lt;span id=&quot;hero-category&quot;>SUA PRÓXIMA HISTÓRIA COMEÇA AQUI&lt;/span>&lt;/span>
+        &lt;div class=&quot;hero-edition&quot;>LUX &lt;span>ORIGINALS&lt;/span> &lt;span class=&quot;hero-edition-line&quot;>&lt;/span> ZERO EDITION&lt;/div>
+        &lt;h1 id=&quot;hero-title&quot;>A Morte do Demônio em Chamas&lt;/h1>
+        &lt;p id=&quot;hero-subtitle&quot;>Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.&lt;/p>
+        &lt;p id=&quot;hero-tagline&quot; class=&quot;hero-tagline&quot; hidden>&lt;/p>&lt;div id=&quot;hero-facts&quot; class=&quot;hero-facts&quot;>&lt;/div>
+        &lt;div class=&quot;hero-actions&quot;>
+          &lt;button id=&quot;hero-play&quot; class=&quot;hero-primary&quot; type=&quot;button&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/span> Assistir agora&lt;/button>
+          &lt;button id=&quot;hero-connect&quot; hidden class=&quot;hero-primary&quot; type=&quot;button&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg>&lt;/span> Conectar fonte&lt;/button>
+          &lt;button id=&quot;hero-details&quot; class=&quot;hero-secondary&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;10&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;16&quot; x2=&quot;12&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;12&quot; y1=&quot;8&quot; x2=&quot;12.01&quot; y2=&quot;8&quot;/>&lt;/svg>&lt;span>Mais informações&lt;/span>&lt;/button>
+          &lt;button id=&quot;hero-add&quot; class=&quot;hero-secondary&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg> Minha lista&lt;/button>
+          &lt;a class=&quot;hero-secondary&quot; href=&quot;#home-rails&quot;>Explorar biblioteca &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;polyline points=&quot;19 12 12 19 5 12&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+        &lt;div class=&quot;hero-meta&quot;>&lt;span class=&quot;hero-meta-line&quot;>&lt;/span>&lt;span id=&quot;catalog-total&quot;>Seu conteúdo, suas escolhas.&lt;/span>&lt;/div>
+      &lt;/div>
+      &lt;div class=&quot;hero-poster&quot; aria-hidden=&quot;true&quot;>&lt;div class=&quot;poster-glow&quot;>&lt;/div>&lt;img id=&quot;hero-poster&quot; src=&quot;/assets/lux-icon.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>&lt;span>SELEÇÃO LUX&lt;/span>&lt;/div>
+      &lt;div class=&quot;hero-number&quot; aria-hidden=&quot;true&quot;>01 &lt;span>/ SEU UNIVERSO&lt;/span>&lt;/div>
+    &lt;/section>
+    &lt;div id=&quot;home-rails&quot; class=&quot;home-rails&quot; aria-label=&quot;Destaques e vitrines da sua biblioteca&quot;>&lt;/div>
+    &lt;section id=&quot;cinema-browse&quot; class=&quot;browse-screen&quot; aria-label=&quot;Catálogo completo&quot; hidden>
+      &lt;div class=&quot;browse-heading&quot;>
+        &lt;div>&lt;span class=&quot;browse-kicker&quot;>CATÁLOGO COMPLETO&lt;/span>&lt;h1 id=&quot;browse-title&quot;>Filmes&lt;/h1>&lt;/div>
+        &lt;div class=&quot;browse-pager&quot; aria-label=&quot;Navegação entre páginas&quot;>
+          &lt;span id=&quot;browse-page-label&quot;>Página 1 de 1&lt;/span>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;first&quot; aria-label=&quot;Primeira página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;11 17 6 12 11 7&quot;/>&lt;polyline points=&quot;18 17 13 12 18 7&quot;/>&lt;/svg>&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;prev&quot; aria-label=&quot;Página anterior&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;15 18 9 12 15 6&quot;/>&lt;/svg>&lt;/button>
+          &lt;label class=&quot;browse-page-entry&quot;>&lt;input id=&quot;browse-page-input&quot; type=&quot;number&quot; min=&quot;1&quot; value=&quot;1&quot; aria-label=&quot;Número da página&quot;>&lt;/label>
+          &lt;button id=&quot;browse-page-go&quot; type=&quot;button&quot; class=&quot;browse-go&quot; aria-label=&quot;Ir para página&quot;>Ir&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;next&quot; aria-label=&quot;Próxima página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;9 18 15 12 9 6&quot;/>&lt;/svg>&lt;/button>
+          &lt;button type=&quot;button&quot; data-browse-page=&quot;last&quot; aria-label=&quot;Última página&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;6 17 11 12 6 7&quot;/>&lt;polyline points=&quot;13 17 18 12 13 7&quot;/>&lt;/svg>&lt;/button>
+        &lt;/div>
+      &lt;/div>
+      &lt;div class=&quot;browse-toolbar&quot;>
+        &lt;label class=&quot;browse-group-label&quot; hidden>CATEGORIA&lt;select id=&quot;browse-tv-category&quot;>&lt;option value=&quot;&quot;>Todas as categorias&lt;/option>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>ANO&lt;select id=&quot;browse-year&quot; aria-label=&quot;Filtrar por ano&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>GÊNERO&lt;select id=&quot;browse-genre&quot; aria-label=&quot;Filtrar por gênero&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot; hidden>ÁUDIO&lt;select id=&quot;browse-language&quot; aria-label=&quot;Filtrar por áudio declarado&quot;>&lt;/select>&lt;/label>&lt;label class=&quot;browse-group-label&quot;>ORDEM&lt;select id=&quot;browse-sort&quot; aria-label=&quot;Ordenar catálogo&quot;>&lt;option value=&quot;source&quot;>Ordem do fornecedor&lt;/option>&lt;option value=&quot;title&quot;>Título A–Z&lt;/option>&lt;option value=&quot;year&quot;>Ano mais recente&lt;/option>&lt;/select>&lt;/label>&lt;span id=&quot;browse-filter-label&quot; class=&quot;browse-filter-label&quot;>Explore sua biblioteca&lt;/span>
+      &lt;/div>
+      &lt;div id=&quot;browse-grid&quot; class=&quot;browse-grid&quot; aria-live=&quot;polite&quot;>&lt;/div>
+      &lt;div class=&quot;browse-foot&quot;>&lt;span id=&quot;browse-foot-count&quot;>0 títulos&lt;/span>&lt;button id=&quot;browse-top&quot; type=&quot;button&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;19&quot; x2=&quot;12&quot; y2=&quot;5&quot;/>&lt;polyline points=&quot;5 12 12 5 19 12&quot;/>&lt;/svg>&lt;span>Voltar ao topo&lt;/span>&lt;/button>&lt;/div>
+    &lt;/section>
+    &lt;section class=&quot;watch-area&quot; id=&quot;reproduzir&quot; aria-label=&quot;Reprodutor e busca completa&quot;>
+    &lt;header class=&quot;topbar&quot;>
+      &lt;div class=&quot;topbar-title&quot;>&lt;span class=&quot;eyebrow&quot;>SEU ENTRETENIMENTO, DO SEU JEITO&lt;/span>&lt;h1>TV ao vivo&lt;span class=&quot;title-accent&quot;>.&lt;/span>&lt;/h1>&lt;/div>
+      &lt;div class=&quot;topbar-actions&quot;>&lt;span class=&quot;topbar-live&quot;>&lt;span>&lt;/span> AO VIVO&lt;/span>&lt;a class=&quot;source-shortcut&quot; href=&quot;#minha-fonte&quot;>Gerenciar fonte &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>&lt;/div>
+    &lt;/header>
+
+    &lt;div id=&quot;message&quot; class=&quot;message&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Conecte uma fonte para começar a assistir.&lt;/div>
+
+    &lt;section class=&quot;workspace&quot; aria-label=&quot;TV ao vivo e canais&quot;>
+      &lt;div class=&quot;player-column&quot;>
+        &lt;div class=&quot;section-head&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>SUA TELA&lt;/span>&lt;h2>Agora assistindo&lt;/h2>&lt;/div>&lt;span id=&quot;format&quot; class=&quot;format-pill&quot;>SEM FONTE&lt;/span>&lt;/div>
+        &lt;div class=&quot;video-wrap&quot;>
+          &lt;div id=&quot;idle-stage&quot; class=&quot;idle-stage&quot;>&lt;div class=&quot;play-orbit&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/div>&lt;p>Sua programação começa aqui&lt;/p>&lt;span>Conecte uma fonte e selecione o que assistir.&lt;/span>&lt;/div>
+          &lt;video id=&quot;video&quot; controls playsinline preload=&quot;none&quot; hidden>&lt;/video>
+          &lt;div id=&quot;audio-stage&quot; class=&quot;audio-stage&quot; hidden>&lt;div class=&quot;radio-glyph&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M9 18V5l12-2v13&quot;/>&lt;circle cx=&quot;6&quot; cy=&quot;18&quot; r=&quot;3&quot;/>&lt;circle cx=&quot;18&quot; cy=&quot;16&quot; r=&quot;3&quot;/>&lt;/svg>&lt;/div>&lt;h3 id=&quot;radio-title&quot;>Rádio&lt;/h3>&lt;p>Reprodução de áudio&lt;/p>&lt;audio id=&quot;audio&quot; controls preload=&quot;none&quot;>&lt;/audio>&lt;/div>
+        &lt;/div>
+        &lt;div class=&quot;now-playing&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>EM REPRODUÇÃO&lt;/span>&lt;h3 id=&quot;playing-title&quot;>Nenhuma mídia selecionada&lt;/h3>&lt;/div>&lt;span id=&quot;playback-state&quot; class=&quot;state-pill&quot;>AGUARDANDO&lt;/span>&lt;/div>
+        &lt;p class=&quot;disclaimer&quot;>O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.&lt;/p>
+      &lt;/div>
+
+      &lt;section class=&quot;library&quot; id=&quot;biblioteca&quot; aria-label=&quot;Biblioteca de canais&quot;>
+        &lt;div class=&quot;section-head&quot;>&lt;div>&lt;span class=&quot;eyebrow&quot;>ENCONTRE O QUE ASSISTIR&lt;/span>&lt;h2>Seus canais &lt;span id=&quot;channel-count&quot;>00&lt;/span>&lt;/h2>&lt;/div>&lt;button id=&quot;clear&quot; class=&quot;text-button&quot; type=&quot;button&quot; title=&quot;Desconectar a lista atual&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;3 6 5 6 21 6&quot;/>&lt;path d=&quot;M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2&quot;/>&lt;line x1=&quot;10&quot; y1=&quot;11&quot; x2=&quot;10&quot; y2=&quot;17&quot;/>&lt;line x1=&quot;14&quot; y1=&quot;11&quot; x2=&quot;14&quot; y2=&quot;17&quot;/>&lt;/svg>&lt;span>Limpar&lt;/span>&lt;/button>&lt;/div>
+        &lt;div class=&quot;list-tools&quot;>&lt;input id=&quot;search&quot; type=&quot;search&quot; placeholder=&quot;Buscar canais...&quot; aria-label=&quot;Buscar canais&quot;>&lt;select id=&quot;kind-filter&quot; aria-label=&quot;Filtrar tipo&quot;>&lt;option value=&quot;all&quot;>Todos&lt;/option>&lt;option value=&quot;tv&quot;>TV&lt;/option>&lt;option value=&quot;radio&quot;>Rádio&lt;/option>&lt;/select>&lt;/div>
+        &lt;div id=&quot;channels&quot; class=&quot;channels&quot; role=&quot;list&quot;>&lt;div class=&quot;list-empty&quot;>Seus canais aparecem aqui quando você conectar uma fonte.&lt;/div>&lt;/div>
+      &lt;/section>
+    &lt;/section>
+    &lt;/section>
+    &lt;div class=&quot;dev-tools&quot; hidden aria-hidden=&quot;true&quot;>
+      &lt;div class=&quot;demo-row&quot;>&lt;button id=&quot;demo&quot; type=&quot;button&quot;>Importar playlist de demonstração&lt;/button>&lt;/div>
+      &lt;details class=&quot;diagnostics&quot;>&lt;summary>Diagnóstico de reprodução&lt;/summary>&lt;pre id=&quot;diagnostics&quot;>Nenhum evento registrado.&lt;/pre>&lt;/details>
+    &lt;/div>
+  &lt;/main>
+&lt;/div>
+&lt;dialog id=&quot;admin-dialog&quot; class=&quot;lux-admin-dialog&quot; aria-labelledby=&quot;admin-dialog-title&quot;>
+  &lt;div class=&quot;admin-dialog-head&quot;>
+    &lt;div>&lt;span class=&quot;eyebrow&quot;>SUA PLATAFORMA, SUAS REGRAS&lt;/span>&lt;h2 id=&quot;admin-dialog-title&quot;>Personalizar vitrines&lt;/h2>&lt;/div>
+    &lt;button class=&quot;admin-close&quot; type=&quot;button&quot; data-close-dialog=&quot;admin-dialog&quot; aria-label=&quot;Fechar&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>
+  &lt;/div>
+  &lt;p class=&quot;admin-description&quot;>Escolha como sua biblioteca aparece. Os nomes e grupos funcionam com IPTV, cursos, aulas e outras playlists M3U.&lt;/p>
+  &lt;form id=&quot;admin-form&quot; class=&quot;admin-form&quot;>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroTitle&quot;>TÍTULO DO HERO (QUANDO A LISTA ESTIVER VAZIA)&lt;/label>&lt;input id=&quot;admin-heroTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroSubtitle&quot;>DESCRIÇÃO DO HERO&lt;/label>&lt;input id=&quot;admin-heroSubtitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-continueTitle&quot;>CONTINUAR ASSISTINDO&lt;/label>&lt;input id=&quot;admin-continueTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-favoritesTitle&quot;>MINHA LISTA&lt;/label>&lt;input id=&quot;admin-favoritesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot;>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>CURADORIA DO DESTAQUE&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroMode&quot;>ESCOLHA DO DESTAQUE&lt;/label>&lt;select id=&quot;admin-heroMode&quot;>&lt;option value=&quot;auto&quot;>Automático (com capa)&lt;/option>&lt;option value=&quot;movies&quot;>Priorizar filmes / cursos&lt;/option>&lt;option value=&quot;series&quot;>Priorizar séries / módulos&lt;/option>&lt;option value=&quot;tv&quot;>Priorizar TV&lt;/option>&lt;option value=&quot;pinned&quot;>Escolher título específico&lt;/option>&lt;/select>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-pinnedName&quot;>TÍTULO FIXO (NOME DA PLAYLIST)&lt;/label>&lt;input id=&quot;admin-pinnedName&quot; type=&quot;text&quot; maxlength=&quot;130&quot; placeholder=&quot;Digite o título exatamente como aparece&quot;>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-heroBackdrop&quot;>IMAGEM DO DESTAQUE (HTTPS, OPCIONAL)&lt;/label>&lt;input id=&quot;admin-heroBackdrop&quot; type=&quot;url&quot; placeholder=&quot;https://.../imagem.jpg&quot;>&lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>EXIBIÇÃO DAS VITRINES&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-railOrder&quot;>ORDEM NA HOME&lt;/label>&lt;select id=&quot;admin-railOrder&quot;>&lt;option value=&quot;personal&quot;>Continuar assistindo primeiro&lt;/option>&lt;option value=&quot;discovery&quot;>Destaques primeiro&lt;/option>&lt;option value=&quot;favorites&quot;>Minha lista primeiro&lt;/option>&lt;/select>&lt;/div>
+      &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-density&quot;>TAMANHO DOS CARTÕES&lt;/label>&lt;select id=&quot;admin-density&quot;>&lt;option value=&quot;comfortable&quot;>Confortável&lt;/option>&lt;option value=&quot;compact&quot;>Compacto&lt;/option>&lt;/select>&lt;/div>
+    &lt;/div>
+    &lt;div class=&quot;admin-toggle-grid&quot; role=&quot;group&quot; aria-label=&quot;Escolher seções visíveis&quot;>
+      &lt;label>&lt;input id=&quot;admin-showContinue&quot; type=&quot;checkbox&quot; checked> Continuar assistindo&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showFavorites&quot; type=&quot;checkbox&quot; checked> Minha lista&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showTv&quot; type=&quot;checkbox&quot; checked> TV&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showMovies&quot; type=&quot;checkbox&quot; checked> Filmes / Cursos&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-showSeries&quot; type=&quot;checkbox&quot; checked> Séries / Módulos&lt;/label>
+      &lt;label>&lt;input id=&quot;admin-autoNext&quot; type=&quot;checkbox&quot;> Próximo episódio automático (após 10 segundos)&lt;/label>&lt;label>&lt;input id=&quot;admin-personalization&quot; type=&quot;checkbox&quot; checked> Recomendações pelo meu histórico&lt;/label>&lt;label>&lt;input id=&quot;admin-hideEmpty&quot; type=&quot;checkbox&quot; checked> Ocultar vitrines sem títulos&lt;/label>
+    &lt;/div>
+    &lt;div class=&quot;admin-section-title&quot;>IMAGENS E SINOPSES · METADADOS&lt;/div>
+    &lt;div class=&quot;admin-field-row&quot;>
+      &lt;div class=&quot;admin-field&quot;>
+        &lt;label for=&quot;admin-imageEngine&quot;>MOTOR DAS IMAGENS&lt;/label>
+        &lt;select id=&quot;admin-imageEngine&quot;>
+          &lt;option value=&quot;tmdb&quot;>TMDB primeiro · capas e banners (padrão)&lt;/option>
+          &lt;option value=&quot;hybrid&quot;>TMDB primeiro + imagens M3U de reserva&lt;/option>
+          &lt;option value=&quot;playlist&quot;>Apenas imagens M3U · TMDB desativado&lt;/option>
+        &lt;/select>
+      &lt;/div>
+      &lt;div class=&quot;admin-field&quot;>
+        &lt;label for=&quot;admin-summaryEngine&quot;>MOTOR DAS SINOPSES&lt;/label>
+        &lt;select id=&quot;admin-summaryEngine&quot;>
+          &lt;option value=&quot;off&quot;>Desativado (mais leve · padrão)&lt;/option>
+          &lt;option value=&quot;tmdb&quot;>TMDB · Sinopse e gêneros sob demanda&lt;/option>
+        &lt;/select>
+      &lt;/div>
+    &lt;/div>
+    &lt;p class=&quot;admin-engine-note&quot;>TMDB é opcional. Não altera o título da playlist nem o que é reproduzido. Sem consultas em massa: máximo de 1 busca por título, cache no D1 e limite diário; em caso de dúvida, mantém os dados originais.&lt;/p>
+    &lt;p id=&quot;admin-tmdb-status&quot; class=&quot;admin-connection-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Abra o painel para verificar se o TMDB está configurado.&lt;/p>
+    &lt;div class=&quot;admin-section-title&quot;>MODELOS RÁPIDOS PARA SUA BIBLIOTECA&lt;/div>
+    &lt;div class=&quot;admin-presets&quot; role=&quot;group&quot; aria-label=&quot;Sugestões de nomes para as vitrines&quot;>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;streaming&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;2&quot; y=&quot;7&quot; width=&quot;20&quot; height=&quot;15&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;polyline points=&quot;17 2 12 7 7 2&quot;/>&lt;/svg>&lt;/span> Streaming&lt;/button>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;courses&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z&quot;/>&lt;path d=&quot;M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z&quot;/>&lt;/svg>&lt;/span> Cursos e aulas&lt;/button>
+      &lt;button type=&quot;button&quot; data-admin-preset=&quot;generic&quot; aria-pressed=&quot;false&quot;>&lt;span class=&quot;preset-icon&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2&quot;/>&lt;/svg>&lt;/span> Biblioteca livre&lt;/button>
+    &lt;/div>
+    &lt;p id=&quot;admin-preset-status&quot; class=&quot;admin-preset-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>Selecione um modelo ou personalize os títulos manualmente.&lt;/p>
+    &lt;div class=&quot;admin-section-title&quot;>VITRINES PERSONALIZÁVEIS&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-tvTitle&quot;>VITRINE 1 · NOME&lt;/label>&lt;input id=&quot;admin-tvTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Destaques da TV&quot;>&lt;label for=&quot;admin-tvKeywords&quot;>GRUPOS DA PLAYLIST (SEPARADOS POR VÍRGULA)&lt;/label>&lt;input id=&quot;admin-tvKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;TV, Esportes, Notícias&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-moviesTitle&quot;>VITRINE 2 · NOME&lt;/label>&lt;input id=&quot;admin-moviesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Filmes ou Cursos&quot;>&lt;label for=&quot;admin-moviesKeywords&quot;>GRUPOS DA PLAYLIST&lt;/label>&lt;input id=&quot;admin-moviesKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;Filmes, Cursos, Aulas&quot;>&lt;/div>
+    &lt;div class=&quot;admin-field&quot;>&lt;label for=&quot;admin-seriesTitle&quot;>VITRINE 3 · NOME&lt;/label>&lt;input id=&quot;admin-seriesTitle&quot; type=&quot;text&quot; maxlength=&quot;90&quot; placeholder=&quot;Séries ou Módulos&quot;>&lt;label for=&quot;admin-seriesKeywords&quot;>GRUPOS DA PLAYLIST&lt;/label>&lt;input id=&quot;admin-seriesKeywords&quot; type=&quot;text&quot; maxlength=&quot;220&quot; placeholder=&quot;Séries, Temporadas, Módulos&quot;>&lt;/div>
+    &lt;div id=&quot;admin-stats&quot; class=&quot;admin-stats&quot; role=&quot;status&quot;>Conecte uma fonte para ver estatísticas do catálogo.&lt;/div>
+    &lt;div class=&quot;admin-groups&quot;>&lt;strong>Grupos detectados na sua playlist&lt;/strong>&lt;p id=&quot;detected-groups&quot;>Conecte uma playlist para identificar os grupos disponíveis.&lt;/p>&lt;/div>
+    &lt;p class=&quot;admin-notice&quot;>A personalização é privada do perfil selecionado e sincronizada entre dispositivos.&lt;/p>
+    &lt;p id=&quot;admin-save-status&quot; class=&quot;admin-save-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>As alterações serão aplicadas na Home e salvas no seu perfil.&lt;/p>
+    &lt;div class=&quot;admin-actions&quot;>&lt;button type=&quot;button&quot; id=&quot;admin-export&quot; class=&quot;admin-reset&quot; title=&quot;Copiar personalização como JSON&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;rect x=&quot;9&quot; y=&quot;9&quot; width=&quot;13&quot; height=&quot;13&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1&quot;/>&lt;/svg>&lt;span>Copiar configuração&lt;/span>&lt;/button>&lt;button type=&quot;button&quot; id=&quot;admin-reset&quot; class=&quot;admin-reset&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polyline points=&quot;1 4 1 10 7 10&quot;/>&lt;path d=&quot;M3.51 15a9 9 0 1 0 2.13-9.36L1 10&quot;/>&lt;/svg>&lt;span>Restaurar padrão&lt;/span>&lt;/button>&lt;button type=&quot;submit&quot; class=&quot;admin-save&quot;>Aplicar e salvar &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/button>&lt;/div>
+  &lt;/form>
+&lt;/dialog>
+&lt;dialog id=&quot;details-dialog&quot; class=&quot;lux-details-dialog&quot; aria-labelledby=&quot;details-title&quot;>
+  &lt;button type=&quot;button&quot; id=&quot;details-close&quot; class=&quot;details-close&quot; aria-label=&quot;Fechar detalhes&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;/button>
+  &lt;div class=&quot;details-visual&quot;>
+    &lt;img id=&quot;details-art&quot; src=&quot;/assets/login-scene.png&quot; alt=&quot;&quot; referrerpolicy=&quot;no-referrer&quot;>
+    &lt;div class=&quot;details-shade&quot;>&lt;/div>
+    &lt;div class=&quot;details-poster-frame&quot;>&lt;img id=&quot;details-poster&quot; alt=&quot;&quot; hidden>&lt;span id=&quot;details-poster-fallback&quot; aria-hidden=&quot;true&quot;>LUX&lt;/span>&lt;/div>
+    &lt;span id=&quot;details-kicker&quot; class=&quot;details-kicker&quot;>LUX PLAYER · DA SUA BIBLIOTECA&lt;/span>
+  &lt;/div>
+  &lt;div class=&quot;details-body&quot;>
+    &lt;h2 id=&quot;details-title&quot;>Título do conteúdo&lt;/h2>
+    &lt;p id=&quot;details-group&quot;>Sua biblioteca&lt;/p>
+    &lt;div id=&quot;details-meta&quot; class=&quot;details-meta&quot; hidden>&lt;/div>
+    &lt;p id=&quot;details-overview&quot; class=&quot;details-overview&quot; hidden>&lt;/p>
+    &lt;p id=&quot;details-metadata-status&quot; class=&quot;details-metadata-status&quot; role=&quot;status&quot; aria-live=&quot;polite&quot;>&lt;/p>
+    &lt;div id=&quot;details-tags&quot; class=&quot;lux-tag-strip&quot;>&lt;/div>&lt;label id=&quot;details-variants&quot; hidden>Fonte do canal&lt;select id=&quot;details-variant-select&quot;>&lt;/select>&lt;/label>&lt;div class=&quot;details-actions&quot;>
+      &lt;button type=&quot;button&quot; id=&quot;details-play&quot; class=&quot;details-play&quot;>&lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/svg>&lt;/span> Assistir agora&lt;/button>
+      &lt;button type=&quot;button&quot; id=&quot;details-favorite&quot; class=&quot;details-favorite&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;12&quot; y1=&quot;5&quot; x2=&quot;12&quot; y2=&quot;19&quot;/>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;/svg> Minha lista&lt;/button>
+    &lt;/div>
+  &lt;/div>
+&lt;/dialog>
+&lt;div id=&quot;cinema-feedback&quot; class=&quot;cinema-feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+&lt;a class=&quot;account-link&quot; href=&quot;/account/&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/svg>&lt;span>Perfis e conta&lt;/span>&lt;/a>&lt;a class=&quot;guide-link&quot; href=&quot;/guide/&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;8&quot; y1=&quot;6&quot; x2=&quot;21&quot; y2=&quot;6&quot;/>&lt;line x1=&quot;8&quot; y1=&quot;12&quot; x2=&quot;21&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;8&quot; y1=&quot;18&quot; x2=&quot;21&quot; y2=&quot;18&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;6&quot; x2=&quot;3.01&quot; y2=&quot;6&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;12&quot; x2=&quot;3.01&quot; y2=&quot;12&quot;/>&lt;line x1=&quot;3&quot; y1=&quot;18&quot; x2=&quot;3.01&quot; y2=&quot;18&quot;/>&lt;/svg>&lt;span>Guia e esportes&lt;/span>&lt;/a>&lt;footer class=&quot;cinema-credits&quot; aria-label=&quot;Créditos e informações&quot;>&lt;span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.&lt;/span>&lt;span>Metadados opcionais: &lt;a href=&quot;https://www.themoviedb.org&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;>TMDB&lt;/a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.&lt;/span>&lt;/footer>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>"></iframe>
