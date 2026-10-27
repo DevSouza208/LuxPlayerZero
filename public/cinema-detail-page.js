@@ -68,7 +68,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   const credits=$('.lux-full-credits');credits.hidden=true;credits.replaceChildren();
   const resume=series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
   const playLabel=$('[data-full-play] span');playLabel.textContent=resume?'Continuar T'+resume.season+':E'+resume.number:(getProgress?.(next)?.position>15?'Continuar':'Começar');
-  $('[data-full-watched]').textContent=isWatched?.(next)?'Marcar não assistido':'Marcar assistido';
+  setIconLabel($('[data-full-watched]'),'check-circle',isWatched?.(next)?'Marcar não assistido':'Marcar assistido');$('[data-full-watched]').setAttribute('aria-pressed',String(Boolean(isWatched?.(next))));
   setIconLabel($('[data-full-favorite]'),isFavorite?.(next)?'heart':'plus',isFavorite?.(next)?'Na minha lista':'Minha lista',Boolean(isFavorite?.(next)));
   setPhoto(banner,opts.backdrop);
   fallback.hidden=setPhoto(poster,opts.poster??next.logo);
@@ -141,7 +141,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  shell.addEventListener('click',event=>{
   if(event.target.closest('[data-full-close]'))close();
   else if(event.target.closest('[data-full-play]'))play((series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0])?.item||item);
-  else if(event.target.closest('[data-full-watched]')&&item){void Promise.resolve(onWatched?.(item)).then(()=>{$('[data-full-watched]').textContent=isWatched?.(item)?'Marcar não assistido':'Marcar assistido';if(series)renderSeason()})}
+  else if(event.target.closest('[data-full-watched]')&&item){void Promise.resolve(onWatched?.(item)).then(()=>{setIconLabel($('[data-full-watched]'),'check-circle',isWatched?.(item)?'Marcar não assistido':'Marcar assistido');$('[data-full-watched]').setAttribute('aria-pressed',String(Boolean(isWatched?.(item))));if(series)renderSeason()})}
   else if(event.target.closest('[data-full-favorite]')&&item){onFavorite?.(item);setIconLabel($('[data-full-favorite]'),isFavorite?.(item)?'heart':'plus',isFavorite?.(item)?'Na minha lista':'Minha lista',Boolean(isFavorite?.(item)))}
  });
  document.addEventListener('keydown',e=>{if(opened&&e.key==='Escape'){e.stopPropagation();close()}});
