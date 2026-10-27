@@ -113,3 +113,20 @@
 .lux-related .lux-related-card:hover{transform:translateY(-3px);border-color:#b38aff66}.lux-related-art{display:grid;place-items:center;position:relative;width:100%;aspect-ratio:2/3;overflow:hidden;background:linear-gradient(145deg,#30203f,#130e1b)}.lux-related-art img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover}.lux-related-letter{font-size:54px;font-weight:750;color:#73518755}.lux-related-title{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;padding:12px 12px 0;font-size:13px;font-weight:550;line-height:1.45;color:#f2eafa}.lux-related-year{padding:6px 12px 0;font-size:11px;color:#a38eaf}
 @media(max-width:740px){.lux-full-trailer{min-height:44px;padding:10px 17px;font-size:13px}.lux-related .lux-related-card{flex-basis:130px;max-width:130px}.lux-related-track{gap:12px}.lux-related h3{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.lux-related .lux-related-card{transition:none}}
+
+/* Vídeos em faixa horizontal, no detalhe e no seletor de trailers. */
+.tmdb-videos{display:block}
+.lux-video-track{display:flex;gap:16px;overflow-x:auto;min-width:0;padding:8px 2px 18px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:#80619b transparent}
+.lux-video-card{flex:0 0 clamp(245px,32vw,350px);min-width:0;max-width:85vw;padding:0;text-align:left;border:1px solid #b38aff26;border-radius:14px;background:#15101d;color:#ece3f5;overflow:hidden;scroll-snap-align:start;font:500 13px/1.5 'Outfit',sans-serif}
+.lux-video-card img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;margin:0}
+.lux-video-card>span{display:block;padding:13px 15px}
+.lux-trailer-modal{width:min(1000px,calc(100vw - 28px));max-height:90dvh;box-sizing:border-box;padding:24px;border:1px solid #b38aff45;border-radius:20px;background:#0e0a16;color:#f7f4ff;overflow:auto;box-shadow:0 30px 100px #000b}
+.lux-trailer-modal::backdrop{background:#030206cc;backdrop-filter:blur(12px)}
+.lux-trailer-modal header{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}
+.lux-trailer-modal h2{font:600 clamp(19px,3vw,25px) 'Outfit',sans-serif;margin:0}
+.lux-trailer-modal header button{width:44px;height:44px;border:1px solid #b38aff33;border-radius:50%;background:#ffffff08;color:#fff;font-size:27px}
+.lux-trailer-player{aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
+.lux-trailer-player iframe{display:block;width:100%;height:100%;border:0}
+.lux-trailer-hint{font:400 14px/1.5 'Outfit',sans-serif;color:#c1b9d1}
+.lux-video-card[aria-pressed=true]{border-color:#cbb9ff;box-shadow:0 0 0 1px #b38aff}
+@media(max-width:600px){.lux-trailer-modal{padding:16px;border-radius:14px}.lux-trailer-modal .lux-video-card{flex-basis:240px}}
