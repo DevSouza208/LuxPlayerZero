@@ -1,3 +1,4 @@
+import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createTrailerModal,trailerVideos} from './trailer-modal.js';
 import {renderRichMetadata,detailFacts} from './tmdb-rich-view.js';
 /* Full-viewport Lux 2.0-inspired film and series pages.
@@ -10,13 +11,13 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  const shell=make('dialog','lux-fullscreen-detail');shell.hidden=true;shell.id='lux-fullscreen-detail';
  shell.innerHTML=
  '<section class="lux-full-detail-page" role="dialog" aria-modal="true" aria-label="Detalhes do conteúdo" tabindex="-1">'+
- '<header class="lux-full-detail-top"><button type="button" data-full-close aria-label="Voltar ao catálogo">‹ <span>Voltar</span></button><span class="lux-full-detail-brand">LUX <b>PLAYER</b></span><button type="button" data-full-close aria-label="Fechar detalhes">×</button></header>'+
+ '<header class="lux-full-detail-top"><button type="button" data-full-close aria-label="Voltar ao catálogo"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="15 18 9 12 15 6"/></svg> <span>Voltar</span></button><span class="lux-full-detail-brand">LUX <b>PLAYER</b></span><button type="button" data-full-close aria-label="Fechar detalhes"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></header>'+
  '<section class="lux-full-detail-hero"><img class="lux-full-backdrop" alt="" referrerpolicy="no-referrer"><div class="lux-full-hero-mask"></div>'+
  '<div class="lux-full-poster"><img alt="" referrerpolicy="no-referrer"><span>LUX</span></div>'+
  '<div class="lux-full-summary"><span class="lux-full-eyebrow" id="lux-full-kind">FILME</span><h1 id="lux-full-title"></h1>'+
  '<div class="lux-full-meta"></div><p class="lux-full-description" hidden></p>'+
- '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
- '<button class="lux-full-trailer" type="button" data-full-trailer hidden>▶ Trailer</button><button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
+ '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Começar</span></button>'+
+ '<button class="lux-full-trailer" type="button" data-full-trailer hidden><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg> Trailer</button><button class="lux-full-favorite" type="button" data-full-favorite><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
  '<section class="lux-full-seasons" hidden aria-label="Temporadas e episódios">'+
  '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2></div>'+
  '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section><section class="lux-full-credits" hidden aria-label="Informações do TMDB"></section></section>';
@@ -42,7 +43,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
    const card=make('button','lux-full-episode-card');card.type='button';
    const visual=make('span','lux-full-episode-art');
    const imgSrc=photo(row.item.logo)||photo(series?.poster);if(imgSrc){const image=make('img');image.src=imgSrc;image.alt='';image.loading='lazy';visual.append(image)}
-   visual.append(make('span','lux-full-episode-play','▶'));
+   visual.append(setIcon(make('span','lux-full-episode-play'),'play',true));
    const info=make('span','lux-full-episode-info');info.append(make('b','', 'T'+row.season+':E'+row.number));
    if(isWatched?.(row.item))info.append(make('small','','Assistido'));
    const progress=getProgress?.(row.item);if(progress?.duration>0){const bar=make('progress');bar.max=progress.duration;bar.value=progress.position;bar.setAttribute('aria-label','Progresso do episódio');info.append(bar)}
@@ -68,7 +69,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   const resume=series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
   const playLabel=$('[data-full-play] span');playLabel.textContent=resume?'Continuar T'+resume.season+':E'+resume.number:(getProgress?.(next)?.position>15?'Continuar':'Começar');
   $('[data-full-watched]').textContent=isWatched?.(next)?'Marcar não assistido':'Marcar assistido';
-  $('[data-full-favorite]').textContent=isFavorite?.(next)?'♥ Na minha lista':'＋ Minha lista';
+  setIconLabel($('[data-full-favorite]'),isFavorite?.(next)?'heart':'plus',isFavorite?.(next)?'Na minha lista':'Minha lista',Boolean(isFavorite?.(next)));
   setPhoto(banner,opts.backdrop);
   fallback.hidden=setPhoto(poster,opts.poster??next.logo);
   seasons.hidden=!series?.seasons?.length;
@@ -141,7 +142,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   if(event.target.closest('[data-full-close]'))close();
   else if(event.target.closest('[data-full-play]'))play((series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0])?.item||item);
   else if(event.target.closest('[data-full-watched]')&&item){void Promise.resolve(onWatched?.(item)).then(()=>{$('[data-full-watched]').textContent=isWatched?.(item)?'Marcar não assistido':'Marcar assistido';if(series)renderSeason()})}
-  else if(event.target.closest('[data-full-favorite]')&&item){onFavorite?.(item);$('[data-full-favorite]').textContent=isFavorite?.(item)?'♥ Na minha lista':'＋ Minha lista'}
+  else if(event.target.closest('[data-full-favorite]')&&item){onFavorite?.(item);setIconLabel($('[data-full-favorite]'),isFavorite?.(item)?'heart':'plus',isFavorite?.(item)?'Na minha lista':'Minha lista',Boolean(isFavorite?.(item)))}
  });
  document.addEventListener('keydown',e=>{if(opened&&e.key==='Escape'){e.stopPropagation();close()}});
  shell.addEventListener('cancel',event=>{event.preventDefault();close()});
