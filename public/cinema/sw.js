@@ -1,5 +1,5 @@
 /* Lux Cinema: interface pública e capas visíveis. Catálogos, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-51';
+const VERSION = 'lux-cinema-shell-52';
 const ASSETS = [
   '/lux-icons.js', '/lux-icons.css',
   '/player-controls.js', '/player-modal.js', '/artwork-preload.js', '/artwork-metadata-cache.js', '/tmdb-rich-view.js', '/trailer-modal.js', '/guest-mode.js', '/catalog-relations.js', '/quick-guide.js', '/guide-model.js', '/catalog-navigation.js', '/connectivity.js', '/connectivity.css', '/style.css', '/home.css', '/cinema-premium.css', '/cinema-polish.css', '/cinema-browse.css',
