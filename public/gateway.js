@@ -62,9 +62,9 @@ export function createBridge({ onStatus = () => {} } = {}) {
     },
     // A M3U original é guardada no R2 e registrada no D1.
     // O navegador recebe o arquivo pela rota HTTPS privada.
-    async snapshot(url) {
+    async snapshot(url, { fresh = false } = {}) {
       await ensureConnected();
-      const meta = await post('sync', { url });
+      const meta = await post('sync', { url, requireFresh: fresh });
       if (typeof meta.url !== 'string' || !meta.url.startsWith('/api/bridge/playlist?id=')) {
         throw new Error('A sincronização não retornou um endereço HTTPS válido.');
       }

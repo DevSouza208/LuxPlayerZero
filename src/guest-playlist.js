@@ -14,7 +14,7 @@ export async function importGuestPlaylist(request, env, fetcher = fetch) {
   } catch { return apiError(400, 'Confira a URL e o servidor autorizado para a lista.'); }
   try {
     const { response } = await fetchAllowed(url, env, { signal: AbortSignal.timeout(180000) }, fetcher);
-    if (!response.ok) { await response.body?.cancel(); return apiError(502, 'O provedor não entregou a playlist.'); }
+    if (!response.ok) { await response.body?.cancel(); return apiError(502, 'O fornecedor respondeu HTTP ' + response.status + ' ao download pela Cloudflare. Sua biblioteca anterior foi mantida.'); }
     if (Number(response.headers.get('content-length') || 0) > MAX_BYTES) {
       await response.body?.cancel(); return apiError(413, 'A lista ultrapassa 256 MB.');
     }
@@ -33,13 +33,17 @@ export async function importGuestPlaylist(request, env, fetcher = fetch) {
     if (prefixBytes > MAX_BYTES || !/^\s*#EXTM3U(?:\s|$)/i.test(new TextDecoder().decode(head))) {
       await reader.cancel(); return apiError(502, 'O provedor não retornou uma playlist M3U válida.');
     }
+    const expectedBytes = !response.headers.get('content-encoding') ? Number(response.headers.get('content-length') || 0) : 0;
     let total = prefixBytes, sentHead = false;
     const body = new ReadableStream({
       async pull(controller) {
         try {
           if (!sentHead) { sentHead = true; controller.enqueue(head); return; }
           const { value, done } = await reader.read();
-          if (done) { controller.close(); return; }
+          if (done) {
+            if (expectedBytes > 0 && total !== expectedBytes) throw new Error('Download incompleto.');
+            controller.close(); return;
+          }
           total += value.byteLength;
           if (total > MAX_BYTES) { await reader.cancel(); controller.error(new Error('A lista ultrapassa 256 MB.')); return; }
           controller.enqueue(value);

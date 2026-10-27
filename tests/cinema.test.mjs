@@ -25,7 +25,7 @@ test('Cinema é uma página independente e não muda a importação do player fu
 test('A nova interface mantém a rota do gateway e o mecanismo de reprodução', () => {
   const cinema = file('cinema-app.js');
   const original = file('app.js');
-  for (const statement of ['createBridge(', 'bridge.snapshot(url)', 'parseM3u(text, input)',
+  for (const statement of ['createBridge(', 'bridge.snapshot(url', 'parseM3u(text, input)',
     'new window.Hls(', 'window.mpegts.createPlayer(', 'setChannels(entries,']) {
     assert.ok(cinema.includes(statement), 'Ponto de integração ausente: ' + statement);
     assert.ok(original.includes(statement), 'Baseline indisponível: ' + statement);
