@@ -65,10 +65,10 @@ export async function requestTmdb(query, fetcher = fetch, signal) {
   return data && data.status === 'matched' ? data : null;
 }
 
-/** Aguarda TMDB antes de mostrar arte; logo de episódio nunca vira capa de série. */
+/** Aguarda TMDB; usa o fornecedor quando a consulta termina sem capa. */
 export function catalogArtwork(original,matched,imageEngine,role){
  if(imageEngine==='playlist'||role==='tv')return original||'';
- if(matched?.status==='matched')return matched.poster||(role==='series'?'':original||'');
+ if(matched?.status==='matched')return matched.poster||original||'';
  if(!matched)return '';
- return role==='series'?'':original||'';
+ return original||'';
 }
