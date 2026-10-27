@@ -1,3 +1,4 @@
+import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 export function formatPlayerTime(seconds){
  if(!Number.isFinite(seconds)||seconds<0)return '0:00';
  const value=Math.floor(seconds),hours=Math.floor(value/3600),minutes=Math.floor(value%3600/60),rest=String(value%60).padStart(2,'0');
@@ -17,8 +18,7 @@ export async function togglePlayerFullscreen(video,doc=document){
  if(video?.webkitEnterFullscreen)return video.webkitEnterFullscreen();
  throw new Error('Tela cheia indisponível');
 }
-const icons={pip:'M3 4h18v16H3z M12 12h7v6h-7z',cast:'M3 10V4h18v16h-8 M3 20h.01 M3 16a4 4 0 0 1 4 4 M3 12a8 8 0 0 1 8 8',play:'M8 5v14l11-7z',pause:'M7 5h3v14H7z M14 5h3v14h-3z',volume:'M3 9h4l5-4v14l-5-4H3z M16 8c3 2 3 6 0 8 M19 5c5 4 5 10 0 14',mute:'M3 9h4l5-4v14l-5-4H3z M16 9l5 6 M21 9l-5 6',fullscreen:'M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5',exit:'M3 8h5V3 M21 8h-5V3 M16 21v-5h5 M8 21v-5H3'};
-function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+icons[name]+'"'+(name==='play'||name==='pause'?' fill="currentColor" stroke="none"':'')+'/></svg>'}
+const icon=name=>iconMarkup(name,name==='play'||name==='pause');
 /** Controles de apresentação sobre os mesmos elementos HTMLMediaElement. */
 export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{},getEngine=()=>null}={}){
  const host=shell?.querySelector('.video-wrap'),video=host?.querySelector('video'),audio=host?.querySelector('audio');
@@ -33,13 +33,13 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  }
  const play=button('Reproduzir','play','lux-video-play');
  const back=document.createElement('button'),forward=document.createElement('button');
- for(const [el,label,text] of [[back,'Voltar 10 segundos','↶'],[forward,'Avançar 10 segundos','↷']]){el.type='button';el.className='lux-video-button lux-video-skip';el.setAttribute('aria-label',label);el.title=label;const arrow=document.createElement('span');arrow.textContent=text;const number=document.createElement('small');number.textContent='10';el.append(arrow,number);row.append(el);}
+ for(const [el,label,text] of [[back,'Voltar 10 segundos','↶'],[forward,'Avançar 10 segundos','↷']]){el.type='button';el.className='lux-video-button lux-video-skip';el.setAttribute('aria-label',label);el.title=label;const arrow=document.createElement('span');setIcon(arrow,el===back?'rotate-ccw':'rotate-cw');const number=document.createElement('small');number.textContent='10';el.append(arrow,number);row.append(el);}
  const mute=button('Silenciar','volume');
  const volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='1';volume.step='.05';volume.value='1';volume.className='lux-video-volume';volume.setAttribute('aria-label','Volume');row.append(volume);
  const time=document.createElement('span');time.className='lux-video-time';row.append(time);
  const spacer=document.createElement('span');spacer.className='lux-video-spacer';row.append(spacer);
- const episodes=button('Escolher episódio','play','lux-video-episodes');episodes.textContent='Episódios';episodes.hidden=true;
- const tracks=button('Idiomas e legendas','volume','lux-video-tracks');tracks.textContent='Áudio / CC';tracks.hidden=true;
+ const episodes=button('Escolher episódio','play','lux-video-episodes');setIconLabel(episodes,'list','Episódios');episodes.hidden=true;
+ const tracks=button('Idiomas e legendas','volume','lux-video-tracks');setIconLabel(tracks,'type','Áudio / CC');tracks.hidden=true;
  const pip=button('Picture-in-Picture','pip');pip.hidden=!(document.pictureInPictureEnabled&&video.requestPictureInPicture);
  const cast=button('Transmitir para outra tela','cast');cast.hidden=true;
  const fullscreen=button('Entrar em tela cheia','fullscreen');
