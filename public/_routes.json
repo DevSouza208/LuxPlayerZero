@@ -9,7 +9,8 @@
     "/player.html",
     "/api/editorial/*",
     "/guide/*",
-    "/api/catalog/search"
+    "/api/catalog/search",
+    "/api/admin/*"
   ],
   "exclude": []
 }
