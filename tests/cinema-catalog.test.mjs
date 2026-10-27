@@ -15,7 +15,7 @@ test('Navegação é por páginas reais e suporta back/forward do navegador', ()
   assert.ok(home.includes('history.pushState('));
   assert.ok(home.includes("window.addEventListener('popstate'"));
   assert.ok(home.includes("browseRoot.hidden = !valid"));
-  assert.ok(home.includes("if (browseRole) activateBrowse(null, { push: true, scroll: false })"));
+  assert.ok(!home.includes("if (browseRole) activateBrowse(null, { push: true, scroll: false })"));
 });
 
 test('Catálogo inteiro continua indexado em uma passagem e não perde contagem', () => {
