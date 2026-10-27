@@ -1,0 +1,1381 @@
+<!doctype html><meta charset="utf-8"><title>Mobile login visual review</title><style>body{margin:16px;background:#292530;color:white;font:14px sans-serif}main{display:flex;gap:20px;align-items:start}iframe{border:0;background:#090810}h2{font-size:14px}</style><main><section><h2>small 320px</h2><iframe id="small" width="320" height="740" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>&lt;base href=&quot;/&quot;>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#090810&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero. Sua experiência de entretenimento começa aqui.&quot;>
+  &lt;title>Entrar · Lux Player Zero&lt;/title>
+  &lt;link rel=&quot;icon&quot; type=&quot;image/png&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  &lt;link rel=&quot;preload&quot; as=&quot;image&quot; href=&quot;/assets/login-scene.png&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/login.css&quot;>
+  &lt;style>/* Lux Zero — login em uma tela, sem sacrificar acessibilidade.
+   PC: altura da viewport. Celular: banner editorial reduzido.
+   Em telas baixas/teclado aberto, rolar é melhor do que cortar ações. */
+
+@media (min-width:761px) {
+  .auth-layout {
+    grid-template-columns:minmax(420px,43.5%) minmax(0,1fr);
+    height:100svh;min-height:0;overflow:hidden;
+  }
+  .login-side {
+    height:100svh;min-height:0;overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(180,151,252,.28) transparent;
+    padding-block:clamp(13px,2.4svh,26px);
+  }
+  .experience-panel {height:100svh;min-height:0}
+  .auth-center {flex:0 0 auto;margin:auto 0;padding:clamp(10px,1.7svh,20px) 0}
+  .auth-title {font-size:clamp(34px,2.8vw,42px);line-height:1.09;margin-top:10px}
+  .auth-lead {margin-bottom:17px;line-height:1.55}
+  .auth-form {gap:12px}
+  .splitter {margin:16px 0 12px}
+  .demo-link {margin-top:12px}
+  .auth-footer {padding-top:12px}
+}
+@media (min-width:761px) and (max-height:790px) {
+  .login-side {padding-block:13px}
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:36px}
+  .brand-lockup img {max-height:43px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {font-size:8px}
+  .auth-title {font-size:clamp(32px,2.65vw,38px);margin:9px 0 8px}
+  .auth-lead {font-size:12px;margin-bottom:13px}
+  .auth-form {gap:10px}
+  .field {gap:6px}
+  .input-wrap {min-height:43px}
+  .input-wrap input {height:42px}
+  .icon-button {width:41px;height:41px}
+  .form-meta {margin:-3px 0 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 10px}
+  .social-button {min-height:43px}
+  .demo-link {margin-top:9px;padding:5px}
+  .auth-footer {padding-top:9px}
+  .visual-bottom {bottom:39px}
+  .visual-bottom h2 {font-size:clamp(26px,2.8vw,39px)}
+  .visual-bottom p {font-size:11px}
+}
+@media (min-width:761px) and (max-height:620px) {
+  .auth-title {font-size:31px}
+  .auth-lead {margin-bottom:9px}
+  .auth-form {gap:8px}
+  .splitter {margin:9px 0 8px}
+  .demo-link {margin-top:5px}
+  .visual-bottom p {display:none}
+}
+@media (max-width:760px) {
+  html,body {min-height:100%;overflow-x:clip}
+  .auth-layout {display:flex;flex-direction:column;min-height:100svh}
+  .experience-panel {
+    order:-1;flex:0 0 auto;
+    min-height:0;height:clamp(112px,15svh,138px);
+    background-position:center 42%;
+  }
+  .mascot {
+    width:clamp(102px,32vw,166px);right:3%;
+    bottom:-18px;max-height:135%;opacity:.97;
+  }
+  .visual-bottom {
+    bottom:12px;left:14px;right:36%;
+    max-width:none;padding:8px 10px;
+  }
+  .visual-bottom .eyebrow,.visual-bottom p {display:none}
+  .visual-bottom h2 {
+    font-size:clamp(17px,4.4vw,23px);
+    line-height:1.14;letter-spacing:-.5px;margin:0;
+  }
+  .visual-bottom::before {inset:-3px -8px;border-radius:13px}
+  .login-side {
+    order:1;flex:1 0 auto;min-height:0;border:0;
+    padding:clamp(13px,2.5svh,20px) 24px 12px;
+    overflow:visible;
+  }
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:35px}
+  .brand-lockup img {max-height:39px}
+  .version-mark {font-size:8px;padding:6px 8px}
+  .auth-center {
+    align-self:center;width:min(100%,380px);margin:auto 0;
+    padding:clamp(10px,1.8svh,17px) 0;
+  }
+  .intro-eyebrow {font-size:8px;letter-spacing:1.4px}
+  .auth-title {
+    font-size:clamp(30px,8.2vw,37px);
+    line-height:1.06;margin:9px 0 7px;letter-spacing:-1.25px;
+  }
+  .auth-lead {font-size:11.5px;line-height:1.5;margin:0 0 13px}
+  .auth-form {gap:10px}
+  .field {gap:5px}
+  .field-label {font-size:11px}
+  .input-wrap {min-height:44px}
+  .input-wrap input {height:44px;font-size:16px}
+  .icon-button {height:42px;width:42px}
+  .form-meta {margin:-4px 0 0}
+  .inline-link {font-size:11px;padding:3px 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 11px}
+  .social-button {min-height:44px}
+  .demo-link {margin-top:9px;padding:5px;font-size:11px}
+  .auth-footer {padding-top:8px;font-size:9px}
+  .recovery-back {margin-bottom:16px}
+}
+@media (max-width:760px) and (max-height:720px) {
+  .experience-panel {height:88px}
+  .mascot {width:102px;bottom:-15px}
+  .visual-bottom {bottom:9px;right:115px}
+  .visual-bottom h2 {font-size:16px}
+  .login-side {padding-top:10px;padding-bottom:10px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {display:none}
+  .auth-title {font-size:29px;margin:4px 0 9px}
+  .auth-lead {display:none}
+  .auth-form {gap:8px}
+  .field {gap:4px}
+  .input-wrap {min-height:42px}
+  .input-wrap input {height:42px}
+  .primary-btn {min-height:43px}
+  .splitter {margin:9px 0 8px}
+  .social-button {min-height:42px}
+  .demo-link {margin-top:6px}
+  .auth-footer {padding-top:5px}
+}
+@media (max-width:760px) and (max-height:600px) {
+  .experience-panel {height:72px}
+  .mascot {width:85px;bottom:-13px}
+  .visual-bottom h2 {font-size:14px}
+  .auth-center {padding:5px 0}
+  .auth-title {font-size:26px}
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:480px) {
+  .experience-panel {display:none}
+  .login-side {min-height:100svh}
+}
+
+
+/* Mobile login: a single reading order, natural scrolling and no editorial banner. */
+@media(max-width:760px){
+  .auth-layout{min-height:0;display:block}
+  .auth-layout .experience-panel{display:none}
+  .auth-layout .login-side{min-height:0;height:auto;overflow:visible;padding:16px 20px 10px}
+  .auth-layout .brand-row{min-height:32px;gap:10px}
+  .auth-layout .brand-lockup{max-width:140px;min-height:30px}
+  .auth-layout .brand-lockup img{max-height:30px}
+  .auth-layout .version-mark{font-size:8px;letter-spacing:.7px;padding:6px 8px}
+  .auth-layout .auth-center{width:100%;max-width:420px;margin:0 auto;padding:16px 0 10px;animation:none}
+  .auth-layout .intro-eyebrow{display:none}
+  .auth-layout .auth-title{font-size:clamp(25px,6.8vw,28px);line-height:1.1;letter-spacing:-1px;margin:0 0 16px}
+  .auth-layout #login-view .auth-lead{display:none}
+  .auth-layout #recovery-view .auth-lead{font-size:12px;margin-bottom:16px}
+  .auth-layout .auth-form{gap:8px}
+  .auth-layout #login-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .auth-layout #login-form>div,.auth-layout #login-form>button{grid-column:1/-1}
+  .auth-layout #login-form details[open]{grid-column:1/-1}
+  .auth-layout .field{gap:4px}
+  .auth-layout .field-label{font-size:12px}
+  .auth-layout .field-label small{font-size:11px}
+  .auth-layout .input-wrap{min-height:46px;border-radius:10px}
+  .auth-layout .input-wrap input{height:44px;font-size:16px}
+  .auth-layout .icon-button{width:44px;height:44px}
+  .auth-layout .form-meta{margin:-4px 0;min-height:32px}
+  .auth-layout .inline-link{min-height:32px;font-size:11px;padding:6px 0}
+  .auth-layout .primary-btn{min-height:46px;margin:0;font-size:13px}
+  .auth-layout .auth-form details{margin:0;border:1px solid #cbb9ff18;border-radius:9px;background:#ffffff02;min-width:0}
+  .auth-layout .auth-form summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:7px 10px;list-style:none;font-size:11px;line-height:1.4;color:#c1b9d1;cursor:pointer}
+  .auth-layout .auth-form summary::-webkit-details-marker{display:none}
+  .auth-layout .auth-form summary::after{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-right:3px;flex:none}
+  .auth-layout .auth-form details[open] summary::after{transform:rotate(225deg)}
+  .auth-layout .auth-form details[open]{padding-bottom:12px}
+  .auth-layout .auth-form details>label{display:block;margin:4px 12px 7px;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font-size:16px;font-family:inherit}
+  .auth-layout .auth-form details>p{margin:9px 12px 0;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+  .auth-layout .splitter{margin:12px 0 8px;font-size:9px}
+  .auth-layout .social-actions{gap:10px}
+  .auth-layout .social-button{min-height:44px;font-size:12px;gap:8px}
+  .auth-layout .demo-link{min-height:44px;margin:4px 0 0;padding:8px 0;font-size:12px}
+  .auth-layout .auth-footer{padding:8px 0 0;font-size:9px;gap:10px}
+  .auth-layout~.lux-legal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px;margin:0 auto;max-width:464px;padding:0 22px max(24px,env(safe-area-inset-bottom));font-size:11px;text-align:center}
+  .auth-layout~.lux-legal-links a{justify-content:center;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .auth-layout .recovery-back{min-height:44px;margin-bottom:16px}
+}
+@media(max-width:360px){
+  .auth-layout .login-side{padding-left:18px;padding-right:18px}
+  .auth-layout .brand-lockup{max-width:140px}
+  .auth-layout .field-label{align-items:baseline;gap:6px}
+}
+@media(max-width:760px) and (orientation:landscape){
+  .auth-layout .login-side{max-width:500px;margin:auto;padding-top:18px}
+  .auth-layout .auth-center{padding-top:16px}
+}
+&lt;/style>
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;/head>
+&lt;body>
+  &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; style=&quot;position:absolute;width:0;height:0;overflow:hidden&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>
+    &lt;symbol id=&quot;icon-user&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-lock&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;rect x=&quot;3&quot; y=&quot;11&quot; width=&quot;18&quot; height=&quot;11&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M7 11V7a5 5 0 0 1 10 0v4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye-off&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24&quot;/>&lt;line x1=&quot;1&quot; y1=&quot;1&quot; x2=&quot;23&quot; y2=&quot;23&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-right&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 5 19 12 12 19&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-left&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;19&quot; y1=&quot;12&quot; x2=&quot;5&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 19 5 12 12 5&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-play&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-shield&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-mail&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z&quot;/>&lt;polyline points=&quot;22,6 12,13 2,6&quot;/>&lt;/g>&lt;/symbol>
+  &lt;/svg>
+
+  &lt;div class=&quot;auth-layout&quot;>
+    &lt;section class=&quot;login-side&quot; aria-label=&quot;Acesso ao Lux Player&quot;>
+      &lt;header class=&quot;brand-row&quot;>
+        &lt;a class=&quot;brand-lockup&quot; href=&quot;/&quot; aria-label=&quot;Lux Player — página inicial&quot;>
+          &lt;img src=&quot;/assets/lux-logo.png&quot; alt=&quot;Lux Player&quot;>
+          &lt;span class=&quot;brand-fallback&quot;>LUX &lt;b>PLAYER&lt;/b>&lt;/span>
+        &lt;/a>
+        &lt;span class=&quot;version-mark&quot;>&lt;i aria-hidden=&quot;true&quot;>&lt;/i> ZERO / 0.2&lt;/span>
+      &lt;/header>
+
+      &lt;main class=&quot;auth-center&quot;>
+        &lt;div id=&quot;login-view&quot;>
+          &lt;div class=&quot;intro-eyebrow&quot;>ACESSO À EXPERIÊNCIA LUX&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Seu universo.&lt;span>Seu próximo play.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Entre para continuar sua experiência.&lt;/p>
+
+          &lt;form id=&quot;login-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate autocomplete=&quot;on&quot;>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-identity&quot;>Lux ID &lt;small>ou nome de usuário&lt;/small>&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-user&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-identity&quot; type=&quot;text&quot; inputmode=&quot;text&quot; autocomplete=&quot;username&quot; placeholder=&quot;Usuário ou LUX:…&quot; maxlength=&quot;254&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;identity-error&quot; spellcheck=&quot;false&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;identity-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-password&quot;>Senha&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-lock&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-password&quot; type=&quot;password&quot; autocomplete=&quot;current-password&quot; placeholder=&quot;Digite sua senha&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;password-error&quot; required>
+                &lt;button id=&quot;toggle-password&quot; class=&quot;icon-button&quot; type=&quot;button&quot; aria-label=&quot;Mostrar senha&quot; title=&quot;Mostrar senha&quot; aria-pressed=&quot;false&quot;>
+                  &lt;svg aria-hidden=&quot;true&quot;>&lt;use id=&quot;password-icon&quot; href=&quot;#icon-eye&quot;>&lt;/use>&lt;/svg>
+                &lt;/button>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;password-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;form-meta&quot;>
+              &lt;button id=&quot;forgot-password&quot; class=&quot;inline-link&quot; type=&quot;button&quot;>Esqueceu a senha?&lt;/button>
+            &lt;/div>
+
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Entrar com Lux ID
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;details>&lt;summary>Autenticação em duas etapas&lt;/summary>&lt;label for=&quot;login-code&quot;>Código do aplicativo ou de recuperação&lt;/label>&lt;input id=&quot;login-code&quot; autocomplete=&quot;one-time-code&quot; maxlength=&quot;32&quot;>&lt;/details>&lt;details>&lt;summary>Recebi um convite&lt;/summary>&lt;label for=&quot;login-invite&quot;>Código do convite&lt;/label>&lt;input id=&quot;login-invite&quot; type=&quot;text&quot; maxlength=&quot;64&quot; autocomplete=&quot;off&quot; placeholder=&quot;Cole o código para criar sua conta&quot;>&lt;p>Para cadastro, use uma senha com pelo menos 12 caracteres.&lt;/p>&lt;/details>&lt;/form>
+          &lt;div id=&quot;login-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+
+          &lt;div class=&quot;splitter&quot;>&lt;span>ou entre com&lt;/span>&lt;/div>
+          &lt;div class=&quot;social-actions&quot; role=&quot;group&quot; aria-label=&quot;Outras formas de entrar&quot;>
+            &lt;button id=&quot;login-google&quot; class=&quot;social-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Google&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 48 48&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;#EA4335&quot; d=&quot;M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z&quot;/>
+                &lt;path fill=&quot;#4285F4&quot; d=&quot;M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.73 7.18l7.73 6C44.45 38.03 46.98 31.89 46.98 24.55z&quot;/>
+                &lt;path fill=&quot;#FBBC05&quot; d=&quot;M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.97-6.2a24 24 0 0 0 0 21.58l7.97-6.2z&quot;/>
+                &lt;path fill=&quot;#34A853&quot; d=&quot;M24 48c6.48 0 11.92-2.13 15.89-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.2C6.51 42.62 14.62 48 24 48z&quot;/>
+              &lt;/svg>
+              &lt;span>Google&lt;/span>
+            &lt;/button>
+            &lt;button id=&quot;login-discord&quot; class=&quot;social-button discord-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Discord&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;currentColor&quot; d=&quot;M19.73 5.33a17.75 17.75 0 0 0-4.38-1.36l-.54 1.1a16.39 16.39 0 0 0-5.62 0l-.54-1.1a17.75 17.75 0 0 0-4.38 1.36C1.5 9.47.74 13.51 1.11 17.5a17.8 17.8 0 0 0 5.37 2.72l1.15-1.88c-.64-.24-1.26-.54-1.85-.88l.45-.36a12.6 12.6 0 0 0 11.54 0l.45.36c-.59.34-1.21.64-1.85.88l1.15 1.88a17.8 17.8 0 0 0 5.37-2.72c.44-4.64-.75-8.66-3.16-12.17ZM8.53 15.15c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.1 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Zm6.94 0c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.09 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Z&quot;/>
+              &lt;/svg>
+              &lt;span>Discord&lt;/span>
+            &lt;/button>
+          &lt;/div>
+          &lt;a class=&quot;demo-link&quot; href=&quot;/cinema/?guest=1&quot;>Entrar como visitante &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+
+        &lt;div id=&quot;recovery-view&quot; hidden>
+          &lt;button class=&quot;recovery-back&quot; id=&quot;back-to-login&quot; type=&quot;button&quot;>
+            &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-left&quot;>&lt;/use>&lt;/svg>
+            Voltar para o login
+          &lt;/button>
+          &lt;div class=&quot;intro-eyebrow&quot;>RECUPERAÇÃO DE ACESSO&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Vamos recuperar&lt;span>seu acesso.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Informe o e-mail associado ao seu Lux ID.&lt;/p>
+          &lt;form id=&quot;recovery-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;recovery-email&quot;>E-mail da sua conta&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-mail&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;recovery-email&quot; type=&quot;email&quot; autocomplete=&quot;email&quot; placeholder=&quot;voce@exemplo.com&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;recovery-email-error&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;recovery-email-error&quot; hidden>&lt;/p>
+            &lt;/div>
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Solicitar recuperação
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;/form>
+          &lt;div id=&quot;recovery-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+          
+        &lt;/div>
+      &lt;/main>
+
+      &lt;footer class=&quot;auth-footer&quot;>
+        &lt;span>© &lt;span id=&quot;current-year&quot;>2026&lt;/span> &lt;strong>Lux Player&lt;/strong>&lt;/span>
+        &lt;span>LUX ZERO&lt;/span>
+      &lt;/footer>
+    &lt;/section>
+
+    &lt;aside class=&quot;experience-panel&quot; aria-label=&quot;Uma nova experiência Lux Player&quot;>
+      &lt;div class=&quot;visual-noise&quot; aria-hidden=&quot;true&quot;>&lt;/div>
+      &lt;img class=&quot;mascot&quot; src=&quot;/assets/luxite.png&quot; alt=&quot;Luxite, o mascote do Lux Player&quot;>
+      &lt;div class=&quot;visual-bottom&quot;>
+        &lt;div class=&quot;eyebrow&quot;>O SEU ESPAÇO. O SEU CONTROLE.&lt;/div>
+        &lt;h2>Todas as suas histórias.&lt;br>&lt;em>Uma só experiência.&lt;/em>&lt;/h2>
+        &lt;p>Um novo começo para o seu player favorito. Sem complicações. Com identidade própria.&lt;/p>
+      &lt;/div>
+    &lt;/aside>
+  &lt;/div>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>
+"></iframe></section><section><h2>iphone 390px</h2><iframe id="iphone" width="390" height="740" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>&lt;base href=&quot;/&quot;>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#090810&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero. Sua experiência de entretenimento começa aqui.&quot;>
+  &lt;title>Entrar · Lux Player Zero&lt;/title>
+  &lt;link rel=&quot;icon&quot; type=&quot;image/png&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  &lt;link rel=&quot;preload&quot; as=&quot;image&quot; href=&quot;/assets/login-scene.png&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/login.css&quot;>
+  &lt;style>/* Lux Zero — login em uma tela, sem sacrificar acessibilidade.
+   PC: altura da viewport. Celular: banner editorial reduzido.
+   Em telas baixas/teclado aberto, rolar é melhor do que cortar ações. */
+
+@media (min-width:761px) {
+  .auth-layout {
+    grid-template-columns:minmax(420px,43.5%) minmax(0,1fr);
+    height:100svh;min-height:0;overflow:hidden;
+  }
+  .login-side {
+    height:100svh;min-height:0;overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(180,151,252,.28) transparent;
+    padding-block:clamp(13px,2.4svh,26px);
+  }
+  .experience-panel {height:100svh;min-height:0}
+  .auth-center {flex:0 0 auto;margin:auto 0;padding:clamp(10px,1.7svh,20px) 0}
+  .auth-title {font-size:clamp(34px,2.8vw,42px);line-height:1.09;margin-top:10px}
+  .auth-lead {margin-bottom:17px;line-height:1.55}
+  .auth-form {gap:12px}
+  .splitter {margin:16px 0 12px}
+  .demo-link {margin-top:12px}
+  .auth-footer {padding-top:12px}
+}
+@media (min-width:761px) and (max-height:790px) {
+  .login-side {padding-block:13px}
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:36px}
+  .brand-lockup img {max-height:43px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {font-size:8px}
+  .auth-title {font-size:clamp(32px,2.65vw,38px);margin:9px 0 8px}
+  .auth-lead {font-size:12px;margin-bottom:13px}
+  .auth-form {gap:10px}
+  .field {gap:6px}
+  .input-wrap {min-height:43px}
+  .input-wrap input {height:42px}
+  .icon-button {width:41px;height:41px}
+  .form-meta {margin:-3px 0 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 10px}
+  .social-button {min-height:43px}
+  .demo-link {margin-top:9px;padding:5px}
+  .auth-footer {padding-top:9px}
+  .visual-bottom {bottom:39px}
+  .visual-bottom h2 {font-size:clamp(26px,2.8vw,39px)}
+  .visual-bottom p {font-size:11px}
+}
+@media (min-width:761px) and (max-height:620px) {
+  .auth-title {font-size:31px}
+  .auth-lead {margin-bottom:9px}
+  .auth-form {gap:8px}
+  .splitter {margin:9px 0 8px}
+  .demo-link {margin-top:5px}
+  .visual-bottom p {display:none}
+}
+@media (max-width:760px) {
+  html,body {min-height:100%;overflow-x:clip}
+  .auth-layout {display:flex;flex-direction:column;min-height:100svh}
+  .experience-panel {
+    order:-1;flex:0 0 auto;
+    min-height:0;height:clamp(112px,15svh,138px);
+    background-position:center 42%;
+  }
+  .mascot {
+    width:clamp(102px,32vw,166px);right:3%;
+    bottom:-18px;max-height:135%;opacity:.97;
+  }
+  .visual-bottom {
+    bottom:12px;left:14px;right:36%;
+    max-width:none;padding:8px 10px;
+  }
+  .visual-bottom .eyebrow,.visual-bottom p {display:none}
+  .visual-bottom h2 {
+    font-size:clamp(17px,4.4vw,23px);
+    line-height:1.14;letter-spacing:-.5px;margin:0;
+  }
+  .visual-bottom::before {inset:-3px -8px;border-radius:13px}
+  .login-side {
+    order:1;flex:1 0 auto;min-height:0;border:0;
+    padding:clamp(13px,2.5svh,20px) 24px 12px;
+    overflow:visible;
+  }
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:35px}
+  .brand-lockup img {max-height:39px}
+  .version-mark {font-size:8px;padding:6px 8px}
+  .auth-center {
+    align-self:center;width:min(100%,380px);margin:auto 0;
+    padding:clamp(10px,1.8svh,17px) 0;
+  }
+  .intro-eyebrow {font-size:8px;letter-spacing:1.4px}
+  .auth-title {
+    font-size:clamp(30px,8.2vw,37px);
+    line-height:1.06;margin:9px 0 7px;letter-spacing:-1.25px;
+  }
+  .auth-lead {font-size:11.5px;line-height:1.5;margin:0 0 13px}
+  .auth-form {gap:10px}
+  .field {gap:5px}
+  .field-label {font-size:11px}
+  .input-wrap {min-height:44px}
+  .input-wrap input {height:44px;font-size:16px}
+  .icon-button {height:42px;width:42px}
+  .form-meta {margin:-4px 0 0}
+  .inline-link {font-size:11px;padding:3px 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 11px}
+  .social-button {min-height:44px}
+  .demo-link {margin-top:9px;padding:5px;font-size:11px}
+  .auth-footer {padding-top:8px;font-size:9px}
+  .recovery-back {margin-bottom:16px}
+}
+@media (max-width:760px) and (max-height:720px) {
+  .experience-panel {height:88px}
+  .mascot {width:102px;bottom:-15px}
+  .visual-bottom {bottom:9px;right:115px}
+  .visual-bottom h2 {font-size:16px}
+  .login-side {padding-top:10px;padding-bottom:10px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {display:none}
+  .auth-title {font-size:29px;margin:4px 0 9px}
+  .auth-lead {display:none}
+  .auth-form {gap:8px}
+  .field {gap:4px}
+  .input-wrap {min-height:42px}
+  .input-wrap input {height:42px}
+  .primary-btn {min-height:43px}
+  .splitter {margin:9px 0 8px}
+  .social-button {min-height:42px}
+  .demo-link {margin-top:6px}
+  .auth-footer {padding-top:5px}
+}
+@media (max-width:760px) and (max-height:600px) {
+  .experience-panel {height:72px}
+  .mascot {width:85px;bottom:-13px}
+  .visual-bottom h2 {font-size:14px}
+  .auth-center {padding:5px 0}
+  .auth-title {font-size:26px}
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:480px) {
+  .experience-panel {display:none}
+  .login-side {min-height:100svh}
+}
+
+
+/* Mobile login: a single reading order, natural scrolling and no editorial banner. */
+@media(max-width:760px){
+  .auth-layout{min-height:0;display:block}
+  .auth-layout .experience-panel{display:none}
+  .auth-layout .login-side{min-height:0;height:auto;overflow:visible;padding:16px 20px 10px}
+  .auth-layout .brand-row{min-height:32px;gap:10px}
+  .auth-layout .brand-lockup{max-width:140px;min-height:30px}
+  .auth-layout .brand-lockup img{max-height:30px}
+  .auth-layout .version-mark{font-size:8px;letter-spacing:.7px;padding:6px 8px}
+  .auth-layout .auth-center{width:100%;max-width:420px;margin:0 auto;padding:16px 0 10px;animation:none}
+  .auth-layout .intro-eyebrow{display:none}
+  .auth-layout .auth-title{font-size:clamp(25px,6.8vw,28px);line-height:1.1;letter-spacing:-1px;margin:0 0 16px}
+  .auth-layout #login-view .auth-lead{display:none}
+  .auth-layout #recovery-view .auth-lead{font-size:12px;margin-bottom:16px}
+  .auth-layout .auth-form{gap:8px}
+  .auth-layout #login-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .auth-layout #login-form>div,.auth-layout #login-form>button{grid-column:1/-1}
+  .auth-layout #login-form details[open]{grid-column:1/-1}
+  .auth-layout .field{gap:4px}
+  .auth-layout .field-label{font-size:12px}
+  .auth-layout .field-label small{font-size:11px}
+  .auth-layout .input-wrap{min-height:46px;border-radius:10px}
+  .auth-layout .input-wrap input{height:44px;font-size:16px}
+  .auth-layout .icon-button{width:44px;height:44px}
+  .auth-layout .form-meta{margin:-4px 0;min-height:32px}
+  .auth-layout .inline-link{min-height:32px;font-size:11px;padding:6px 0}
+  .auth-layout .primary-btn{min-height:46px;margin:0;font-size:13px}
+  .auth-layout .auth-form details{margin:0;border:1px solid #cbb9ff18;border-radius:9px;background:#ffffff02;min-width:0}
+  .auth-layout .auth-form summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:7px 10px;list-style:none;font-size:11px;line-height:1.4;color:#c1b9d1;cursor:pointer}
+  .auth-layout .auth-form summary::-webkit-details-marker{display:none}
+  .auth-layout .auth-form summary::after{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-right:3px;flex:none}
+  .auth-layout .auth-form details[open] summary::after{transform:rotate(225deg)}
+  .auth-layout .auth-form details[open]{padding-bottom:12px}
+  .auth-layout .auth-form details>label{display:block;margin:4px 12px 7px;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font-size:16px;font-family:inherit}
+  .auth-layout .auth-form details>p{margin:9px 12px 0;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+  .auth-layout .splitter{margin:12px 0 8px;font-size:9px}
+  .auth-layout .social-actions{gap:10px}
+  .auth-layout .social-button{min-height:44px;font-size:12px;gap:8px}
+  .auth-layout .demo-link{min-height:44px;margin:4px 0 0;padding:8px 0;font-size:12px}
+  .auth-layout .auth-footer{padding:8px 0 0;font-size:9px;gap:10px}
+  .auth-layout~.lux-legal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px;margin:0 auto;max-width:464px;padding:0 22px max(24px,env(safe-area-inset-bottom));font-size:11px;text-align:center}
+  .auth-layout~.lux-legal-links a{justify-content:center;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .auth-layout .recovery-back{min-height:44px;margin-bottom:16px}
+}
+@media(max-width:360px){
+  .auth-layout .login-side{padding-left:18px;padding-right:18px}
+  .auth-layout .brand-lockup{max-width:140px}
+  .auth-layout .field-label{align-items:baseline;gap:6px}
+}
+@media(max-width:760px) and (orientation:landscape){
+  .auth-layout .login-side{max-width:500px;margin:auto;padding-top:18px}
+  .auth-layout .auth-center{padding-top:16px}
+}
+&lt;/style>
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;/head>
+&lt;body>
+  &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; style=&quot;position:absolute;width:0;height:0;overflow:hidden&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>
+    &lt;symbol id=&quot;icon-user&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-lock&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;rect x=&quot;3&quot; y=&quot;11&quot; width=&quot;18&quot; height=&quot;11&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M7 11V7a5 5 0 0 1 10 0v4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye-off&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24&quot;/>&lt;line x1=&quot;1&quot; y1=&quot;1&quot; x2=&quot;23&quot; y2=&quot;23&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-right&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 5 19 12 12 19&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-left&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;19&quot; y1=&quot;12&quot; x2=&quot;5&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 19 5 12 12 5&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-play&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-shield&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-mail&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z&quot;/>&lt;polyline points=&quot;22,6 12,13 2,6&quot;/>&lt;/g>&lt;/symbol>
+  &lt;/svg>
+
+  &lt;div class=&quot;auth-layout&quot;>
+    &lt;section class=&quot;login-side&quot; aria-label=&quot;Acesso ao Lux Player&quot;>
+      &lt;header class=&quot;brand-row&quot;>
+        &lt;a class=&quot;brand-lockup&quot; href=&quot;/&quot; aria-label=&quot;Lux Player — página inicial&quot;>
+          &lt;img src=&quot;/assets/lux-logo.png&quot; alt=&quot;Lux Player&quot;>
+          &lt;span class=&quot;brand-fallback&quot;>LUX &lt;b>PLAYER&lt;/b>&lt;/span>
+        &lt;/a>
+        &lt;span class=&quot;version-mark&quot;>&lt;i aria-hidden=&quot;true&quot;>&lt;/i> ZERO / 0.2&lt;/span>
+      &lt;/header>
+
+      &lt;main class=&quot;auth-center&quot;>
+        &lt;div id=&quot;login-view&quot;>
+          &lt;div class=&quot;intro-eyebrow&quot;>ACESSO À EXPERIÊNCIA LUX&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Seu universo.&lt;span>Seu próximo play.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Entre para continuar sua experiência.&lt;/p>
+
+          &lt;form id=&quot;login-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate autocomplete=&quot;on&quot;>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-identity&quot;>Lux ID &lt;small>ou nome de usuário&lt;/small>&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-user&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-identity&quot; type=&quot;text&quot; inputmode=&quot;text&quot; autocomplete=&quot;username&quot; placeholder=&quot;Usuário ou LUX:…&quot; maxlength=&quot;254&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;identity-error&quot; spellcheck=&quot;false&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;identity-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-password&quot;>Senha&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-lock&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-password&quot; type=&quot;password&quot; autocomplete=&quot;current-password&quot; placeholder=&quot;Digite sua senha&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;password-error&quot; required>
+                &lt;button id=&quot;toggle-password&quot; class=&quot;icon-button&quot; type=&quot;button&quot; aria-label=&quot;Mostrar senha&quot; title=&quot;Mostrar senha&quot; aria-pressed=&quot;false&quot;>
+                  &lt;svg aria-hidden=&quot;true&quot;>&lt;use id=&quot;password-icon&quot; href=&quot;#icon-eye&quot;>&lt;/use>&lt;/svg>
+                &lt;/button>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;password-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;form-meta&quot;>
+              &lt;button id=&quot;forgot-password&quot; class=&quot;inline-link&quot; type=&quot;button&quot;>Esqueceu a senha?&lt;/button>
+            &lt;/div>
+
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Entrar com Lux ID
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;details>&lt;summary>Autenticação em duas etapas&lt;/summary>&lt;label for=&quot;login-code&quot;>Código do aplicativo ou de recuperação&lt;/label>&lt;input id=&quot;login-code&quot; autocomplete=&quot;one-time-code&quot; maxlength=&quot;32&quot;>&lt;/details>&lt;details>&lt;summary>Recebi um convite&lt;/summary>&lt;label for=&quot;login-invite&quot;>Código do convite&lt;/label>&lt;input id=&quot;login-invite&quot; type=&quot;text&quot; maxlength=&quot;64&quot; autocomplete=&quot;off&quot; placeholder=&quot;Cole o código para criar sua conta&quot;>&lt;p>Para cadastro, use uma senha com pelo menos 12 caracteres.&lt;/p>&lt;/details>&lt;/form>
+          &lt;div id=&quot;login-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+
+          &lt;div class=&quot;splitter&quot;>&lt;span>ou entre com&lt;/span>&lt;/div>
+          &lt;div class=&quot;social-actions&quot; role=&quot;group&quot; aria-label=&quot;Outras formas de entrar&quot;>
+            &lt;button id=&quot;login-google&quot; class=&quot;social-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Google&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 48 48&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;#EA4335&quot; d=&quot;M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z&quot;/>
+                &lt;path fill=&quot;#4285F4&quot; d=&quot;M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.73 7.18l7.73 6C44.45 38.03 46.98 31.89 46.98 24.55z&quot;/>
+                &lt;path fill=&quot;#FBBC05&quot; d=&quot;M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.97-6.2a24 24 0 0 0 0 21.58l7.97-6.2z&quot;/>
+                &lt;path fill=&quot;#34A853&quot; d=&quot;M24 48c6.48 0 11.92-2.13 15.89-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.2C6.51 42.62 14.62 48 24 48z&quot;/>
+              &lt;/svg>
+              &lt;span>Google&lt;/span>
+            &lt;/button>
+            &lt;button id=&quot;login-discord&quot; class=&quot;social-button discord-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Discord&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;currentColor&quot; d=&quot;M19.73 5.33a17.75 17.75 0 0 0-4.38-1.36l-.54 1.1a16.39 16.39 0 0 0-5.62 0l-.54-1.1a17.75 17.75 0 0 0-4.38 1.36C1.5 9.47.74 13.51 1.11 17.5a17.8 17.8 0 0 0 5.37 2.72l1.15-1.88c-.64-.24-1.26-.54-1.85-.88l.45-.36a12.6 12.6 0 0 0 11.54 0l.45.36c-.59.34-1.21.64-1.85.88l1.15 1.88a17.8 17.8 0 0 0 5.37-2.72c.44-4.64-.75-8.66-3.16-12.17ZM8.53 15.15c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.1 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Zm6.94 0c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.09 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Z&quot;/>
+              &lt;/svg>
+              &lt;span>Discord&lt;/span>
+            &lt;/button>
+          &lt;/div>
+          &lt;a class=&quot;demo-link&quot; href=&quot;/cinema/?guest=1&quot;>Entrar como visitante &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+
+        &lt;div id=&quot;recovery-view&quot; hidden>
+          &lt;button class=&quot;recovery-back&quot; id=&quot;back-to-login&quot; type=&quot;button&quot;>
+            &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-left&quot;>&lt;/use>&lt;/svg>
+            Voltar para o login
+          &lt;/button>
+          &lt;div class=&quot;intro-eyebrow&quot;>RECUPERAÇÃO DE ACESSO&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Vamos recuperar&lt;span>seu acesso.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Informe o e-mail associado ao seu Lux ID.&lt;/p>
+          &lt;form id=&quot;recovery-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;recovery-email&quot;>E-mail da sua conta&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-mail&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;recovery-email&quot; type=&quot;email&quot; autocomplete=&quot;email&quot; placeholder=&quot;voce@exemplo.com&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;recovery-email-error&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;recovery-email-error&quot; hidden>&lt;/p>
+            &lt;/div>
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Solicitar recuperação
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;/form>
+          &lt;div id=&quot;recovery-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+          
+        &lt;/div>
+      &lt;/main>
+
+      &lt;footer class=&quot;auth-footer&quot;>
+        &lt;span>© &lt;span id=&quot;current-year&quot;>2026&lt;/span> &lt;strong>Lux Player&lt;/strong>&lt;/span>
+        &lt;span>LUX ZERO&lt;/span>
+      &lt;/footer>
+    &lt;/section>
+
+    &lt;aside class=&quot;experience-panel&quot; aria-label=&quot;Uma nova experiência Lux Player&quot;>
+      &lt;div class=&quot;visual-noise&quot; aria-hidden=&quot;true&quot;>&lt;/div>
+      &lt;img class=&quot;mascot&quot; src=&quot;/assets/luxite.png&quot; alt=&quot;Luxite, o mascote do Lux Player&quot;>
+      &lt;div class=&quot;visual-bottom&quot;>
+        &lt;div class=&quot;eyebrow&quot;>O SEU ESPAÇO. O SEU CONTROLE.&lt;/div>
+        &lt;h2>Todas as suas histórias.&lt;br>&lt;em>Uma só experiência.&lt;/em>&lt;/h2>
+        &lt;p>Um novo começo para o seu player favorito. Sem complicações. Com identidade própria.&lt;/p>
+      &lt;/div>
+    &lt;/aside>
+  &lt;/div>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>
+"></iframe></section><section><h2>before 390px</h2><iframe id="before" width="390" height="740" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>&lt;base href=&quot;/&quot;>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#090810&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero. Sua experiência de entretenimento começa aqui.&quot;>
+  &lt;title>Entrar · Lux Player Zero&lt;/title>
+  &lt;link rel=&quot;icon&quot; type=&quot;image/png&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  &lt;link rel=&quot;preload&quot; as=&quot;image&quot; href=&quot;/assets/login-scene.png&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/login.css&quot;>
+  &lt;style>/* Lux Zero — login em uma tela, sem sacrificar acessibilidade.
+   PC: altura da viewport. Celular: banner editorial reduzido.
+   Em telas baixas/teclado aberto, rolar é melhor do que cortar ações. */
+
+@media (min-width:761px) {
+  .auth-layout {
+    grid-template-columns:minmax(420px,43.5%) minmax(0,1fr);
+    height:100svh;min-height:0;overflow:hidden;
+  }
+  .login-side {
+    height:100svh;min-height:0;overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(180,151,252,.28) transparent;
+    padding-block:clamp(13px,2.4svh,26px);
+  }
+  .experience-panel {height:100svh;min-height:0}
+  .auth-center {flex:0 0 auto;margin:auto 0;padding:clamp(10px,1.7svh,20px) 0}
+  .auth-title {font-size:clamp(34px,2.8vw,42px);line-height:1.09;margin-top:10px}
+  .auth-lead {margin-bottom:17px;line-height:1.55}
+  .auth-form {gap:12px}
+  .splitter {margin:16px 0 12px}
+  .demo-link {margin-top:12px}
+  .auth-footer {padding-top:12px}
+}
+@media (min-width:761px) and (max-height:790px) {
+  .login-side {padding-block:13px}
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:36px}
+  .brand-lockup img {max-height:43px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {font-size:8px}
+  .auth-title {font-size:clamp(32px,2.65vw,38px);margin:9px 0 8px}
+  .auth-lead {font-size:12px;margin-bottom:13px}
+  .auth-form {gap:10px}
+  .field {gap:6px}
+  .input-wrap {min-height:43px}
+  .input-wrap input {height:42px}
+  .icon-button {width:41px;height:41px}
+  .form-meta {margin:-3px 0 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 10px}
+  .social-button {min-height:43px}
+  .demo-link {margin-top:9px;padding:5px}
+  .auth-footer {padding-top:9px}
+  .visual-bottom {bottom:39px}
+  .visual-bottom h2 {font-size:clamp(26px,2.8vw,39px)}
+  .visual-bottom p {font-size:11px}
+}
+@media (min-width:761px) and (max-height:620px) {
+  .auth-title {font-size:31px}
+  .auth-lead {margin-bottom:9px}
+  .auth-form {gap:8px}
+  .splitter {margin:9px 0 8px}
+  .demo-link {margin-top:5px}
+  .visual-bottom p {display:none}
+}
+@media (max-width:760px) {
+  html,body {min-height:100%;overflow-x:clip}
+  .auth-layout {display:flex;flex-direction:column;min-height:100svh}
+  .experience-panel {
+    order:-1;flex:0 0 auto;
+    min-height:0;height:clamp(112px,15svh,138px);
+    background-position:center 42%;
+  }
+  .mascot {
+    width:clamp(102px,32vw,166px);right:3%;
+    bottom:-18px;max-height:135%;opacity:.97;
+  }
+  .visual-bottom {
+    bottom:12px;left:14px;right:36%;
+    max-width:none;padding:8px 10px;
+  }
+  .visual-bottom .eyebrow,.visual-bottom p {display:none}
+  .visual-bottom h2 {
+    font-size:clamp(17px,4.4vw,23px);
+    line-height:1.14;letter-spacing:-.5px;margin:0;
+  }
+  .visual-bottom::before {inset:-3px -8px;border-radius:13px}
+  .login-side {
+    order:1;flex:1 0 auto;min-height:0;border:0;
+    padding:clamp(13px,2.5svh,20px) 24px 12px;
+    overflow:visible;
+  }
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:35px}
+  .brand-lockup img {max-height:39px}
+  .version-mark {font-size:8px;padding:6px 8px}
+  .auth-center {
+    align-self:center;width:min(100%,380px);margin:auto 0;
+    padding:clamp(10px,1.8svh,17px) 0;
+  }
+  .intro-eyebrow {font-size:8px;letter-spacing:1.4px}
+  .auth-title {
+    font-size:clamp(30px,8.2vw,37px);
+    line-height:1.06;margin:9px 0 7px;letter-spacing:-1.25px;
+  }
+  .auth-lead {font-size:11.5px;line-height:1.5;margin:0 0 13px}
+  .auth-form {gap:10px}
+  .field {gap:5px}
+  .field-label {font-size:11px}
+  .input-wrap {min-height:44px}
+  .input-wrap input {height:44px;font-size:16px}
+  .icon-button {height:42px;width:42px}
+  .form-meta {margin:-4px 0 0}
+  .inline-link {font-size:11px;padding:3px 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 11px}
+  .social-button {min-height:44px}
+  .demo-link {margin-top:9px;padding:5px;font-size:11px}
+  .auth-footer {padding-top:8px;font-size:9px}
+  .recovery-back {margin-bottom:16px}
+}
+@media (max-width:760px) and (max-height:720px) {
+  .experience-panel {height:88px}
+  .mascot {width:102px;bottom:-15px}
+  .visual-bottom {bottom:9px;right:115px}
+  .visual-bottom h2 {font-size:16px}
+  .login-side {padding-top:10px;padding-bottom:10px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {display:none}
+  .auth-title {font-size:29px;margin:4px 0 9px}
+  .auth-lead {display:none}
+  .auth-form {gap:8px}
+  .field {gap:4px}
+  .input-wrap {min-height:42px}
+  .input-wrap input {height:42px}
+  .primary-btn {min-height:43px}
+  .splitter {margin:9px 0 8px}
+  .social-button {min-height:42px}
+  .demo-link {margin-top:6px}
+  .auth-footer {padding-top:5px}
+}
+@media (max-width:760px) and (max-height:600px) {
+  .experience-panel {height:72px}
+  .mascot {width:85px;bottom:-13px}
+  .visual-bottom h2 {font-size:14px}
+  .auth-center {padding:5px 0}
+  .auth-title {font-size:26px}
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:480px) {
+  .experience-panel {display:none}
+  .login-side {min-height:100svh}
+}
+
+
+/* Mobile login: a single reading order, natural scrolling and no editorial banner. */
+@media(max-width:760px){
+  .auth-layout{min-height:0;display:block}
+  .auth-layout .experience-panel{display:none}
+  .auth-layout .login-side{min-height:0;height:auto;overflow:visible;padding:24px 22px 14px}
+  .auth-layout .brand-row{min-height:40px;gap:12px}
+  .auth-layout .brand-lockup{max-width:158px;min-height:36px}
+  .auth-layout .brand-lockup img{max-height:36px}
+  .auth-layout .version-mark{font-size:8px;letter-spacing:.7px;padding:6px 8px}
+  .auth-layout .auth-center{width:100%;max-width:420px;margin:0 auto;padding:28px 0 24px;animation:none}
+  .auth-layout .intro-eyebrow{display:none}
+  .auth-layout .auth-title{font-size:clamp(29px,8vw,35px);line-height:1.1;letter-spacing:-1px;margin:0 0 10px}
+  .auth-layout .auth-lead{display:block;font-size:13px;line-height:1.5;margin:0 0 22px;color:#b2aabd}
+  .auth-layout .auth-form{gap:12px}
+  .auth-layout .field{gap:7px}
+  .auth-layout .field-label{font-size:12px}
+  .auth-layout .field-label small{font-size:11px}
+  .auth-layout .input-wrap{min-height:50px;border-radius:10px}
+  .auth-layout .input-wrap input{height:48px;font-size:16px}
+  .auth-layout .icon-button{width:44px;height:44px}
+  .auth-layout .form-meta{margin:-4px 0 -4px;min-height:36px}
+  .auth-layout .inline-link{min-height:36px;font-size:12px;padding:8px 0}
+  .auth-layout .primary-btn{min-height:50px;margin:0;font-size:14px}
+  .auth-layout .auth-form details{margin:0;border:1px solid #cbb9ff18;border-radius:9px;background:#ffffff02;min-width:0}
+  .auth-layout .auth-form summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 12px;list-style:none;font-size:12px;line-height:1.4;color:#c1b9d1;cursor:pointer}
+  .auth-layout .auth-form summary::-webkit-details-marker{display:none}
+  .auth-layout .auth-form summary::after{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-right:3px;flex:none}
+  .auth-layout .auth-form details[open] summary::after{transform:rotate(225deg)}
+  .auth-layout .auth-form details[open]{padding-bottom:12px}
+  .auth-layout .auth-form details>label{display:block;margin:4px 12px 7px;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font-size:16px;font-family:inherit}
+  .auth-layout .auth-form details>p{margin:9px 12px 0;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+  .auth-layout .splitter{margin:20px 0 12px;font-size:9px}
+  .auth-layout .social-actions{gap:10px}
+  .auth-layout .social-button{min-height:48px;font-size:13px;gap:9px}
+  .auth-layout .demo-link{min-height:44px;margin:12px 0 0;padding:10px 0;font-size:12px}
+  .auth-layout .auth-footer{padding:14px 0 0;font-size:10px;gap:10px}
+  .auth-layout~.lux-legal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px;margin:0 auto;max-width:464px;padding:0 22px max(24px,env(safe-area-inset-bottom));font-size:11px;text-align:center}
+  .auth-layout~.lux-legal-links a{justify-content:center;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .auth-layout .recovery-back{min-height:44px;margin-bottom:16px}
+}
+@media(max-width:360px){
+  .auth-layout .login-side{padding-left:18px;padding-right:18px}
+  .auth-layout .brand-lockup{max-width:140px}
+  .auth-layout .field-label{align-items:baseline;gap:6px}
+}
+@media(max-width:760px) and (orientation:landscape){
+  .auth-layout .login-side{max-width:500px;margin:auto;padding-top:18px}
+  .auth-layout .auth-center{padding-top:20px}
+}
+&lt;/style>
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;/head>
+&lt;body>
+  &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; style=&quot;position:absolute;width:0;height:0;overflow:hidden&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>
+    &lt;symbol id=&quot;icon-user&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-lock&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;rect x=&quot;3&quot; y=&quot;11&quot; width=&quot;18&quot; height=&quot;11&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M7 11V7a5 5 0 0 1 10 0v4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye-off&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24&quot;/>&lt;line x1=&quot;1&quot; y1=&quot;1&quot; x2=&quot;23&quot; y2=&quot;23&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-right&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 5 19 12 12 19&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-left&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;19&quot; y1=&quot;12&quot; x2=&quot;5&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 19 5 12 12 5&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-play&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-shield&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-mail&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z&quot;/>&lt;polyline points=&quot;22,6 12,13 2,6&quot;/>&lt;/g>&lt;/symbol>
+  &lt;/svg>
+
+  &lt;div class=&quot;auth-layout&quot;>
+    &lt;section class=&quot;login-side&quot; aria-label=&quot;Acesso ao Lux Player&quot;>
+      &lt;header class=&quot;brand-row&quot;>
+        &lt;a class=&quot;brand-lockup&quot; href=&quot;/&quot; aria-label=&quot;Lux Player — página inicial&quot;>
+          &lt;img src=&quot;/assets/lux-logo.png&quot; alt=&quot;Lux Player&quot;>
+          &lt;span class=&quot;brand-fallback&quot;>LUX &lt;b>PLAYER&lt;/b>&lt;/span>
+        &lt;/a>
+        &lt;span class=&quot;version-mark&quot;>&lt;i aria-hidden=&quot;true&quot;>&lt;/i> ZERO / 0.2&lt;/span>
+      &lt;/header>
+
+      &lt;main class=&quot;auth-center&quot;>
+        &lt;div id=&quot;login-view&quot;>
+          &lt;div class=&quot;intro-eyebrow&quot;>ACESSO À EXPERIÊNCIA LUX&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Seu universo.&lt;span>Seu próximo play.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Entre para continuar sua experiência.&lt;/p>
+
+          &lt;form id=&quot;login-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate autocomplete=&quot;on&quot;>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-identity&quot;>Lux ID &lt;small>ou nome de usuário&lt;/small>&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-user&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-identity&quot; type=&quot;text&quot; inputmode=&quot;text&quot; autocomplete=&quot;username&quot; placeholder=&quot;Usuário ou LUX:…&quot; maxlength=&quot;254&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;identity-error&quot; spellcheck=&quot;false&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;identity-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-password&quot;>Senha&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-lock&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-password&quot; type=&quot;password&quot; autocomplete=&quot;current-password&quot; placeholder=&quot;Digite sua senha&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;password-error&quot; required>
+                &lt;button id=&quot;toggle-password&quot; class=&quot;icon-button&quot; type=&quot;button&quot; aria-label=&quot;Mostrar senha&quot; title=&quot;Mostrar senha&quot; aria-pressed=&quot;false&quot;>
+                  &lt;svg aria-hidden=&quot;true&quot;>&lt;use id=&quot;password-icon&quot; href=&quot;#icon-eye&quot;>&lt;/use>&lt;/svg>
+                &lt;/button>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;password-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;form-meta&quot;>
+              &lt;button id=&quot;forgot-password&quot; class=&quot;inline-link&quot; type=&quot;button&quot;>Esqueceu a senha?&lt;/button>
+            &lt;/div>
+
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Entrar com Lux ID
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;details>&lt;summary>Autenticação em duas etapas&lt;/summary>&lt;label for=&quot;login-code&quot;>Código do aplicativo ou de recuperação&lt;/label>&lt;input id=&quot;login-code&quot; autocomplete=&quot;one-time-code&quot; maxlength=&quot;32&quot;>&lt;/details>&lt;details>&lt;summary>Recebi um convite&lt;/summary>&lt;label for=&quot;login-invite&quot;>Código do convite&lt;/label>&lt;input id=&quot;login-invite&quot; type=&quot;text&quot; maxlength=&quot;64&quot; autocomplete=&quot;off&quot; placeholder=&quot;Cole o código para criar sua conta&quot;>&lt;p>Para cadastro, use uma senha com pelo menos 12 caracteres.&lt;/p>&lt;/details>&lt;/form>
+          &lt;div id=&quot;login-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+
+          &lt;div class=&quot;splitter&quot;>&lt;span>ou entre com&lt;/span>&lt;/div>
+          &lt;div class=&quot;social-actions&quot; role=&quot;group&quot; aria-label=&quot;Outras formas de entrar&quot;>
+            &lt;button id=&quot;login-google&quot; class=&quot;social-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Google&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 48 48&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;#EA4335&quot; d=&quot;M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z&quot;/>
+                &lt;path fill=&quot;#4285F4&quot; d=&quot;M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.73 7.18l7.73 6C44.45 38.03 46.98 31.89 46.98 24.55z&quot;/>
+                &lt;path fill=&quot;#FBBC05&quot; d=&quot;M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.97-6.2a24 24 0 0 0 0 21.58l7.97-6.2z&quot;/>
+                &lt;path fill=&quot;#34A853&quot; d=&quot;M24 48c6.48 0 11.92-2.13 15.89-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.2C6.51 42.62 14.62 48 24 48z&quot;/>
+              &lt;/svg>
+              &lt;span>Google&lt;/span>
+            &lt;/button>
+            &lt;button id=&quot;login-discord&quot; class=&quot;social-button discord-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Discord&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;currentColor&quot; d=&quot;M19.73 5.33a17.75 17.75 0 0 0-4.38-1.36l-.54 1.1a16.39 16.39 0 0 0-5.62 0l-.54-1.1a17.75 17.75 0 0 0-4.38 1.36C1.5 9.47.74 13.51 1.11 17.5a17.8 17.8 0 0 0 5.37 2.72l1.15-1.88c-.64-.24-1.26-.54-1.85-.88l.45-.36a12.6 12.6 0 0 0 11.54 0l.45.36c-.59.34-1.21.64-1.85.88l1.15 1.88a17.8 17.8 0 0 0 5.37-2.72c.44-4.64-.75-8.66-3.16-12.17ZM8.53 15.15c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.1 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Zm6.94 0c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.09 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Z&quot;/>
+              &lt;/svg>
+              &lt;span>Discord&lt;/span>
+            &lt;/button>
+          &lt;/div>
+          &lt;a class=&quot;demo-link&quot; href=&quot;/cinema/?guest=1&quot;>Entrar como visitante &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+
+        &lt;div id=&quot;recovery-view&quot; hidden>
+          &lt;button class=&quot;recovery-back&quot; id=&quot;back-to-login&quot; type=&quot;button&quot;>
+            &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-left&quot;>&lt;/use>&lt;/svg>
+            Voltar para o login
+          &lt;/button>
+          &lt;div class=&quot;intro-eyebrow&quot;>RECUPERAÇÃO DE ACESSO&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Vamos recuperar&lt;span>seu acesso.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Informe o e-mail associado ao seu Lux ID.&lt;/p>
+          &lt;form id=&quot;recovery-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;recovery-email&quot;>E-mail da sua conta&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-mail&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;recovery-email&quot; type=&quot;email&quot; autocomplete=&quot;email&quot; placeholder=&quot;voce@exemplo.com&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;recovery-email-error&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;recovery-email-error&quot; hidden>&lt;/p>
+            &lt;/div>
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Solicitar recuperação
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;/form>
+          &lt;div id=&quot;recovery-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+          
+        &lt;/div>
+      &lt;/main>
+
+      &lt;footer class=&quot;auth-footer&quot;>
+        &lt;span>© &lt;span id=&quot;current-year&quot;>2026&lt;/span> &lt;strong>Lux Player&lt;/strong>&lt;/span>
+        &lt;span>LUX ZERO&lt;/span>
+      &lt;/footer>
+    &lt;/section>
+
+    &lt;aside class=&quot;experience-panel&quot; aria-label=&quot;Uma nova experiência Lux Player&quot;>
+      &lt;div class=&quot;visual-noise&quot; aria-hidden=&quot;true&quot;>&lt;/div>
+      &lt;img class=&quot;mascot&quot; src=&quot;/assets/luxite.png&quot; alt=&quot;Luxite, o mascote do Lux Player&quot;>
+      &lt;div class=&quot;visual-bottom&quot;>
+        &lt;div class=&quot;eyebrow&quot;>O SEU ESPAÇO. O SEU CONTROLE.&lt;/div>
+        &lt;h2>Todas as suas histórias.&lt;br>&lt;em>Uma só experiência.&lt;/em>&lt;/h2>
+        &lt;p>Um novo começo para o seu player favorito. Sem complicações. Com identidade própria.&lt;/p>
+      &lt;/div>
+    &lt;/aside>
+  &lt;/div>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>
+"></iframe></section><section><h2>desktop 1024px</h2><iframe id="desktop" width="1024" height="768" srcdoc="&lt;!doctype html>
+&lt;html lang=&quot;pt-BR&quot;>
+&lt;head>&lt;base href=&quot;/&quot;>
+  &lt;meta charset=&quot;utf-8&quot;>
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;>
+  &lt;meta name=&quot;theme-color&quot; content=&quot;#090810&quot;>
+  &lt;meta name=&quot;color-scheme&quot; content=&quot;dark&quot;>
+  &lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;>
+  &lt;meta name=&quot;description&quot; content=&quot;Lux Player Zero. Sua experiência de entretenimento começa aqui.&quot;>
+  &lt;title>Entrar · Lux Player Zero&lt;/title>
+  &lt;link rel=&quot;icon&quot; type=&quot;image/png&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;apple-touch-icon&quot; href=&quot;/assets/lux-icon.png&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  &lt;link rel=&quot;preload&quot; as=&quot;image&quot; href=&quot;/assets/login-scene.png&quot;>
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;/login.css&quot;>
+  &lt;style>/* Lux Zero — login em uma tela, sem sacrificar acessibilidade.
+   PC: altura da viewport. Celular: banner editorial reduzido.
+   Em telas baixas/teclado aberto, rolar é melhor do que cortar ações. */
+
+@media (min-width:761px) {
+  .auth-layout {
+    grid-template-columns:minmax(420px,43.5%) minmax(0,1fr);
+    height:100svh;min-height:0;overflow:hidden;
+  }
+  .login-side {
+    height:100svh;min-height:0;overflow-y:auto;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(180,151,252,.28) transparent;
+    padding-block:clamp(13px,2.4svh,26px);
+  }
+  .experience-panel {height:100svh;min-height:0}
+  .auth-center {flex:0 0 auto;margin:auto 0;padding:clamp(10px,1.7svh,20px) 0}
+  .auth-title {font-size:clamp(34px,2.8vw,42px);line-height:1.09;margin-top:10px}
+  .auth-lead {margin-bottom:17px;line-height:1.55}
+  .auth-form {gap:12px}
+  .splitter {margin:16px 0 12px}
+  .demo-link {margin-top:12px}
+  .auth-footer {padding-top:12px}
+}
+@media (min-width:761px) and (max-height:790px) {
+  .login-side {padding-block:13px}
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:36px}
+  .brand-lockup img {max-height:43px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {font-size:8px}
+  .auth-title {font-size:clamp(32px,2.65vw,38px);margin:9px 0 8px}
+  .auth-lead {font-size:12px;margin-bottom:13px}
+  .auth-form {gap:10px}
+  .field {gap:6px}
+  .input-wrap {min-height:43px}
+  .input-wrap input {height:42px}
+  .icon-button {width:41px;height:41px}
+  .form-meta {margin:-3px 0 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 10px}
+  .social-button {min-height:43px}
+  .demo-link {margin-top:9px;padding:5px}
+  .auth-footer {padding-top:9px}
+  .visual-bottom {bottom:39px}
+  .visual-bottom h2 {font-size:clamp(26px,2.8vw,39px)}
+  .visual-bottom p {font-size:11px}
+}
+@media (min-width:761px) and (max-height:620px) {
+  .auth-title {font-size:31px}
+  .auth-lead {margin-bottom:9px}
+  .auth-form {gap:8px}
+  .splitter {margin:9px 0 8px}
+  .demo-link {margin-top:5px}
+  .visual-bottom p {display:none}
+}
+@media (max-width:760px) {
+  html,body {min-height:100%;overflow-x:clip}
+  .auth-layout {display:flex;flex-direction:column;min-height:100svh}
+  .experience-panel {
+    order:-1;flex:0 0 auto;
+    min-height:0;height:clamp(112px,15svh,138px);
+    background-position:center 42%;
+  }
+  .mascot {
+    width:clamp(102px,32vw,166px);right:3%;
+    bottom:-18px;max-height:135%;opacity:.97;
+  }
+  .visual-bottom {
+    bottom:12px;left:14px;right:36%;
+    max-width:none;padding:8px 10px;
+  }
+  .visual-bottom .eyebrow,.visual-bottom p {display:none}
+  .visual-bottom h2 {
+    font-size:clamp(17px,4.4vw,23px);
+    line-height:1.14;letter-spacing:-.5px;margin:0;
+  }
+  .visual-bottom::before {inset:-3px -8px;border-radius:13px}
+  .login-side {
+    order:1;flex:1 0 auto;min-height:0;border:0;
+    padding:clamp(13px,2.5svh,20px) 24px 12px;
+    overflow:visible;
+  }
+  .brand-row {min-height:38px}
+  .brand-lockup {min-height:35px}
+  .brand-lockup img {max-height:39px}
+  .version-mark {font-size:8px;padding:6px 8px}
+  .auth-center {
+    align-self:center;width:min(100%,380px);margin:auto 0;
+    padding:clamp(10px,1.8svh,17px) 0;
+  }
+  .intro-eyebrow {font-size:8px;letter-spacing:1.4px}
+  .auth-title {
+    font-size:clamp(30px,8.2vw,37px);
+    line-height:1.06;margin:9px 0 7px;letter-spacing:-1.25px;
+  }
+  .auth-lead {font-size:11.5px;line-height:1.5;margin:0 0 13px}
+  .auth-form {gap:10px}
+  .field {gap:5px}
+  .field-label {font-size:11px}
+  .input-wrap {min-height:44px}
+  .input-wrap input {height:44px;font-size:16px}
+  .icon-button {height:42px;width:42px}
+  .form-meta {margin:-4px 0 0}
+  .inline-link {font-size:11px;padding:3px 0}
+  .primary-btn {min-height:46px;margin-top:2px}
+  .splitter {margin:13px 0 11px}
+  .social-button {min-height:44px}
+  .demo-link {margin-top:9px;padding:5px;font-size:11px}
+  .auth-footer {padding-top:8px;font-size:9px}
+  .recovery-back {margin-bottom:16px}
+}
+@media (max-width:760px) and (max-height:720px) {
+  .experience-panel {height:88px}
+  .mascot {width:102px;bottom:-15px}
+  .visual-bottom {bottom:9px;right:115px}
+  .visual-bottom h2 {font-size:16px}
+  .login-side {padding-top:10px;padding-bottom:10px}
+  .auth-center {padding:8px 0}
+  .intro-eyebrow {display:none}
+  .auth-title {font-size:29px;margin:4px 0 9px}
+  .auth-lead {display:none}
+  .auth-form {gap:8px}
+  .field {gap:4px}
+  .input-wrap {min-height:42px}
+  .input-wrap input {height:42px}
+  .primary-btn {min-height:43px}
+  .splitter {margin:9px 0 8px}
+  .social-button {min-height:42px}
+  .demo-link {margin-top:6px}
+  .auth-footer {padding-top:5px}
+}
+@media (max-width:760px) and (max-height:600px) {
+  .experience-panel {height:72px}
+  .mascot {width:85px;bottom:-13px}
+  .visual-bottom h2 {font-size:14px}
+  .auth-center {padding:5px 0}
+  .auth-title {font-size:26px}
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:480px) {
+  .experience-panel {display:none}
+  .login-side {min-height:100svh}
+}
+
+
+/* Mobile login: a single reading order, natural scrolling and no editorial banner. */
+@media(max-width:760px){
+  .auth-layout{min-height:0;display:block}
+  .auth-layout .experience-panel{display:none}
+  .auth-layout .login-side{min-height:0;height:auto;overflow:visible;padding:16px 20px 10px}
+  .auth-layout .brand-row{min-height:32px;gap:10px}
+  .auth-layout .brand-lockup{max-width:140px;min-height:30px}
+  .auth-layout .brand-lockup img{max-height:30px}
+  .auth-layout .version-mark{font-size:8px;letter-spacing:.7px;padding:6px 8px}
+  .auth-layout .auth-center{width:100%;max-width:420px;margin:0 auto;padding:16px 0 10px;animation:none}
+  .auth-layout .intro-eyebrow{display:none}
+  .auth-layout .auth-title{font-size:clamp(25px,6.8vw,28px);line-height:1.1;letter-spacing:-1px;margin:0 0 16px}
+  .auth-layout #login-view .auth-lead{display:none}
+  .auth-layout #recovery-view .auth-lead{font-size:12px;margin-bottom:16px}
+  .auth-layout .auth-form{gap:8px}
+  .auth-layout #login-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .auth-layout #login-form>div,.auth-layout #login-form>button{grid-column:1/-1}
+  .auth-layout #login-form details[open]{grid-column:1/-1}
+  .auth-layout .field{gap:4px}
+  .auth-layout .field-label{font-size:12px}
+  .auth-layout .field-label small{font-size:11px}
+  .auth-layout .input-wrap{min-height:46px;border-radius:10px}
+  .auth-layout .input-wrap input{height:44px;font-size:16px}
+  .auth-layout .icon-button{width:44px;height:44px}
+  .auth-layout .form-meta{margin:-4px 0;min-height:32px}
+  .auth-layout .inline-link{min-height:32px;font-size:11px;padding:6px 0}
+  .auth-layout .primary-btn{min-height:46px;margin:0;font-size:13px}
+  .auth-layout .auth-form details{margin:0;border:1px solid #cbb9ff18;border-radius:9px;background:#ffffff02;min-width:0}
+  .auth-layout .auth-form summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:7px 10px;list-style:none;font-size:11px;line-height:1.4;color:#c1b9d1;cursor:pointer}
+  .auth-layout .auth-form summary::-webkit-details-marker{display:none}
+  .auth-layout .auth-form summary::after{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-right:3px;flex:none}
+  .auth-layout .auth-form details[open] summary::after{transform:rotate(225deg)}
+  .auth-layout .auth-form details[open]{padding-bottom:12px}
+  .auth-layout .auth-form details>label{display:block;margin:4px 12px 7px;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font-size:16px;font-family:inherit}
+  .auth-layout .auth-form details>p{margin:9px 12px 0;font-size:12px;line-height:1.5;color:#c1b9d1}
+  .auth-layout summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+  .auth-layout .splitter{margin:12px 0 8px;font-size:9px}
+  .auth-layout .social-actions{gap:10px}
+  .auth-layout .social-button{min-height:44px;font-size:12px;gap:8px}
+  .auth-layout .demo-link{min-height:44px;margin:4px 0 0;padding:8px 0;font-size:12px}
+  .auth-layout .auth-footer{padding:8px 0 0;font-size:9px;gap:10px}
+  .auth-layout~.lux-legal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px;margin:0 auto;max-width:464px;padding:0 22px max(24px,env(safe-area-inset-bottom));font-size:11px;text-align:center}
+  .auth-layout~.lux-legal-links a{justify-content:center;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+  .auth-layout .recovery-back{min-height:44px;margin-bottom:16px}
+}
+@media(max-width:360px){
+  .auth-layout .login-side{padding-left:18px;padding-right:18px}
+  .auth-layout .brand-lockup{max-width:140px}
+  .auth-layout .field-label{align-items:baseline;gap:6px}
+}
+@media(max-width:760px) and (orientation:landscape){
+  .auth-layout .login-side{max-width:500px;margin:auto;padding-top:18px}
+  .auth-layout .auth-center{padding-top:16px}
+}
+&lt;/style>
+  
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/connectivity.css&quot;>&lt;link rel=&quot;stylesheet&quot; href=&quot;/lux-icons.css&quot;>
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/legal/links.css&quot;>&lt;/head>
+&lt;body>
+  &lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; style=&quot;position:absolute;width:0;height:0;overflow:hidden&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>
+    &lt;symbol id=&quot;icon-user&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;7&quot; r=&quot;4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-lock&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;rect x=&quot;3&quot; y=&quot;11&quot; width=&quot;18&quot; height=&quot;11&quot; rx=&quot;2&quot; ry=&quot;2&quot;/>&lt;path d=&quot;M7 11V7a5 5 0 0 1 10 0v4&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z&quot;/>&lt;circle cx=&quot;12&quot; cy=&quot;12&quot; r=&quot;3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-eye-off&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24&quot;/>&lt;line x1=&quot;1&quot; y1=&quot;1&quot; x2=&quot;23&quot; y2=&quot;23&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-right&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;5&quot; y1=&quot;12&quot; x2=&quot;19&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 5 19 12 12 19&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-arrow-left&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;line x1=&quot;19&quot; y1=&quot;12&quot; x2=&quot;5&quot; y2=&quot;12&quot;/>&lt;polyline points=&quot;12 19 5 12 12 5&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-play&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;polygon points=&quot;5 3 19 12 5 21 5 3&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-shield&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z&quot;/>&lt;/g>&lt;/symbol>
+    &lt;symbol id=&quot;icon-mail&quot; viewBox=&quot;0 0 24 24&quot;>&lt;g fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot;>&lt;path d=&quot;M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z&quot;/>&lt;polyline points=&quot;22,6 12,13 2,6&quot;/>&lt;/g>&lt;/symbol>
+  &lt;/svg>
+
+  &lt;div class=&quot;auth-layout&quot;>
+    &lt;section class=&quot;login-side&quot; aria-label=&quot;Acesso ao Lux Player&quot;>
+      &lt;header class=&quot;brand-row&quot;>
+        &lt;a class=&quot;brand-lockup&quot; href=&quot;/&quot; aria-label=&quot;Lux Player — página inicial&quot;>
+          &lt;img src=&quot;/assets/lux-logo.png&quot; alt=&quot;Lux Player&quot;>
+          &lt;span class=&quot;brand-fallback&quot;>LUX &lt;b>PLAYER&lt;/b>&lt;/span>
+        &lt;/a>
+        &lt;span class=&quot;version-mark&quot;>&lt;i aria-hidden=&quot;true&quot;>&lt;/i> ZERO / 0.2&lt;/span>
+      &lt;/header>
+
+      &lt;main class=&quot;auth-center&quot;>
+        &lt;div id=&quot;login-view&quot;>
+          &lt;div class=&quot;intro-eyebrow&quot;>ACESSO À EXPERIÊNCIA LUX&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Seu universo.&lt;span>Seu próximo play.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Entre para continuar sua experiência.&lt;/p>
+
+          &lt;form id=&quot;login-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate autocomplete=&quot;on&quot;>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-identity&quot;>Lux ID &lt;small>ou nome de usuário&lt;/small>&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-user&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-identity&quot; type=&quot;text&quot; inputmode=&quot;text&quot; autocomplete=&quot;username&quot; placeholder=&quot;Usuário ou LUX:…&quot; maxlength=&quot;254&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;identity-error&quot; spellcheck=&quot;false&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;identity-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;login-password&quot;>Senha&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-lock&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;login-password&quot; type=&quot;password&quot; autocomplete=&quot;current-password&quot; placeholder=&quot;Digite sua senha&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;password-error&quot; required>
+                &lt;button id=&quot;toggle-password&quot; class=&quot;icon-button&quot; type=&quot;button&quot; aria-label=&quot;Mostrar senha&quot; title=&quot;Mostrar senha&quot; aria-pressed=&quot;false&quot;>
+                  &lt;svg aria-hidden=&quot;true&quot;>&lt;use id=&quot;password-icon&quot; href=&quot;#icon-eye&quot;>&lt;/use>&lt;/svg>
+                &lt;/button>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;password-error&quot; hidden>&lt;/p>
+            &lt;/div>
+
+            &lt;div class=&quot;form-meta&quot;>
+              &lt;button id=&quot;forgot-password&quot; class=&quot;inline-link&quot; type=&quot;button&quot;>Esqueceu a senha?&lt;/button>
+            &lt;/div>
+
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Entrar com Lux ID
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;details>&lt;summary>Autenticação em duas etapas&lt;/summary>&lt;label for=&quot;login-code&quot;>Código do aplicativo ou de recuperação&lt;/label>&lt;input id=&quot;login-code&quot; autocomplete=&quot;one-time-code&quot; maxlength=&quot;32&quot;>&lt;/details>&lt;details>&lt;summary>Recebi um convite&lt;/summary>&lt;label for=&quot;login-invite&quot;>Código do convite&lt;/label>&lt;input id=&quot;login-invite&quot; type=&quot;text&quot; maxlength=&quot;64&quot; autocomplete=&quot;off&quot; placeholder=&quot;Cole o código para criar sua conta&quot;>&lt;p>Para cadastro, use uma senha com pelo menos 12 caracteres.&lt;/p>&lt;/details>&lt;/form>
+          &lt;div id=&quot;login-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+
+          &lt;div class=&quot;splitter&quot;>&lt;span>ou entre com&lt;/span>&lt;/div>
+          &lt;div class=&quot;social-actions&quot; role=&quot;group&quot; aria-label=&quot;Outras formas de entrar&quot;>
+            &lt;button id=&quot;login-google&quot; class=&quot;social-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Google&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 48 48&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;#EA4335&quot; d=&quot;M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z&quot;/>
+                &lt;path fill=&quot;#4285F4&quot; d=&quot;M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.24 5.48-4.73 7.18l7.73 6C44.45 38.03 46.98 31.89 46.98 24.55z&quot;/>
+                &lt;path fill=&quot;#FBBC05&quot; d=&quot;M10.53 28.59a14.4 14.4 0 0 1 0-9.18l-7.97-6.2a24 24 0 0 0 0 21.58l7.97-6.2z&quot;/>
+                &lt;path fill=&quot;#34A853&quot; d=&quot;M24 48c6.48 0 11.92-2.13 15.89-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.97 6.2C6.51 42.62 14.62 48 24 48z&quot;/>
+              &lt;/svg>
+              &lt;span>Google&lt;/span>
+            &lt;/button>
+            &lt;button id=&quot;login-discord&quot; class=&quot;social-button discord-button&quot; type=&quot;button&quot; aria-label=&quot;Entrar com Discord&quot;>
+              &lt;svg class=&quot;provider-icon&quot; viewBox=&quot;0 0 24 24&quot; aria-hidden=&quot;true&quot;>
+                &lt;path fill=&quot;currentColor&quot; d=&quot;M19.73 5.33a17.75 17.75 0 0 0-4.38-1.36l-.54 1.1a16.39 16.39 0 0 0-5.62 0l-.54-1.1a17.75 17.75 0 0 0-4.38 1.36C1.5 9.47.74 13.51 1.11 17.5a17.8 17.8 0 0 0 5.37 2.72l1.15-1.88c-.64-.24-1.26-.54-1.85-.88l.45-.36a12.6 12.6 0 0 0 11.54 0l.45.36c-.59.34-1.21.64-1.85.88l1.15 1.88a17.8 17.8 0 0 0 5.37-2.72c.44-4.64-.75-8.66-3.16-12.17ZM8.53 15.15c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.1 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Zm6.94 0c-1.08 0-1.96-.99-1.96-2.2s.87-2.2 1.96-2.2c1.09 0 1.98.99 1.96 2.2 0 1.21-.87 2.2-1.96 2.2Z&quot;/>
+              &lt;/svg>
+              &lt;span>Discord&lt;/span>
+            &lt;/button>
+          &lt;/div>
+          &lt;a class=&quot;demo-link&quot; href=&quot;/cinema/?guest=1&quot;>Entrar como visitante &lt;span aria-hidden=&quot;true&quot;>&lt;svg class=&quot;lux-icon&quot; width=&quot;24&quot; height=&quot;24&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;>&lt;line x1=&quot;7&quot; y1=&quot;17&quot; x2=&quot;17&quot; y2=&quot;7&quot;/>&lt;polyline points=&quot;7 7 17 7 17 17&quot;/>&lt;/svg>&lt;/span>&lt;/a>
+        &lt;/div>
+
+        &lt;div id=&quot;recovery-view&quot; hidden>
+          &lt;button class=&quot;recovery-back&quot; id=&quot;back-to-login&quot; type=&quot;button&quot;>
+            &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-left&quot;>&lt;/use>&lt;/svg>
+            Voltar para o login
+          &lt;/button>
+          &lt;div class=&quot;intro-eyebrow&quot;>RECUPERAÇÃO DE ACESSO&lt;/div>
+          &lt;h1 class=&quot;auth-title&quot;>Vamos recuperar&lt;span>seu acesso.&lt;/span>&lt;/h1>
+          &lt;p class=&quot;auth-lead&quot;>Informe o e-mail associado ao seu Lux ID.&lt;/p>
+          &lt;form id=&quot;recovery-form&quot; class=&quot;auth-form&quot; method=&quot;post&quot; action=&quot;#&quot; novalidate>
+            &lt;div class=&quot;field&quot;>
+              &lt;label class=&quot;field-label&quot; for=&quot;recovery-email&quot;>E-mail da sua conta&lt;/label>
+              &lt;div class=&quot;input-wrap&quot;>
+                &lt;svg class=&quot;field-icon&quot; aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-mail&quot;>&lt;/use>&lt;/svg>
+                &lt;input id=&quot;recovery-email&quot; type=&quot;email&quot; autocomplete=&quot;email&quot; placeholder=&quot;voce@exemplo.com&quot; aria-invalid=&quot;false&quot; aria-describedby=&quot;recovery-email-error&quot; required>
+              &lt;/div>
+              &lt;p class=&quot;field-error&quot; id=&quot;recovery-email-error&quot; hidden>&lt;/p>
+            &lt;/div>
+            &lt;button class=&quot;primary-btn&quot; type=&quot;submit&quot;>Solicitar recuperação
+              &lt;svg aria-hidden=&quot;true&quot;>&lt;use href=&quot;#icon-arrow-right&quot;>&lt;/use>&lt;/svg>
+            &lt;/button>
+          &lt;/form>
+          &lt;div id=&quot;recovery-feedback&quot; class=&quot;feedback&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; hidden>&lt;/div>
+          
+        &lt;/div>
+      &lt;/main>
+
+      &lt;footer class=&quot;auth-footer&quot;>
+        &lt;span>© &lt;span id=&quot;current-year&quot;>2026&lt;/span> &lt;strong>Lux Player&lt;/strong>&lt;/span>
+        &lt;span>LUX ZERO&lt;/span>
+      &lt;/footer>
+    &lt;/section>
+
+    &lt;aside class=&quot;experience-panel&quot; aria-label=&quot;Uma nova experiência Lux Player&quot;>
+      &lt;div class=&quot;visual-noise&quot; aria-hidden=&quot;true&quot;>&lt;/div>
+      &lt;img class=&quot;mascot&quot; src=&quot;/assets/luxite.png&quot; alt=&quot;Luxite, o mascote do Lux Player&quot;>
+      &lt;div class=&quot;visual-bottom&quot;>
+        &lt;div class=&quot;eyebrow&quot;>O SEU ESPAÇO. O SEU CONTROLE.&lt;/div>
+        &lt;h2>Todas as suas histórias.&lt;br>&lt;em>Uma só experiência.&lt;/em>&lt;/h2>
+        &lt;p>Um novo começo para o seu player favorito. Sem complicações. Com identidade própria.&lt;/p>
+      &lt;/div>
+    &lt;/aside>
+  &lt;/div>
+&lt;nav class=&quot;lux-legal-links&quot; aria-label=&quot;Termos e privacidade&quot;>&lt;a href=&quot;/legal/termos/&quot;>Termos de uso&lt;/a>&lt;a href=&quot;/legal/responsabilidade/&quot;>Responsabilidade&lt;/a>&lt;a href=&quot;/legal/privacidade/&quot;>Privacidade&lt;/a>&lt;a href=&quot;/legal/cookies/&quot;>Cookies&lt;/a>&lt;a href=&quot;/legal/cache/&quot;>Cache&lt;/a>&lt;a href=&quot;mailto:contato.luxplay@gmail.com&quot;>Contato&lt;/a>&lt;/nav>&lt;/body>
+&lt;/html>
+"></iframe></section></main>
