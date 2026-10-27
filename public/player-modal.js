@@ -15,6 +15,6 @@ export function createPlayerModal(host,{onClose=()=>{}}={}){
  }
  back.addEventListener('click',close);
  shell.addEventListener('cancel',event=>{event.preventDefault();close()});
- host.addEventListener('click',event=>{if(event.target.closest('.lux-return-details'))close()});
+ host.addEventListener('click',event=>{if(event.target.closest('.lux-return-details,.lux-continuation>button:last-of-type'))close()});
  return {open(){if(shell.open)return;previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';shell.showModal();back.focus();},close};
 }

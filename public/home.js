@@ -1195,6 +1195,11 @@ export function createHome({ play } = {}) {
       rebuild();
       render();
     },
+    playbackEpisodes(){
+      const group=seriesIndex.byItemId.get(active?.id);
+      return group?{title:group.title,current:active.id,entries:group.episodes.map(ep=>({id:ep.item.id,season:ep.season,number:ep.number}))}:null;
+    },
+    playEpisode(id){const group=seriesIndex.byItemId.get(active?.id);const next=group?.episodes.find(ep=>ep.item.id===id);if(next)start(next.item);},
     onSelect(item) { quickGuide.select(classifyRole(item)==='tv'?item:null);continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },
     onPlaying(item) {
       if (!item) return;

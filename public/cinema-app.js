@@ -81,7 +81,7 @@ let lastSnapshotId = null;
 let home = null;
 const playerModal=createPlayerModal($('reproduzir'),{onClose:()=>{stop();homeCall('resumeDetails');}});
 let playerControls=null;
-try { playerControls=createPlayerControls(document.querySelector('.lux-player-modal')); } catch (error) { console.warn('Controles nativos preservados.',error); }
+try { playerControls=createPlayerControls(document.querySelector('.lux-player-modal'),{getEpisodes:()=>homeCall('playbackEpisodes'),onEpisode:id=>homeCall('playEpisode',id),getEngine:()=>hls}); } catch (error) { console.warn('Controles nativos preservados.',error); }
 try { home = createHome({ play: item => playItem(item) }); }
 catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
 function homeCall(method, ...args) {
