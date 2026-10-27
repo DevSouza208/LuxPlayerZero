@@ -221,3 +221,9 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
   .cinema-shell .feature-hero{min-height:0}
   .lux-fullscreen-detail .lux-full-detail-hero{min-height:0;padding-top:40px}
 }
+
+@media(max-width:760px){
+  .cinema-shell .now-playing>div{min-width:0;flex:1}
+  .cinema-shell .now-playing h3{max-width:100%}
+  .cinema-shell .now-playing .state-pill{flex-shrink:0;font-size:9px}
+}
