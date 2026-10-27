@@ -8,7 +8,7 @@ import { preferHttps, xtreamM3uUrl } from './direct-source.js';
 import { createHome } from './home.js';
 import { presentationForEntry, titleForDisplay } from './cinema-title.js';
 import { attachCinemaTmdbIds } from './cinema-tmdb-tags.js';
-import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot } from './saved-catalog.js';
+import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot, snapshotPath } from './saved-catalog.js';
 
 const $ = id => document.getElementById(id);
 // Não exibir Home vazia antes de recuperar o catálogo no R2.
@@ -211,6 +211,19 @@ async function request(url, as = 'text') {
     throw error;
   } finally { clearTimeout(timeout); }
 }
+let deliveryPanel;
+function showDeliveryLink(id) {
+  if (!deliveryPanel) {
+    deliveryPanel=document.createElement('section');deliveryPanel.className='restore-library-panel';
+    const label=document.createElement('label');label.textContent='LINK HTTPS DA SUA LISTA';
+    const field=document.createElement('input');field.type='url';field.readOnly=true;field.setAttribute('aria-label','Link HTTPS da sua lista');
+    label.append(field);const copy=document.createElement('button');copy.type='button';copy.textContent='Copiar link HTTPS';
+    copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(field.value);copy.textContent='Link copiado';}catch{field.focus();field.select();}});
+    deliveryPanel.append(label,copy);els.form.after(deliveryPanel);
+  }
+  deliveryPanel.hidden=!id;
+  if(id){deliveryPanel.querySelector('input').value=new URL(snapshotPath(id),location.origin).href;deliveryPanel.querySelector('button').textContent='Copiar link HTTPS';}
+}
 function setChannels(items, caption, snapshotId = null, persist = true) {
   if (persist && guestCatalogCache) void guestCatalogCache.save(items).then(saved => {
     if (!saved) log('Biblioteca', 'Não foi possível guardar o catálogo neste dispositivo.');
@@ -226,6 +239,7 @@ function setChannels(items, caption, snapshotId = null, persist = true) {
   homeCall('setItems', channels);
   note(channels.length + ' item(ns) disponíveis em ' + caption + '. Selecione um para reproduzir.');
   log('Catálogo importado', String(channels.length) + ' entradas');
+  showDeliveryLink(snapshotId);
   if (snapshotId) {
     if (!rememberSnapshot(snapshotId)) log('Memória da biblioteca', 'Armazenamento local indisponível');
     else log('Memória da biblioteca', 'Referência privada do R2 salva');
@@ -520,7 +534,7 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { sourceLoad++; void guestCatalogCache?.clear(); forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { sourceLoad++; showDeliveryLink(null); void guestCatalogCache?.clear(); forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;
@@ -543,17 +557,18 @@ els.demo.addEventListener('click', async () => {
  * A resposta HTTP é autenticada pelo cookie HttpOnly válido por 7 dias.
  */
 async function restoreSavedLibrary() {
-  if (guestCatalogCache) {
+  const id = savedSnapshot();
+  // Com sessão válida, lê sempre a versão atual do link fixo, antes do cache local.
+  if (guestCatalogCache && (!id || !bridgeStatus?.connected || !bridgeStatus?.snapshotReady)) {
     const generation = sourceLoad;
     const cached = await guestCatalogCache.read();
     if (generation !== sourceLoad || channels.length) return;
     if (Array.isArray(cached?.items) && cached.items.length) {
-      setChannels(cached.items, 'cache deste dispositivo', null, false);
+      setChannels(cached.items, 'cache deste dispositivo', id, false);
       note(cached.items.length.toLocaleString('pt-BR') + ' títulos restaurados do cache. Importe novamente para atualizar a lista.', 'info');
     }
     return;
   }
-  const id = savedSnapshot();
   if (!id || channels.length) return;
   if (!bridgeStatus?.snapshotReady) {
     note('A biblioteca anterior está referenciada no dispositivo, mas o R2 está indisponível.', 'info');

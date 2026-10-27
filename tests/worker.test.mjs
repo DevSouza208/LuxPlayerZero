@@ -34,3 +34,9 @@ test('encaminha recursos do frontend ao ASSETS', async () => {
   const response = await worker.fetch(new Request('https://zero.example/index.html'), env);
   assert.equal(await response.text(), 'html ativo');
 });
+
+test('Worker inclui handler diário e protege a entrega da playlist',async()=>{
+ assert.equal(typeof worker.scheduled,'function');
+ const response=await worker.fetch(new Request('https://zero.example/api/bridge/playlist?id=123'),env);
+ assert.notEqual(response.status,200);
+});
