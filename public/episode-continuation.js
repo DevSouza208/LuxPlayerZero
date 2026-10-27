@@ -1,11 +1,12 @@
+import {setIconLabel} from './lux-icons.js';
 /** Presentation only: delegates to the existing public play callback. */
 export function createEpisodeContinuation({host,onPlay,onReturn,onDetails}){
  const panel=document.createElement('section');panel.className='lux-continuation';panel.hidden=true;
  panel.setAttribute('aria-label','Depois do episódio');
  const label=document.createElement('p');label.setAttribute('role','status');
  const next=document.createElement('button');next.type='button';
- const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';
- const back=document.createElement('button');back.type='button';back.textContent='Voltar aos detalhes';
+ const cancel=document.createElement('button');cancel.type='button';setIconLabel(cancel,'x','Cancelar');
+ const back=document.createElement('button');back.type='button';setIconLabel(back,'arrow-left','Voltar aos detalhes');
  const suggestions=document.createElement('div');
  panel.append(label,next,suggestions,cancel,back);host?.append(panel);
  let timer=null,candidate=null;
@@ -25,7 +26,7 @@ export function createEpisodeContinuation({host,onPlay,onReturn,onDetails}){
   }
  },show(row,automatic){
   stop();candidate=row;panel.hidden=false;next.hidden=!row;panel.setAttribute('aria-label','Depois do episódio');
-  next.textContent=row?'Assistir T'+row.season+':E'+row.number:'';
+  setIconLabel(next,'skip-forward',row?'Assistir T'+row.season+':E'+row.number:'');
   label.textContent=row?'Próximo episódio disponível no seu catálogo.':'Você chegou ao último episódio disponível. Veja as sugestões na Home.';
   if(row&&row.contiguous&&automatic&&!document.hidden){
    label.textContent='O próximo episódio começa em 10 segundos.';
