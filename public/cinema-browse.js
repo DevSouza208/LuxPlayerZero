@@ -39,7 +39,7 @@ export function browsePageData(entries, { page = 1, query = '', group = '', year
    const seen=new Set(matched);
    for(const row of index.rows){if(!seen.has(row)&&allowed(row)&&searchSimilarity(row.title,query)>=.89){matched.push(row);if(matched.length>=40)break;}}
   }
-  if(sort==='title')matched.sort((a,b)=>collator.compare(a.title,b.title));
+  if(sort==='title'||sort==='title-desc')matched.sort((a,b)=>(sort==='title-desc'?-1:1)*collator.compare(a.title,b.title));
   else if(sort==='year')matched.sort((a,b)=>b.year-a.year||collator.compare(a.title,b.title));
   index.key=key;index.matched=matched;
  }
