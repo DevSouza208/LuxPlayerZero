@@ -185,3 +185,5 @@
 @media(max-width:600px),(max-height:480px){.lux-video-episodes,.lux-video-tracks{width:44px;min-width:44px;padding:10px;border:0;background:transparent}.lux-video-episodes span,.lux-video-tracks span{display:none}}
 @media(max-width:600px){.lux-player-modal-bar{padding-top:max(12px,env(safe-area-inset-top))}}
 .lux-video-episodes,.lux-video-tracks{min-height:44px}
+
+@media(max-height:480px){.lux-video-menu{bottom:100px;max-height:calc(100% - 170px)}.lux-player-modal .lux-continuation{bottom:110px;max-height:calc(100% - 180px)}}
