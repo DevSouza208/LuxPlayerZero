@@ -7,7 +7,7 @@ export function seekPlayer(media,seconds){
  if(!media||!Number.isFinite(media.duration)||media.duration<=0)return false;
  media.currentTime=Math.max(0,Math.min(media.duration,seconds));return true;
 }
-const icons={play:'M8 5v14l11-7z',pause:'M7 5h3v14H7z M14 5h3v14h-3z',volume:'M3 9h4l5-4v14l-5-4H3z M16 8c3 2 3 6 0 8 M19 5c5 4 5 10 0 14',mute:'M3 9h4l5-4v14l-5-4H3z M16 9l5 6 M21 9l-5 6',fullscreen:'M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5',exit:'M3 8h5V3 M21 8h-5V3 M16 21v-5h5 M8 21v-5H3'};
+const icons={pip:'M3 4h18v16H3z M12 12h7v6h-7z',cast:'M3 10V4h18v16h-8 M3 20h.01 M3 16a4 4 0 0 1 4 4 M3 12a8 8 0 0 1 8 8',play:'M8 5v14l11-7z',pause:'M7 5h3v14H7z M14 5h3v14h-3z',volume:'M3 9h4l5-4v14l-5-4H3z M16 8c3 2 3 6 0 8 M19 5c5 4 5 10 0 14',mute:'M3 9h4l5-4v14l-5-4H3z M16 9l5 6 M21 9l-5 6',fullscreen:'M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5',exit:'M3 8h5V3 M21 8h-5V3 M16 21v-5h5 M8 21v-5H3'};
 function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+icons[name]+'"'+(name==='play'||name==='pause'?' fill="currentColor" stroke="none"':'')+'/></svg>'}
 /** Controles de apresentação sobre os mesmos elementos HTMLMediaElement. */
 export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{},getEngine=()=>null}={}){
@@ -30,8 +30,8 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  const spacer=document.createElement('span');spacer.className='lux-video-spacer';row.append(spacer);
  const episodes=button('Escolher episódio','play','lux-video-episodes');episodes.textContent='Episódios';episodes.hidden=true;
  const tracks=button('Idiomas e legendas','volume','lux-video-tracks');tracks.textContent='Áudio / CC';tracks.hidden=true;
- const pip=button('Picture-in-Picture','fullscreen');pip.hidden=!(document.pictureInPictureEnabled&&video.requestPictureInPicture);
- const cast=button('Transmitir para outra tela','fullscreen');cast.textContent='▱';cast.hidden=true;
+ const pip=button('Picture-in-Picture','pip');pip.hidden=!(document.pictureInPictureEnabled&&video.requestPictureInPicture);
+ const cast=button('Transmitir para outra tela','cast');cast.hidden=true;
  const fullscreen=button('Entrar em tela cheia','fullscreen');
  const popup=document.createElement('section');popup.className='lux-video-menu';popup.hidden=true;popup.setAttribute('aria-label','Opções do reprodutor');host.append(popup);
  let menuFocus=null;

@@ -9,6 +9,7 @@ export function createPlayerModal(host,{onClose=()=>{}}={}){
  let previousFocus=null,previousOverflow='';
  function close(){
   if(!shell.open)return;
+  if(document.pictureInPictureElement&&shell.contains(document.pictureInPictureElement))void document.exitPictureInPicture?.().catch(()=>{});
   if(document.fullscreenElement===shell)void document.exitFullscreen?.().catch(()=>{});
   shell.close();document.body.style.overflow=previousOverflow;
   onClose();if(previousFocus?.isConnected)previousFocus.focus?.();
