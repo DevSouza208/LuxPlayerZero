@@ -173,7 +173,7 @@
   .auth-layout .auth-form details[open] summary::after{transform:rotate(225deg)}
   .auth-layout .auth-form details[open]{padding-bottom:12px}
   .auth-layout .auth-form details>label{display:block;margin:4px 12px 7px;font-size:12px;line-height:1.5;color:#c1b9d1}
-  .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font:16px/1.4 inherit}
+  .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font-size:16px;font-family:inherit}
   .auth-layout .auth-form details>p{margin:9px 12px 0;font-size:12px;line-height:1.5;color:#c1b9d1}
   .auth-layout summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
   .auth-layout .splitter{margin:20px 0 12px;font-size:9px}
