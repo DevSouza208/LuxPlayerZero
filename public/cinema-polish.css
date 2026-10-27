@@ -178,3 +178,46 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
   .cinema-shell .lux-last-channel{margin:8px 0 20px;font-size:12px;line-height:1.5;padding:12px;white-space:normal}
   .cinema-shell.is-browsing .browse-screen{margin-top:56px}
 }
+
+@media(max-width:760px){
+  html,body{min-width:0}
+  .cinema-shell{width:100%;min-width:0}
+  .cinema-shell .cinema-nav-link{white-space:normal;text-align:center;font-size:clamp(9px,2.5vw,11px)}
+  .cinema-shell input:not([type=range]),.cinema-shell select,.source-drawer input,.source-drawer select,.lux-admin-dialog input,.lux-admin-dialog select,.lux-vod-admin input,.lux-vod-admin select{font-size:16px;min-height:44px;max-width:100%}
+  .cinema-shell .browse-toolbar{gap:10px}
+  .cinema-shell .browse-toolbar select{width:100%;max-width:100%}
+  .cinema-shell .browse-group-label{min-width:0;max-width:100%}
+  .cinema-shell .browse-heading h1{overflow-wrap:anywhere}
+  .cinema-shell .media-favorite{min-width:44px;min-height:44px}
+  .cinema-shell .source-drawer{max-width:100%;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom));overscroll-behavior:contain}
+  .cinema-shell .drawer-close{min-width:44px;min-height:44px}
+  .lux-admin-dialog{width:calc(100% - 24px);max-width:none;max-height:calc(100dvh - 24px);padding:18px;overflow:auto;overscroll-behavior:contain}
+  .lux-admin-dialog .admin-dialog-head h2{font-size:23px}
+  .lux-admin-dialog .admin-field-row{grid-template-columns:minmax(0,1fr)}
+  .lux-admin-dialog .admin-actions{flex-wrap:wrap}
+  .lux-vod-admin .lux-vod-admin-header{gap:10px;align-items:flex-start}
+  .lux-vod-admin .lux-vod-filters>*{max-width:100%;min-width:0}
+  .lux-vod-admin .lux-vod-filters input{flex-basis:100%}
+  .lux-fullscreen-detail .lux-full-detail-top{height:auto;min-height:62px;padding-top:max(10px,env(safe-area-inset-top))}
+  .lux-fullscreen-detail .lux-full-detail-hero{min-height:380px;padding:100px 18px 28px;align-items:flex-end}
+  .lux-fullscreen-detail .lux-full-summary{max-width:100%;width:100%}
+  .lux-fullscreen-detail .lux-full-summary h1{font-size:clamp(28px,8.3vw,40px);line-height:1.1}
+  .lux-fullscreen-detail .lux-full-description{display:block;overflow:visible;font-size:13px;line-height:1.65}
+  .lux-fullscreen-detail .lux-full-actions{gap:8px;margin-top:18px}
+  .lux-fullscreen-detail .lux-full-actions button{min-height:44px;max-width:100%;white-space:normal}
+  .lux-fullscreen-detail .lux-full-season-tab{min-height:44px}
+  .lux-fullscreen-detail .lux-full-episode-info small{font-size:12px}
+  .lux-fullscreen-detail .lux-full-seasons{padding-bottom:max(32px,env(safe-area-inset-bottom))}
+  .lux-quick-guide{inset:auto 12px max(12px,env(safe-area-inset-bottom));width:auto;max-width:none;max-height:85dvh;padding:18px}
+  .lux-quick-guide button,.lux-quick-guide a{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+}
+@media(max-width:360px){
+  .cinema-shell .hero-content{padding-left:16px;padding-right:16px}
+  .cinema-shell .hero-actions .hero-secondary{font-size:11px}
+  .lux-fullscreen-detail .lux-full-episode-grid{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px) and (orientation:landscape) and (max-height:500px){
+  .cinema-shell .hero-content{padding-top:44px}
+  .cinema-shell .feature-hero{min-height:0}
+  .lux-fullscreen-detail .lux-full-detail-hero{min-height:0;padding-top:40px}
+}
