@@ -1,7 +1,7 @@
 {
   "src/bridge-core.js": "928b752ce695d5defa952af93d514efa8f9e7cb32eafa6b8328eb4e290721ffa",
-  "src/catalog-snapshot.js": "7832dfa89bfa659cc498ca949ad7dea3d0ef063a1b009389afad7a457b975613",
-  "public/gateway.js": "4e32022d45d92afeaef400af2be171e5e4bbe1065ea7b4d10fad6c12233f99e7",
+  "src/catalog-snapshot.js": "650f08657776ceb9b68b5db0c459d7c854c7d275b4d0e83b7a262c559a53369b",
+  "public/gateway.js": "112c7031a99bdd1f328106ef85b5afa7082d60de84b85b9264e4c7b31f9c1951",
   "public/direct-source.js": "d244a9c7685b4df370fe8be4c5c62fa11aaf8d8d00206f466f357e77877aac89",
   "public/app.js": "6a15c953c73bb92f7550763a651eb766efcee903b0c6fec6340411e92de7635b",
   "public/cinema-app.js": "fd8736bdbd9a48674ccbe750fa4207f23b20decda15fa5fb4da739f40367789a",
