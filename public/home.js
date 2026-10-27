@@ -1009,9 +1009,7 @@ export function createHome({ play } = {}) {
   function start(item) {
     if (!item) return;
     continuation.cancel();returnButton.hidden=!fullDetails.canResume();
-    if (browseRole) activateBrowse(null, { push: true, scroll: false });
     void play(item);
-    $('reproduzir').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   $('hero-play')?.addEventListener('click', () => start(heroItem));
   $('hero-add')?.addEventListener('click', () => heroItem && toggleFavorite(heroItem));

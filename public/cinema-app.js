@@ -1,3 +1,4 @@
+import {createPlayerModal} from './player-modal.js';
 import {createCatalogCache} from './catalog-cache.js';
 import {isGuestMode} from './guest-mode.js';
 const guestCatalogCache = isGuestMode() ? createCatalogCache() : null;
@@ -77,6 +78,7 @@ let bridgeNeeded = false;
 let lastSnapshotId = null;
 // A vitrine é opcional: erros de interface nunca podem derrubar importação/reprodução.
 let home = null;
+const playerModal=createPlayerModal($('reproduzir'),{onClose:()=>{stop();homeCall('resumeDetails');}});
 try { home = createHome({ play: item => playItem(item) }); }
 catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
 function homeCall(method, ...args) {
@@ -337,6 +339,7 @@ function streamType(url) {
 }
 async function playItem(item) {
   stop();
+  playerModal.open();
   const generation = operation;
   selected = item;
   homeCall('onSelect', item);
