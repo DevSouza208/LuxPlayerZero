@@ -1,11 +1,12 @@
+import {setIconLabel} from './lux-icons.js';
 import {nowNext} from './guide-model.js';
 /** Guide overlay only. Never touches media elements, source URLs or playback state. */
 export function createQuickGuide(host,fetcher=fetch){
- const button=document.createElement('button');button.type='button';button.className='lux-quick-guide-button';button.textContent='Guia do canal';button.hidden=true;
+ const button=document.createElement('button');button.type='button';button.className='lux-quick-guide-button';setIconLabel(button,'list','Guia do canal');button.hidden=true;
  const dialog=document.createElement('dialog');dialog.className='lux-quick-guide';dialog.setAttribute('aria-label','Programação do canal');
- const close=document.createElement('button');close.type='button';close.textContent='Fechar guia';
+ const close=document.createElement('button');close.type='button';setIconLabel(close,'x','Fechar guia');
  const title=document.createElement('h2'),status=document.createElement('p');status.setAttribute('role','status');
- const content=document.createElement('div'),full=document.createElement('a');full.href='/guide/';full.textContent='Abrir guia completo';
+ const content=document.createElement('div'),full=document.createElement('a');full.href='/guide/';setIconLabel(full,'arrow-up-right','Abrir guia completo');
  dialog.append(close,title,status,content,full);host?.append(button);document.body.append(dialog);
  let channel=null,controller=null,epoch=0;
  function cancel(){controller?.abort();controller=null;epoch++;}
