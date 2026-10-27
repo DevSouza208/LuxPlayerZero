@@ -910,17 +910,22 @@ export function createHome({ play } = {}) {
     const item = items[Number(id.slice(1))];
     return item?.id === id ? item : null;
   }
+  // VOD e TV ao vivo têm fluxos independentes de abertura.
   function showDetails(item) {
     if(!item)return;
     const role=classifyRole(item);
-    if(role==='movies'||role==='series'){
-      const found=role==='series'?seriesIndex.byItemId.get(item.id):null;
-      fullDetails.open(item,{series:found,
-        poster:artworkFor(item),
-        fallbackPoster:providerArtwork(item),
-        backdrop:metadata?.backdrop||''});
-      return;
-    }
+    if(role==='movies'||role==='series')return showVodDetails(item,role);
+    return showLiveDetails(item);
+  }
+  function showVodDetails(item,role) {
+    const found=role==='series'?seriesIndex.byItemId.get(item.id):null;
+    const metadata=cachedMetadata(item);
+    fullDetails.open(item,{series:found,
+      poster:artworkFor(item),
+      fallbackPoster:providerArtwork(item),
+      backdrop:metadata?.backdrop||''});
+  }
+  function showLiveDetails(item) {
     if(!detailsDialog)return;
     detailsItem=item;
     const variants=tvIndex.byItemId.get(item.id)?.variants||[];
