@@ -23,6 +23,7 @@ function mockResources() {
         bind(...params) {
           return {
             async first() {
+              if (sql.includes('SQLITE_MASTER')) return null;
               if (sql.includes('WHERE SOURCE_HASH =')) return rows.get(params[0]) || null;
               if (sql.includes('WHERE CATALOG_ID =')) return [...rows.values()].find(x => x.catalog_id === params[0]) || null;
               throw new Error('Consulta inesperada: ' + sql);

@@ -1,3 +1,4 @@
+import {usuariosApi} from './usuarios-auth.js';
 import { accountDiagnostics } from './account-diagnostics.js';
 import { verifyMfa, mfaAction } from './account-mfa.js';
 import { HttpError, reply, requireConfig, randomToken, digest, equal, validPassword, hashPassword,
@@ -50,6 +51,8 @@ function validateState(value) {
 export async function accountApi(request,env) {
   const url=new URL(request.url),path=url.pathname.replace(/\/$/,'');
   try {
+    const usuarioResponse=await usuariosApi(request,env,validateState);
+    if(usuarioResponse)return usuarioResponse;
     requireConfig(env);
     if(request.method==='GET'&&path==='/api/account/session'){
       const user=await session(request,env);

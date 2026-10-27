@@ -472,7 +472,10 @@ async function importSource(event) {
       const text = await request(input);
       const entries = attachCinemaTmdbIds(text, parseM3u(text, input), input);
       if (!entries.length) throw new Error('A lista não contém mídias HTTP/HTTPS válidas.');
-      if (generation === sourceLoad) setChannels(entries, 'M3U', lastSnapshotId);
+      if (generation === sourceLoad) {
+        setChannels(entries, 'M3U', lastSnapshotId);
+        await saveAccountSource(input,lastSnapshotId);
+      }
     } else {
       const base = normalizeXtreamBase(input);
       checkProtocol(base);
@@ -638,12 +641,51 @@ $('restore-library')?.addEventListener('click', async () => {
     button.innerHTML = '↺ &nbsp; Reconectar e restaurar biblioteca';
   }
 });
+async function saveAccountSource(source,id) {
+  if(isGuestMode())return;
+  const url=new URL(source,location.href);
+  const response=await fetch('/api/account/source',{method:'POST',credentials:'same-origin',cache:'no-store',
+    headers:{'content-type':'application/json'},body:JSON.stringify({lista_http:url.protocol==='http:'?url.href:null,
+      lista_https:id?new URL(snapshotPath(id),location.origin).href:url.protocol==='https:'?url.href:null})});
+  if(!response.ok&&response.status!==404)note('Lista carregada, mas não foi possível salvar o endereço na conta.','info');
+}
+async function loadAccountSource() {
+  if(isGuestMode())return false;
+  const response=await fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'});
+  if(response.status===404)return false;
+  if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
+  const source=await response.json(),generation=sourceLoad;
+  if(!source.lista_https&&!source.lista_http){note('Sua conta está pronta. Conecte uma lista para começar.','info');return true;}
+  els.url.value=source.lista_http||source.lista_https;
+  try {
+    let content,id=null;
+    if(source.lista_https){
+      const url=new URL(source.lista_https);
+      if(url.origin===location.origin&&url.pathname==='/api/bridge/playlist'){
+        id=url.searchParams.get('id');const saved=await readSavedSnapshot(id);
+        if(saved.kind!=='ok')throw new Error('Não foi possível recuperar sua lista HTTPS.');content=saved.content;
+      }else content=await request(source.lista_https);
+    }else{content=await request(source.lista_http);id=lastSnapshotId;}
+    const entries=attachCinemaTmdbIds(content,parseM3u(content));
+    if(!entries.length)throw new Error('A lista da conta não contém mídias válidas.');
+    if(generation===sourceLoad){setChannels(entries,'sua conta',id);if(id&&!source.lista_https)await saveAccountSource(source.lista_http,id);}
+  } catch(error){
+    if(source.lista_https&&source.lista_http&&generation===sourceLoad){
+      try{
+        const content=await request(source.lista_http),entries=attachCinemaTmdbIds(content,parseM3u(content));
+        if(!entries.length)throw error;
+        if(generation===sourceLoad){setChannels(entries,'sua conta',lastSnapshotId);await saveAccountSource(source.lista_http,lastSnapshotId);}
+      }catch(fallbackError){if(generation===sourceLoad)note(errorText(fallbackError),'error');}
+    }else if(generation===sourceLoad)note(errorText(error),'error');
+  }
+  return true;
+}
 updateForm();
 void (async () => {
   try {
     showBootPhrase();
     await refreshBridgeStatus();
-    await restoreSavedLibrary();
+    if(!await loadAccountSource())await restoreSavedLibrary();
   } catch {
     // Erros de boot não impedem abrir o formulário manual de conexão.
     bootProgress('Não foi possível restaurar automaticamente.');
