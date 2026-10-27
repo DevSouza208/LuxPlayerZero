@@ -7,6 +7,16 @@ export function seekPlayer(media,seconds){
  if(!media||!Number.isFinite(media.duration)||media.duration<=0)return false;
  media.currentTime=Math.max(0,Math.min(media.duration,seconds));return true;
 }
+export async function togglePlayerFullscreen(video,doc=document){
+ if(doc.fullscreenElement)return doc.exitFullscreen();
+ if(doc.webkitFullscreenElement)return doc.webkitExitFullscreen();
+ // Dialogs não são alvos válidos da Fullscreen API. A raiz mantém o modal e os controles.
+ const root=doc.documentElement;
+ if(root?.requestFullscreen&&doc.fullscreenEnabled!==false)return root.requestFullscreen();
+ if(root?.webkitRequestFullscreen)return root.webkitRequestFullscreen();
+ if(video?.webkitEnterFullscreen)return video.webkitEnterFullscreen();
+ throw new Error('Tela cheia indisponível');
+}
 const icons={pip:'M3 4h18v16H3z M12 12h7v6h-7z',cast:'M3 10V4h18v16h-8 M3 20h.01 M3 16a4 4 0 0 1 4 4 M3 12a8 8 0 0 1 8 8',play:'M8 5v14l11-7z',pause:'M7 5h3v14H7z M14 5h3v14h-3z',volume:'M3 9h4l5-4v14l-5-4H3z M16 8c3 2 3 6 0 8 M19 5c5 4 5 10 0 14',mute:'M3 9h4l5-4v14l-5-4H3z M16 9l5 6 M21 9l-5 6',fullscreen:'M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5',exit:'M3 8h5V3 M21 8h-5V3 M16 21v-5h5 M8 21v-5H3'};
 function icon(name){return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+icons[name]+'"'+(name==='play'||name==='pause'?' fill="currentColor" stroke="none"':'')+'/></svg>'}
 /** Controles de apresentação sobre os mesmos elementos HTMLMediaElement. */
@@ -85,7 +95,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
   time.textContent=finite?formatPlayerTime(m.currentTime)+' / '+formatPlayerTime(m.duration):m.duration===Infinity?'AO VIVO':formatPlayerTime(m.currentTime);
   volume.value=String(m.muted?0:m.volume);volume.style.setProperty('--lux-volume',Number(volume.value)*100+'%');
   mute.innerHTML=icon(m.muted||m.volume===0?'mute':'volume');mute.setAttribute('aria-label',m.muted?'Ativar som':'Silenciar');
-  fullscreen.innerHTML=icon(document.fullscreenElement?'exit':'fullscreen');fullscreen.setAttribute('aria-label',document.fullscreenElement?'Sair da tela cheia':'Entrar em tela cheia');
+  fullscreen.innerHTML=icon((document.fullscreenElement||document.webkitFullscreenElement)?'exit':'fullscreen');fullscreen.setAttribute('aria-label',(document.fullscreenElement||document.webkitFullscreenElement)?'Sair da tela cheia':'Entrar em tela cheia');
  }
  async function togglePlay(){
   const m=media();feedback.hidden=true;
@@ -93,9 +103,10 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
   else m.pause();refresh();reveal();
  }
  async function toggleFullscreen(){
-  try{if(document.fullscreenElement)await document.exitFullscreen();else if(shell.requestFullscreen)await shell.requestFullscreen();else video.webkitEnterFullscreen?.();}catch{feedback.textContent='Tela cheia indisponível neste navegador.';feedback.hidden=false;}
+  try{await togglePlayerFullscreen(video);}catch{feedback.textContent='Tela cheia indisponível neste navegador.';feedback.hidden=false;}
   refresh();reveal();
  }
+ fullscreen.addEventListener('click',toggleFullscreen);
  play.addEventListener('click',togglePlay);video.addEventListener('click',togglePlay);
  back.addEventListener('click',()=>{seekPlayer(media(),media().currentTime-10);refresh();reveal()});
  forward.addEventListener('click',()=>{seekPlayer(media(),media().currentTime+10);refresh();reveal()});
@@ -106,6 +117,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  shell.addEventListener('pointermove',reveal);shell.addEventListener('pointerdown',reveal);shell.addEventListener('focusin',reveal);
  shell.addEventListener('close',()=>{popup.hidden=true;clearTimeout(hideTimer);shell.classList.remove('lux-controls-idle')});
  document.addEventListener('fullscreenchange',refresh);
+ document.addEventListener('webkitfullscreenchange',refresh);
  shell.addEventListener('keydown',event=>{
   if(!popup.hidden&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closeMenu();return;}
   if(!shell.open||event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,button,select,textarea'))return;
