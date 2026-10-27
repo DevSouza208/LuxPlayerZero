@@ -89,3 +89,7 @@
 .lux-player-modal .lux-return-details{position:absolute;right:20px;bottom:88px;z-index:4}
 @media(max-width:600px){.lux-player-modal-bar{height:56px}.lux-player-modal .now-playing{padding:10px 14px}.lux-player-modal .now-playing .state-pill{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.lux-player-modal-back{transition:none}}
+.lux-player-modal .workspace{align-items:stretch;width:100%}
+.lux-player-modal .player-column{align-self:stretch}
+.lux-player-modal .video-wrap video{position:absolute;inset:0}
+.lux-player-modal .lux-return-details{display:none}
