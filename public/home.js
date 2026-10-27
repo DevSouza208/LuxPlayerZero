@@ -490,7 +490,7 @@ export function createHome({ play } = {}) {
     sectionTransition.hidden = false;
     sectionTransition.classList.remove('is-animating');
     requestAnimationFrame(() => sectionTransition.classList.add('is-animating'));
-    sectionTransitionTimer = setTimeout(() => { sectionMinimumDone=true;finishSectionTransition(); }, 2000);
+    sectionTransitionTimer = setTimeout(() => { sectionMinimumDone=true;finishSectionTransition(); }, 1000);
   }
   function activateBrowse(nextRole, options = {}) {
     if (!browseRoot) return;
