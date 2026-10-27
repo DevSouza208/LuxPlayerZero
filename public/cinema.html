@@ -104,7 +104,7 @@
         <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></button>
         <div id="file-fields" hidden>
           <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
-          <label for="m3u-file" class="upload">Selecionar arquivo .m3u / .txt</label>
+          <label for="m3u-file" class="upload"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Selecionar arquivo .m3u / .txt</span></label>
           <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
         </div>
       </form>
@@ -130,9 +130,9 @@
         <div class="hero-actions">
           <button id="hero-play" class="hero-primary" type="button" hidden><span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg></span> Assistir agora</button>
           <button id="hero-connect" class="hero-primary" type="button"><span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Conectar fonte</button>
-          <button id="hero-details" class="hero-secondary" type="button" hidden>Mais informações</button>
+          <button id="hero-details" class="hero-secondary" type="button" hidden><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Mais informações</span></button>
           <button id="hero-add" class="hero-secondary" type="button" hidden><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Minha lista</button>
-          <a class="hero-secondary" href="#home-rails">Explorar biblioteca <span aria-hidden="true">↓</span></a>
+          <a class="hero-secondary" href="#home-rails">Explorar biblioteca <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></span></a>
         </div>
         <div class="hero-meta"><span class="hero-meta-line"></span><span id="catalog-total">Seu conteúdo, suas escolhas.</span></div>
       </div>
@@ -157,7 +157,7 @@
         <label class="browse-group-label" hidden>CATEGORIA<select id="browse-tv-category"><option value="">Todas as categorias</option></select></label><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
       </div>
       <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
-      <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button">Voltar ao topo ↑</button></div>
+      <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg><span>Voltar ao topo</span></button></div>
     </section>
     <section class="watch-area" id="reproduzir" aria-label="Reprodutor e busca completa">
     <header class="topbar">
@@ -173,14 +173,14 @@
         <div class="video-wrap">
           <div id="idle-stage" class="idle-stage"><div class="play-orbit"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
           <video id="video" controls playsinline preload="none" hidden></video>
-          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
+          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
         </div>
         <div class="now-playing"><div><span class="eyebrow">EM REPRODUÇÃO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
         <p class="disclaimer">O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.</p>
       </div>
 
       <section class="library" id="biblioteca" aria-label="Biblioteca de canais">
-        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual">Limpar</button></div>
+        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg><span>Limpar</span></button></div>
         <div class="list-tools"><input id="search" type="search" placeholder="Buscar canais..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">TV</option><option value="radio">Rádio</option></select></div>
         <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
       </section>
@@ -259,7 +259,7 @@
     <div class="admin-groups"><strong>Grupos detectados na sua playlist</strong><p id="detected-groups">Conecte uma playlist para identificar os grupos disponíveis.</p></div>
     <p class="admin-notice">A personalização é privada do perfil selecionado e sincronizada entre dispositivos.</p>
     <p id="admin-save-status" class="admin-save-status" role="status" aria-live="polite">As alterações serão aplicadas na Home e salvas no seu perfil.</p>
-    <div class="admin-actions"><button type="button" id="admin-export" class="admin-reset" title="Copiar personalização como JSON">Copiar configuração</button><button type="button" id="admin-reset" class="admin-reset">Restaurar padrão</button><button type="submit" class="admin-save">Aplicar e salvar <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></button></div>
+    <div class="admin-actions"><button type="button" id="admin-export" class="admin-reset" title="Copiar personalização como JSON"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copiar configuração</span></button><button type="button" id="admin-reset" class="admin-reset"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Restaurar padrão</span></button><button type="submit" class="admin-save">Aplicar e salvar <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></button></div>
   </form>
 </dialog>
 <dialog id="details-dialog" class="lux-details-dialog" aria-labelledby="details-title">
@@ -283,6 +283,6 @@
   </div>
 </dialog>
 <div id="cinema-feedback" class="cinema-feedback" role="status" aria-live="polite" hidden></div>
-<a class="account-link" href="/account/">Perfis e conta</a><a class="guide-link" href="/guide/">Guia e esportes</a><footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
+<a class="account-link" href="/account/"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfis e conta</span></a><a class="guide-link" href="/guide/"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Guia e esportes</span></a><footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
 </body>
 </html>
