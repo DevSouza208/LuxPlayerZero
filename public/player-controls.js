@@ -47,7 +47,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  let menuFocus=null;
  function closeMenu(){popup.hidden=true;menuFocus?.focus();}
  function showMenu(label,trigger){menuFocus=trigger;popup.replaceChildren();popup.hidden=false;popup.setAttribute('aria-label',label);const heading=document.createElement('h3');heading.textContent=label;const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.className='lux-video-menu-close';close.addEventListener('click',closeMenu);popup.append(heading,close);reveal();}
- function choice(label,selected,action){const el=document.createElement('button');el.type='button';el.textContent=(selected?'✓ ':'')+label;el.setAttribute('aria-pressed',String(selected));el.addEventListener('click',()=>{action();closeMenu();refresh()});popup.append(el);return el;}
+ function choice(label,selected,action){const el=document.createElement('button');el.type='button';if(selected)setIconLabel(el,'check',label);else el.textContent=label;el.setAttribute('aria-pressed',String(selected));el.addEventListener('click',()=>{action();closeMenu();refresh()});popup.append(el);return el;}
  function nativeAudio(){return Array.from(media().audioTracks||[])}
  function nativeSubtitles(){return Array.from(media().textTracks||[]).filter(track=>['subtitles','captions'].includes(track.kind))}
  function trackName(track,index){return track.name||track.label||track.lang||track.language||'Faixa '+(index+1)}
@@ -88,6 +88,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
   pip.disabled=video.hidden||video.readyState===0;
   titleText.textContent=shell.querySelector('#playing-title')?.textContent||'Lux Player';
   play.innerHTML=icon(m.paused?'play':'pause');play.setAttribute('aria-label',m.paused?'Reproduzir':'Pausar');play.title=m.paused?'Reproduzir':'Pausar';
+  mute.title=m.muted?'Ativar som':'Silenciar';
   progress.disabled=!finite;back.disabled=forward.disabled=!finite;
   progress.value=finite?String(Math.round((m.currentTime||0)/m.duration*1000)):'0';
   progress.style.setProperty('--lux-played',progress.value/10+'%');
@@ -95,7 +96,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
   time.textContent=finite?formatPlayerTime(m.currentTime)+' / '+formatPlayerTime(m.duration):m.duration===Infinity?'AO VIVO':formatPlayerTime(m.currentTime);
   volume.value=String(m.muted?0:m.volume);volume.style.setProperty('--lux-volume',Number(volume.value)*100+'%');
   mute.innerHTML=icon(m.muted||m.volume===0?'mute':'volume');mute.setAttribute('aria-label',m.muted?'Ativar som':'Silenciar');
-  fullscreen.innerHTML=icon((document.fullscreenElement||document.webkitFullscreenElement)?'exit':'fullscreen');fullscreen.setAttribute('aria-label',(document.fullscreenElement||document.webkitFullscreenElement)?'Sair da tela cheia':'Entrar em tela cheia');
+  fullscreen.innerHTML=icon((document.fullscreenElement||document.webkitFullscreenElement)?'exit':'fullscreen');fullscreen.setAttribute('aria-label',(document.fullscreenElement||document.webkitFullscreenElement)?'Sair da tela cheia':'Entrar em tela cheia');fullscreen.title=fullscreen.getAttribute('aria-label');
  }
  async function togglePlay(){
   const m=media();feedback.hidden=true;
