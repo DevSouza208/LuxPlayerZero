@@ -173,7 +173,16 @@ export function createHome({ play } = {}) {
   const browseGrid = $('browse-grid');
   const browseGroupSelect = $('browse-group');
   const tvCategorySelect = $('browse-tv-category');
-  const browsePageInput = $('browse-page-input');
+  const browseMore=$('browse-more'),browseStatus=$('browse-load-status');
+  let loadedKey='',loadedPages=new Map(),hasMore=false,loadingMore=false;
+  const browseObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{
+    if(entries.some(entry=>entry.isIntersecting))loadMoreBrowse();
+  },{rootMargin:'200px 0px'}):null;
+  function loadMoreBrowse(){
+    if(!browseRole||!hasMore||loadingMore||browseRoot.hidden)return;
+    loadingMore=true;browseObserver?.disconnect();browsePage++;renderBrowse();
+  }
+  browseMore?.addEventListener('click',loadMoreBrowse);
   let browseRole = null;
   let browsePage = 1;
   let browseSearch = '';
@@ -523,6 +532,7 @@ export function createHome({ play } = {}) {
     if (options.scroll !== false) window.scrollTo(0, 0);
   }
   function renderBrowse() {
+    browseObserver?.disconnect();
     if(!browseRole||!browseGrid)return;
     if(tvCategorySelect){
       tvCategorySelect.parentElement.hidden=browseRole!=='tv';
@@ -580,32 +590,33 @@ export function createHome({ play } = {}) {
       browseGroupSelect.value = browseGroup;
       browseGroupSelect.parentElement.hidden = browseRole === 'favorites';
     }
+    const listKey=JSON.stringify([catalogueEpoch,browseRole,browseSearch,browseGroup,tvCategory,browseYear,browseGenre,browseLanguage,browseSort]);
+    if(listKey!==loadedKey||browsePage===1){loadedPages.clear();loadedKey=listKey;}
     const requestKey = [catalogueEpoch,browseRole,browseSearch,browsePage,browseGroup,browseYear,browseGenre,browseLanguage,browseSort].join('|');
     if(browseRole==='movies' && browseSearch && !browseGroup && !browseYear && !browseGenre && !browseLanguage && browseSort==='source' && requestedKey!==requestKey){
       requestedKey=requestKey;
       void searchCatalog(browseSearch,browsePage,items).then(result=>{
-        if(requestedKey!==requestKey || !result)return;
+        if(requestedKey!==requestKey)return;
         remotePage=result;remoteKey=requestKey;renderBrowse();
       });
     }
+    const usesRemote=browseRole==='movies'&&browseSearch&&!browseGroup&&!browseYear&&!browseGenre&&!browseLanguage&&browseSort==='source';
+    if(usesRemote&&remoteKey!==requestKey){loadingMore=true;if(browseStatus)browseStatus.textContent='Carregando mais títulos…';return;}
     const page = remoteKey===requestKey && remotePage ? remotePage : browsePageData(source, {
       page: browsePage, query: browseSearch, group: browseGroup,year:browseYear,genre:browseGenre,language:browseLanguage,sort:browseSort
     });
     browsePage = page.page;
-    $('browse-page-label').textContent = 'Página ' + page.page.toLocaleString('pt-BR') +
-      ' de ' + page.pageCount.toLocaleString('pt-BR') + ' · ' + page.total.toLocaleString('pt-BR') + ' títulos';
-    browsePageInput.value = String(page.page);
-    browsePageInput.max = String(page.pageCount);
+    const appendBatch=loadedPages.size>0&&!loadedPages.has(page.page);
+    loadedPages.set(page.page,page.entries);
+    const visibleEntries=[...loadedPages.entries()].sort((a,b)=>a[0]-b[0]).flatMap(([,entries])=>entries);
+    hasMore=page.page<page.pageCount;loadingMore=false;
+    $('browse-page-label').textContent=page.total.toLocaleString('pt-BR')+' títulos';
+    if(browseMore){browseMore.hidden=!hasMore;browseMore.disabled=false;}
+    if(browseStatus)browseStatus.textContent=hasMore?'Role para carregar mais':page.total?'Você chegou ao fim do catálogo.':'';
     $('browse-filter-label').textContent = browseSearch || browseGroup || browseYear || browseGenre || browseLanguage
       ? page.total.toLocaleString('pt-BR') + ' títulos encontrados'
       : source.length.toLocaleString('pt-BR') + ' títulos disponíveis';
-    $('browse-foot-count').textContent = page.start + '–' + page.end +
-      ' de ' + page.total.toLocaleString('pt-BR');
-    for (const button of browseRoot.querySelectorAll('[data-browse-page]')) {
-      const direction = button.dataset.browsePage;
-      button.disabled = direction === 'first' || direction === 'prev'
-        ? page.page <= 1 : page.page >= page.pageCount;
-    }
+    $('browse-foot-count').textContent=visibleEntries.length.toLocaleString('pt-BR')+' de '+page.total.toLocaleString('pt-BR')+' títulos';
     if (!page.entries.length) {
       const empty = document.createElement('div');
       empty.className = 'browse-empty';
@@ -621,7 +632,7 @@ export function createHome({ play } = {}) {
       return;
     }
     const fragment = document.createDocumentFragment();
-    for (const item of page.entries) {
+    for (const item of appendBatch?page.entries:visibleEntries) {
       const card = createCard(item, browseRole);
       const visual = card.querySelector('.media-visual');
       if (visual) {
@@ -638,8 +649,9 @@ export function createHome({ play } = {}) {
       if (favorite) setIconLabel(favorite,favorites.some(entry => entry.key === itemKey(item))?'heart':'plus','Minha lista',favorites.some(entry => entry.key === itemKey(item)));
       fragment.append(card);
     }
-    browseGrid.replaceChildren(fragment);
+    if(appendBatch)browseGrid.append(fragment);else browseGrid.replaceChildren(fragment);
     observeCurrentArtwork();
+    if(hasMore&&browseMore)browseObserver?.observe(browseMore);
   }
 
   tvCategorySelect?.addEventListener('change',()=>{
@@ -647,7 +659,7 @@ export function createHome({ play } = {}) {
     browseLastGroupSource=null;renderBrowse();
   });
   for(const select of [yearSelect,genreSelect,languageSelect,sortSelect])select?.addEventListener('change',()=>{
-    browseYear=yearSelect.value;browseGenre=genreSelect.value;browseLanguage=languageSelect.value;browseSort=sortSelect.value;browsePage=1;renderBrowse();
+    browseYear=yearSelect?.value||'';browseGenre=genreSelect?.value||'';browseLanguage=languageSelect?.value||'';browseSort=sortSelect.value;browsePage=1;renderBrowse();
   });
   browseGroupSelect?.addEventListener('change', () => {
     browseGroup = browseGroupSelect.value;
@@ -655,17 +667,6 @@ export function createHome({ play } = {}) {
     renderBrowse();
   });
   browseRoot?.addEventListener('click', event => {
-    const button = event.target.closest('[data-browse-page]');
-    if (button) {
-      animateSection(browseRole);
-      const action = button.dataset.browsePage;
-      const count = Number(browsePageInput.max) || 1;
-      browsePage = action === 'first' ? 1 : action === 'last' ? count
-        : Math.max(1, Math.min(count, browsePage + (action === 'next' ? 1 : -1)));
-      renderBrowse();
-      window.scrollTo(0, 0);
-      return;
-    }
     if (event.target.closest('[data-browse-connect]')) { openDrawer(); return; }
     const fav = event.target.closest('[data-favorite]');
     if (fav) {
@@ -678,16 +679,6 @@ export function createHome({ play } = {}) {
       const item = getById(details.dataset.details);
       if (item) showDetails(item);
     }
-  });
-  function browseGoToPage() {
-    animateSection(browseRole);
-    browsePage = Number(browsePageInput?.value || 1);
-    renderBrowse();
-    window.scrollTo(0, 0);
-  }
-  $('browse-page-go')?.addEventListener('click', browseGoToPage);
-  browsePageInput?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') { event.preventDefault(); browseGoToPage(); }
   });
   $('browse-top')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 

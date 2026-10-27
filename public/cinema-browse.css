@@ -187,3 +187,20 @@
 .lux-video-episodes,.lux-video-tracks{min-height:44px}
 
 @media(max-height:480px){.lux-video-menu{bottom:100px;max-height:calc(100% - 170px)}.lux-player-modal .lux-continuation{bottom:110px;max-height:calc(100% - 180px)}}
+
+.browse-summary{font-size:12px;color:#aa9ab8}
+.browse-load{text-align:center;padding:24px 0 0;color:#aa9ab8;font-size:12px}
+.browse-load button{min-height:44px;padding:10px 20px;border:1px solid #b38aff55;border-radius:9px;background:#21162d;color:#eee4fa;font:inherit}
+.browse-load button:focus-visible{outline:2px solid #cbb9ff;outline-offset:4px}
+.browse-foot{gap:14px;flex-wrap:wrap}
+.browse-foot #browse-top{display:inline-flex;align-items:center;gap:8px;min-height:44px}
+.browse-foot #browse-top svg{width:18px;height:18px}
+
+.browse-filter-menu{position:relative;color:#ece4f5}
+.browse-filter-menu summary{min-height:44px;display:flex;align-items:center;gap:12px;padding:10px 16px;border:1px solid #b38aff45;border-radius:9px;background:#1d1526;cursor:pointer;list-style:none}
+.browse-filter-menu summary::-webkit-details-marker{display:none}
+.browse-filter-menu summary::after{content:'⌄';color:#cbb9ff}
+.browse-filter-panel{padding:16px 0 4px}
+.browse-filter-panel label{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px}
+.browse-filter-panel select{min-height:44px;font-size:16px}
+.browse-filter-menu summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
