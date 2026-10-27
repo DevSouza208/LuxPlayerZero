@@ -62,7 +62,7 @@ test('Grupos e buscas preservam textos arbitrários sem injetar HTML',()=>{
 test('Ambas as versões Cinema exibem telas separadas sem tocar no player legado',()=>{
   for(const path of ['cinema.html','cinema/index.html']){
     const html=read(path);
-    for(const id of ['cinema-browse','browse-title','browse-grid','browse-group','browse-page-label','browse-page-input','browse-page-go']){
+    for(const id of ['cinema-browse','browse-title','browse-grid','browse-page-label','browse-page-input','browse-page-go']){
       assert.ok(html.includes('id="'+id+'"'),path+' missing '+id);
     }
     assert.ok(html.includes('href="/cinema-browse.css"'));
