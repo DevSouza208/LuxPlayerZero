@@ -1,3 +1,4 @@
+import {mountVodAdmin} from './vod-admin.js';
 import {createPlayerControls} from './player-controls.js';
 import {createPlayerModal} from './player-modal.js';
 import {createCatalogCache} from './catalog-cache.js';
@@ -65,6 +66,7 @@ const els = {
 };
 
 let channels = [];
+void mountVodAdmin({getItems:()=>channels}).catch(()=>{});
 let selected = null;
 let player = null;
 let hls = null;

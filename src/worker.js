@@ -1,3 +1,5 @@
+import {vodAdminApi} from './vod-api.js';
+import {runVodMaintenance} from './vod-catalog.js';
 import {syncCatalog,serveCatalog,refreshDailyCatalogs} from './catalog-snapshot.js';
 import {connect,status,catalog,sign,media} from './bridge-core.js';
 import { lookupTmdb } from './tmdb-metadata.js';
@@ -19,6 +21,11 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 });
 export default {
   async scheduled(event, env, ctx) {
+    if(event.cron==='0 7 * * *'||event.cron==='* * * * *'){
+      if(!env.DB?.prepare)return;
+      // 04h de São Paulo descobre snapshots. Demais execuções retomam lotes pendentes.
+      const work=runVodMaintenance(env,{discover:event.cron==='0 7 * * *'});ctx.waitUntil(work);return work;
+    }
     const work=refreshDailyCatalogs(env).then(result=>{
       if(result.failed)throw new Error(result.failed+' catálogo(s) não puderam ser atualizados. As cópias anteriores foram preservadas.');
       return result;
@@ -28,6 +35,7 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/admin/vod')return vodAdminApi(request,env);
     if (url.pathname === '/api/metadata/status' && request.method === 'GET') return json({configured:Boolean(env.TMDB_API_KEY?.trim() && env.DB?.prepare)});
     if (url.pathname === '/api/metadata/tmdb') return lookupTmdb(request, env);
     if (url.pathname === '/api/bridge/status' && request.method === 'GET') return status(request,env);

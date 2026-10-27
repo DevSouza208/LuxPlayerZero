@@ -136,3 +136,21 @@
 .lux-player-modal .lux-continuation{position:absolute;z-index:8;right:clamp(16px,3vw,48px);bottom:210px;width:min(420px,calc(100% - 32px));max-height:45vh;overflow:auto;box-shadow:0 16px 60px #0009}
 .lux-video-progress{height:20px;border-radius:0;background-size:100% 5px;background-repeat:no-repeat;background-position:center;margin-bottom:9px}
 @media(max-width:600px){.lux-video-actions{flex-wrap:wrap}.lux-video-episodes,.lux-video-tracks{font-size:11px;min-width:58px;height:38px;padding:6px 9px}.lux-video-menu{bottom:210px}.lux-player-modal .lux-continuation{bottom:235px}}
+
+/* Organização editorial: acessível somente à conta administradora. */
+.lux-vod-launch{border:1px solid #9c7bff55;border-radius:8px;background:#9c7bff18;color:#ddccfa;font:500 12px 'Outfit',sans-serif;padding:9px 12px}
+.lux-vod-admin{width:min(1160px,95vw);max-width:95vw;height:min(850px,92dvh);max-height:92dvh;margin:auto;padding:26px;border:1px solid #8c6cb849;border-radius:18px;background:#0d0a13;color:#f7f4ff;overflow:auto;font-family:'Outfit',sans-serif;box-shadow:0 30px 150px #000b}
+.lux-vod-admin::backdrop{background:#030207d9;backdrop-filter:blur(9px)}
+.lux-vod-admin-header,.lux-vod-toolbar,.lux-vod-pages,.lux-vod-filters{display:flex;gap:14px;align-items:center;justify-content:space-between}
+.lux-vod-kicker{font-size:10px;letter-spacing:.17em;color:#b39bcf}.lux-vod-admin h2{font-weight:500;font-size:28px;margin:8px 0 24px}.lux-vod-admin h3{font-weight:500;margin-top:0}
+.lux-vod-admin button{min-height:42px;border:1px solid #ffffff20;border-radius:8px;background:#ffffff08;color:#ece4f8;padding:10px 15px;font:500 12px 'Outfit',sans-serif}
+.lux-vod-admin button:hover,.lux-vod-launch:hover{background:#9c7bff28;border-color:#b38aff88}.lux-vod-admin button:disabled{opacity:.4;cursor:default}
+.lux-vod-admin .lux-vod-primary{background:#b38aff;color:#170d25;border-color:#b38aff}.lux-vod-admin .lux-vod-primary:hover{background:#c4a2ff}
+.lux-vod-summary{color:#c5b7d5;font-size:12px}.lux-vod-status{font-size:13px;line-height:1.5;border-left:2px solid #9c7bff;padding-left:12px}.lux-vod-note{font-size:12px;line-height:1.5;color:#a496b7}
+.lux-vod-filters{justify-content:flex-start;margin:24px 0 14px}.lux-vod-filters input{flex:1;min-width:100px}
+.lux-vod-admin input,.lux-vod-admin select{min-height:42px;padding:10px 12px;border-radius:8px;border:1px solid #ffffff24;background:#17121f;color:#f7f4ff;font:400 13px 'Outfit',sans-serif}
+.lux-vod-layout{display:flex;align-items:flex-start;gap:20px}.lux-vod-table-wrap{flex:1;min-width:0;overflow-x:auto;border:1px solid #ffffff15;border-radius:10px}.lux-vod-table{border-collapse:collapse;width:100%;font-size:12px;text-align:left}
+.lux-vod-table th{font-weight:500;color:#c1aed7;background:#17101f;font-size:10px;text-transform:uppercase;letter-spacing:.07em}.lux-vod-table th,.lux-vod-table td{padding:12px;border-bottom:1px solid #ffffff0c;overflow-wrap:anywhere}.lux-vod-table td:first-child{min-width:150px}.lux-vod-table tbody tr:hover{background:#9c7bff0a}
+.lux-vod-editor{width:300px;flex-shrink:0;padding:18px;border:1px solid #9c7bff40;border-radius:12px;background:#15101e}.lux-vod-editor[hidden]{display:none}.lux-vod-editor label{display:flex;flex-direction:column;gap:6px;font-size:11px;color:#c5b6d7;margin-bottom:13px}.lux-vod-editor input{width:100%;box-sizing:border-box}.lux-vod-editor .lux-vod-primary{width:100%}.lux-vod-pages{justify-content:flex-end;margin-top:16px;font-size:12px;color:#bdb0cd}
+.lux-vod-admin :focus-visible,.lux-vod-launch:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+@media(max-width:800px){.lux-vod-admin{padding:18px}.lux-vod-admin h2{font-size:23px}.lux-vod-layout{flex-direction:column-reverse}.lux-vod-editor,.lux-vod-table-wrap{width:100%;box-sizing:border-box}.lux-vod-toolbar{align-items:flex-start;flex-direction:column}.lux-vod-filters{flex-wrap:wrap}.lux-vod-pages{justify-content:center}.lux-vod-launch{padding:8px}}
