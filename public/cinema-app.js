@@ -1,3 +1,4 @@
+import {createPlayerControls} from './player-controls.js';
 import {createPlayerModal} from './player-modal.js';
 import {createCatalogCache} from './catalog-cache.js';
 import {isGuestMode} from './guest-mode.js';
@@ -79,6 +80,8 @@ let lastSnapshotId = null;
 // A vitrine é opcional: erros de interface nunca podem derrubar importação/reprodução.
 let home = null;
 const playerModal=createPlayerModal($('reproduzir'),{onClose:()=>{stop();homeCall('resumeDetails');}});
+let playerControls=null;
+try { playerControls=createPlayerControls(document.querySelector('.lux-player-modal')); } catch (error) { console.warn('Controles nativos preservados.',error); }
 try { home = createHome({ play: item => playItem(item) }); }
 catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
 function homeCall(method, ...args) {
@@ -347,6 +350,7 @@ async function playItem(item) {
   els.title.textContent = titleForDisplay(item);
   els.format.textContent = streamType(item.url);
   state('Conectando');
+  playerControls?.refresh();playerControls?.reveal();
   log('Abrindo mídia', item.kind + ' / ' + streamType(item.url));
   try {
     checkProtocol(item.url);
