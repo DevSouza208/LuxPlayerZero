@@ -1,3 +1,4 @@
+import {usuarioSession,hasUsuarios} from './usuarios-auth.js';
 /** Account security is independent of bridge authentication and media URLs. */
 const encoder = new TextEncoder();
 export const SESSION_SECONDS = 7 * 24 * 3600;
@@ -52,6 +53,7 @@ export function cookie(response, token='') {
   return response;
 }
 export async function session(request,env) {
+  if(await hasUsuarios(env))return usuarioSession(request,env);
   requireConfig(env);
   const token=(request.headers.get('cookie')||'').split(';').map(s=>s.trim()).find(s=>s.startsWith('__Host-lux_account='))?.slice(19);
   if(!token||!/^[a-f0-9]{64}$/.test(token))return null;

@@ -1,3 +1,4 @@
+import {usuarioSession,hasUsuarios} from './usuarios-auth.js';
 import { session as accountSession } from './account-security.js';
 /**
  * Lux Zero — ponte HTTPS para fontes HTTP autorizadas.
@@ -115,6 +116,8 @@ export function sameOriginPost(request) {
 }
 export async function session(request, env) {
   if (!bridgeReady(env)) return false;
+  if(!(request.headers.get('cookie')||'').split(';').some(value=>/^\s*(?:__Host-lux_account|lux_zero_bridge)=/.test(value)))return false;
+  if(await hasUsuarios(env))return Boolean(await usuarioSession(request,env));
   // With Lux ID configured, every request revalidates the account session in D1.
   // Logout, expiry and revocation immediately remove bridge access too.
   if (env.LUX_AUTH_PEPPER) {
@@ -130,7 +133,7 @@ export async function session(request, env) {
 export async function connect(request, env) {
   if (!bridgeReady(env)) return apiError(503, 'Gateway ainda não configurado. Defina BRIDGE_ACCESS_KEY e BRIDGE_ALLOWED_HOSTS no Cloudflare Pages.');
   if (!sameOriginPost(request)) return apiError(403, 'Origem da solicitação não permitida.');
-  if (env.LUX_AUTH_PEPPER) {
+  if (env.LUX_AUTH_PEPPER || await hasUsuarios(env)) {
     try {
       if (!await accountSession(request, env)) return apiError(401, 'Entre na sua conta Lux ID para conectar sua biblioteca.');
       return apiOk({ connected: true, mediaEnabled: mediaReady(env) });

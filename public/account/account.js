@@ -1,3 +1,4 @@
+let simpleAccount=false;
 import {savedSnapshot} from '/saved-catalog.js';
 const $=id=>document.getElementById(id),avatars={luxite:'',violet:'◈',moon:'☾',star:'☆'};
 function askPin(manage=false){
@@ -26,6 +27,7 @@ async function profiles(){
   const choose=button(p.name,async()=>{const answer=p.protected?await askPin():{};if(answer===null)return;await api('profile/select',{id:p.id,pin:answer.pin});location.assign('/cinema/')});
   if(p.avatar==='luxite'){const img=document.createElement('img');img.src='/assets/luxite.png';img.alt='';choose.prepend(img)}
   else{const avatar=document.createElement('span');avatar.className='avatar';avatar.textContent=avatars[p.avatar]||'◈';choose.prepend(avatar)}
+  if(simpleAccount){card.append(choose);$('profiles').append(card);continue;}
   card.append(choose,button('Editar',()=>{$('profile-id').value=p.id;$('profile-name').value=p.name;$('profile-avatar').value=p.avatar;$('profile-form').closest('details').open=true;$('profile-name').focus()}),
    button('PIN',async()=>{const answer=await askPin(true);if(!answer)return;await api('profile/pin',{id:p.id,...answer});await profiles();status('Proteção do perfil atualizada.')}),
    button('Excluir',async()=>{if(!confirm('Excluir o perfil '+p.name+' e seu histórico?'))return;await api('profile/delete',{id:p.id});await profiles()}));
@@ -45,7 +47,7 @@ $('logout').onclick=()=>run($('logout'),async()=>{await api('logout',{});locatio
 $('revoke-all').onclick=()=>run($('revoke-all'),async()=>{await api('revoke',{all:true});location.replace('/')});
 $('password-form').onsubmit=e=>{e.preventDefault();run(e.submitter,async()=>{await api('password',Object.fromEntries(new FormData(e.target)));location.replace('/')})};
 $('invite').onclick=()=>run($('invite'),async()=>{const data=await api('invite',{});$('invite-result').hidden=false;$('invite-token').value=data.token;status('Convite criado. Compartilhe-o somente com a pessoa convidada.');await admin()});
-try{const data=await api('session');if(!data.authenticated)location.replace('/');else{$('identity').textContent='Olá, '+data.username;$('account-lux-id').textContent='Seu Lux ID: '+data.luxId;await Promise.all([profiles(),devices()]);if(data.role==='admin'){$('admin').hidden=false;await admin()}}}catch(e){status(e.message,true)}
+try{const data=await api('session');if(!data.authenticated)location.replace('/');else{simpleAccount=data.backend==='usuarios';if(simpleAccount)$('profile-form').closest('details').hidden=true;$('identity').textContent='Olá, '+data.username;$('account-lux-id').textContent=simpleAccount?'Usuário: '+data.username:'Seu Lux ID: '+data.luxId;await Promise.all([profiles(),devices()]);if(data.role==='admin'&&!simpleAccount){$('admin').hidden=false;await admin()}}}catch(e){status(e.message,true)}
 
 $('mfa-form').onsubmit=e=>{e.preventDefault();const action=e.submitter.value;run(e.submitter,async()=>{const data=await api('mfa',{...Object.fromEntries(new FormData(e.target)),action});$('mfa-result').textContent=data.secret?'Adicione esta chave ao seu autenticador e confirme o código: '+data.secret:'2FA ativado. Guarde estes códigos de recuperação em local seguro (cada um funciona uma vez): '+data.recovery.join(' · ');if(data.enabled)e.target.reset()})};
 
