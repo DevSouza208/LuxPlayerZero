@@ -4,3 +4,16 @@ dialog{color:var(--text);background:var(--surface);border:1px solid #654985;bord
 .profile[data-default=true]{border:1px solid #80619b;border-radius:18px}.default-badge{font-size:.85rem;color:#cbb9ff;margin:8px}.profile{min-width:0;overflow-wrap:anywhere}
 
 .lux-account-id{overflow-wrap:anywhere;font-size:.85rem;color:#c1b9d1}
+
+@media(max-width:760px){
+  header{padding:14px 18px;gap:10px;flex-wrap:wrap}
+  header a{display:inline-flex;align-items:center;min-height:44px}
+  main{padding:20px 18px max(32px,env(safe-area-inset-bottom))}
+  h1{font-size:30px;overflow-wrap:anywhere}
+  input,select{font-size:16px;min-height:44px}
+  dialog{width:calc(100% - 24px);max-width:480px;max-height:calc(100dvh - 24px);padding:20px;overflow:auto;overscroll-behavior:contain}
+  dialog button{max-width:100%;white-space:normal}
+  .profiles{margin:24px 0 30px}
+  .profile img,.profile .avatar{width:80px;height:80px;line-height:80px}
+  .row button{max-width:100%;white-space:normal}
+}
