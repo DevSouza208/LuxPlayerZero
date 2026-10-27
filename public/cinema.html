@@ -38,6 +38,7 @@
 </div>
 <script>
   // Garantia: nunca deixar a tela presa se o bundle falhar ou a rede parar.
+  window.__luxBootStarted = performance.now();
   window.setTimeout(() => { const screen = document.getElementById('lux-boot'); if (screen) screen.remove(); }, 75000);
 </script>
 <div class="shell cinema-shell">

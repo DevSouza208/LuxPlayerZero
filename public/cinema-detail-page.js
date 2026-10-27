@@ -70,7 +70,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   $('[data-full-watched]').textContent=isWatched?.(next)?'Marcar não assistido':'Marcar assistido';
   $('[data-full-favorite]').textContent=isFavorite?.(next)?'♥ Na minha lista':'＋ Minha lista';
   setPhoto(banner,opts.backdrop);
-  fallback.hidden=setPhoto(poster,opts.poster||next.logo);
+  fallback.hidden=setPhoto(poster,opts.poster??next.logo);
   seasons.hidden=!series?.seasons?.length;
   if(!seasons.hidden)renderSeason();
   page.focus({preventScroll:true});
@@ -78,7 +78,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
    try{const target=series?{...next,name:series.title,displayName:series.title}:next;
     const info=await metadataFor(target);if(!opened||currentEpoch!==epoch||info?.status!=='matched')return;
     setPhoto(banner,info.backdrop||opts.backdrop);
-    fallback.hidden=setPhoto(poster,info.poster||opts.poster||next.logo);
+    fallback.hidden=setPhoto(poster,info.poster||(opts.poster??next.logo));
     if(info.overview){desc.textContent=info.overview;desc.hidden=false}
     const values=[info.year,...(info.genres||[]).slice(0,3),info.rating?'★ '+info.rating:null].filter(Boolean);
     if(values.length)$('.lux-full-meta').textContent=(series?series.seasons.length+' temporadas · '+count+' episódios · ':'')+values.join(' · ');
