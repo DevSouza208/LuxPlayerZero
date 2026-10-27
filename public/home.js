@@ -659,7 +659,7 @@ export function createHome({ play } = {}) {
     browseLastGroupSource=null;renderBrowse();
   });
   for(const select of [yearSelect,genreSelect,languageSelect,sortSelect])select?.addEventListener('change',()=>{
-    browseYear=yearSelect.value;browseGenre=genreSelect.value;browseLanguage=languageSelect.value;browseSort=sortSelect.value;browsePage=1;renderBrowse();
+    browseYear=yearSelect?.value||'';browseGenre=genreSelect?.value||'';browseLanguage=languageSelect?.value||'';browseSort=sortSelect.value;browsePage=1;renderBrowse();
   });
   browseGroupSelect?.addEventListener('change', () => {
     browseGroup = browseGroupSelect.value;
