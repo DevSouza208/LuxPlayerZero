@@ -606,6 +606,7 @@ export function createHome({ play } = {}) {
       page: browsePage, query: browseSearch, group: browseGroup,year:browseYear,genre:browseGenre,language:browseLanguage,sort:browseSort
     });
     browsePage = page.page;
+    const appendBatch=loadedPages.size>0&&!loadedPages.has(page.page);
     loadedPages.set(page.page,page.entries);
     const visibleEntries=[...loadedPages.entries()].sort((a,b)=>a[0]-b[0]).flatMap(([,entries])=>entries);
     hasMore=page.page<page.pageCount;loadingMore=false;
@@ -631,7 +632,7 @@ export function createHome({ play } = {}) {
       return;
     }
     const fragment = document.createDocumentFragment();
-    for (const item of visibleEntries) {
+    for (const item of appendBatch?page.entries:visibleEntries) {
       const card = createCard(item, browseRole);
       const visual = card.querySelector('.media-visual');
       if (visual) {
@@ -648,7 +649,7 @@ export function createHome({ play } = {}) {
       if (favorite) setIconLabel(favorite,favorites.some(entry => entry.key === itemKey(item))?'heart':'plus','Minha lista',favorites.some(entry => entry.key === itemKey(item)));
       fragment.append(card);
     }
-    browseGrid.replaceChildren(fragment);
+    if(appendBatch)browseGrid.append(fragment);else browseGrid.replaceChildren(fragment);
     observeCurrentArtwork();
     if(hasMore&&browseMore)browseObserver?.observe(browseMore);
   }
