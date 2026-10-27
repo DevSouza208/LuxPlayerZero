@@ -325,10 +325,11 @@ export async function serveCatalog(request, env) {
 }
 
 /** Atualização diária com as mesmas regras de download e substituição da importação. */
-export async function refreshDailyCatalogs(env, fetcher = fetch) {
+export async function refreshDailyCatalogs(env, fetcher = fetch, {catalogId=null}={}) {
   if (!snapshotReady(env)) throw new Error('Configure DB, CATALOG_BUCKET e os segredos do catálogo no Worker.');
   await ensureSchema(env);
-  const {results=[]} = await env.DB.prepare('SELECT source_hash,source_cipher FROM catalog_refresh_sources').all();
+  const query=catalogId?env.DB.prepare('SELECT r.source_hash,r.source_cipher FROM catalog_refresh_sources r JOIN catalog_sources c ON c.source_hash=r.source_hash WHERE c.catalog_id=?').bind(catalogId):env.DB.prepare('SELECT source_hash,source_cipher FROM catalog_refresh_sources');
+  const {results=[]} = await query.all();
   const result={updated:0,failed:0};
   for(const row of results){
     try {
