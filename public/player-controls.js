@@ -1,3 +1,4 @@
+import {createPlayerVisibility} from './player-visibility.js';
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 export function formatPlayerTime(seconds){
  if(!Number.isFinite(seconds)||seconds<0)return '0:00';
@@ -45,7 +46,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  const fullscreen=button('Entrar em tela cheia','fullscreen');
  const popup=document.createElement('section');popup.className='lux-video-menu';popup.hidden=true;popup.setAttribute('aria-label','Opções do reprodutor');host.append(popup);
  let menuFocus=null;
- function closeMenu(){popup.hidden=true;menuFocus?.focus();}
+ function closeMenu(){popup.hidden=true;menuFocus?.focus();reveal();}
  function showMenu(label,trigger){menuFocus=trigger;popup.replaceChildren();popup.hidden=false;popup.setAttribute('aria-label',label);const heading=document.createElement('h3');heading.textContent=label;const close=document.createElement('button');close.type='button';close.textContent='Fechar';close.className='lux-video-menu-close';close.addEventListener('click',closeMenu);popup.append(heading,close);reveal();}
  function choice(label,selected,action){const el=document.createElement('button');el.type='button';if(selected)setIconLabel(el,'check',label);else el.textContent=label;el.setAttribute('aria-pressed',String(selected));el.addEventListener('click',()=>{action();closeMenu();refresh()});popup.append(el);return el;}
  function nativeAudio(){return Array.from(media().audioTracks||[])}
@@ -74,13 +75,18 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  const feedback=document.createElement('span');feedback.className='lux-video-feedback';feedback.setAttribute('role','status');feedback.hidden=true;
  panel.append(title,progress,row);host.append(panel,feedback);
  const media=()=>video.hidden&&audio?audio:video;
- let hideTimer=null;
- function reveal(){
-  shell.classList.remove('lux-controls-idle');clearTimeout(hideTimer);
-  if(shell.open&&!media().paused)hideTimer=setTimeout(()=>{
-   if(popup.hidden&&!panel.contains(document.activeElement)&&!media().paused)shell.classList.add('lux-controls-idle');
-  },3500);
- }
+ let keyboardMode=false,dragging=false;
+ const visibility=createPlayerVisibility({
+  isPlaying:()=>shell.open&&!media().paused&&!media().ended&&!media().error,
+  isBlocked:()=>!popup.hidden||dragging||(keyboardMode&&document.activeElement!==shell&&shell.contains(document.activeElement)),
+  onChange:idle=>{
+   // A mouse click leaves DOM focus on its button. Move that focus to the shell
+   // before fading; keyboard users retain their visible focus and controls.
+   if(idle&&!keyboardMode&&shell.contains(document.activeElement))shell.focus({preventScroll:true});
+   shell.classList.toggle('lux-controls-idle',idle);
+  }
+ });
+ function reveal(){visibility.reveal();}
  function refresh(){
   const m=media(),finite=Number.isFinite(m.duration)&&m.duration>0;
   episodes.hidden=!getEpisodes()?.entries?.length;
@@ -115,10 +121,19 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  volume.addEventListener('input',()=>{const m=media();m.volume=Number(volume.value);m.muted=m.volume===0;refresh();reveal()});
  progress.addEventListener('input',()=>{seekPlayer(media(),Number(progress.value)/1000*media().duration);refresh();reveal()});
  for(const m of [video,audio].filter(Boolean))for(const event of ['play','pause','timeupdate','loadedmetadata','durationchange','volumechange','emptied','ended','error'])m.addEventListener(event,()=>{refresh();if(event!=='timeupdate')reveal()});
- shell.addEventListener('pointermove',reveal);shell.addEventListener('pointerdown',reveal);shell.addEventListener('focusin',reveal);
- shell.addEventListener('close',()=>{popup.hidden=true;clearTimeout(hideTimer);shell.classList.remove('lux-controls-idle')});
- document.addEventListener('fullscreenchange',refresh);
- document.addEventListener('webkitfullscreenchange',refresh);
+ host.addEventListener('click',event=>{if(event.target===video||event.target===host){if(keyboardMode)keyboardMode=false;reveal()}});
+ shell.addEventListener('pointermove',event=>{if(event.pointerType!=='touch'){keyboardMode=false;shell.classList.remove('lux-controls-keyboard');reveal()}});
+ shell.addEventListener('pointerdown',event=>{
+  keyboardMode=false;shell.classList.remove('lux-controls-keyboard');
+  dragging=Boolean(event.target.closest('input[type="range"]'));reveal();
+ });
+ function release(){if(dragging){dragging=false;reveal()}}
+ document.addEventListener('pointerup',release);document.addEventListener('pointercancel',release);
+ shell.addEventListener('focusin',()=>{if(keyboardMode)reveal()});
+ shell.addEventListener('keydown',()=>{keyboardMode=true;shell.classList.add('lux-controls-keyboard');reveal()},true);
+ shell.addEventListener('close',()=>{popup.hidden=true;dragging=false;keyboardMode=false;visibility.stop();shell.classList.remove('lux-controls-keyboard')});
+ document.addEventListener('fullscreenchange',()=>{refresh();reveal()});
+ document.addEventListener('webkitfullscreenchange',()=>{refresh();reveal()});
  shell.addEventListener('keydown',event=>{
   if(!popup.hidden&&event.key==='Escape'){event.preventDefault();event.stopPropagation();closeMenu();return;}
   if(!shell.open||event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,button,select,textarea'))return;
