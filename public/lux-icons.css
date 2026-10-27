@@ -18,3 +18,17 @@ button .lux-icon,a .lux-icon{color:inherit}
 .lux-video-skip>span{position:static;display:grid;place-items:center;font:inherit}
 .lux-video-skip small{margin:0}
 .lux-video-episodes,.lux-video-tracks{display:flex;align-items:center;justify-content:center}
+
+/* Keep labels readable while icons provide a stable scanning cue. */
+.account-link,.guide-link,.hero-secondary,.source-submit,.upload-button,.browse-foot button,.admin-actions button,.lux-last-channel,.lux-continuation button,.lux-quick-guide-button,.lux-quick-guide>a,.lux-quick-guide>button,.lux-connectivity button{display:inline-flex;align-items:center;justify-content:center;gap:.5rem}
+.account-link .lux-icon,.guide-link .lux-icon{width:1.1rem;height:1.1rem}
+.radio-glyph{display:grid;place-items:center}.radio-glyph .lux-icon{width:2.5rem;height:2.5rem}
+.profile .avatar{display:grid;place-items:center}.profile .avatar .lux-icon{width:2rem;height:2rem}
+.lux-video-menu button[aria-pressed=true]{display:flex;align-items:center;gap:.5rem}
+.lux-full-favorite[aria-pressed=true]{color:#cbb9ff;border-color:#b38aff80}
+.cinema-nav-link .lux-icon{flex-shrink:0}
+@media(forced-colors:active){.lux-icon{forced-color-adjust:auto}}
+.media-favorite[aria-pressed=true]{color:#cbb9ff}
+#profile-form button,#pin-form button,#logout,#revoke-all,#diagnostics-refresh,#invite,.profile button:not(:first-child){display:inline-flex;align-items:center;justify-content:center;gap:.5rem}
+#filters button,#xml-form button,#sports-form button,body:has(#filters)>header>a{display:inline-flex;align-items:center;gap:.5rem}
+@media(max-width:780px){.cinema-icon-button,.cinema-search{min-width:44px;min-height:44px}.cinema-search{padding:0 12px}.cinema-search:focus-within{right:117px}}
