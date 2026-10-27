@@ -10,7 +10,11 @@ export function createPlayerModal(host,{onClose=()=>{}}={}){
  function close(){
   if(!shell.open)return;
   if(document.pictureInPictureElement&&shell.contains(document.pictureInPictureElement))void document.exitPictureInPicture?.().catch(()=>{});
-  if(document.fullscreenElement===shell)void document.exitFullscreen?.().catch(()=>{});
+  const fullscreen=document.fullscreenElement||document.webkitFullscreenElement;
+  if(fullscreen===shell||fullscreen?.contains?.(shell)){
+   const exit=document.exitFullscreen||document.webkitExitFullscreen;
+   if(exit)Promise.resolve(exit.call(document)).catch(()=>{});
+  }
   shell.close();document.body.style.overflow=previousOverflow;
   onClose();if(previousFocus?.isConnected)previousFocus.focus?.();
  }
