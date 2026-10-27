@@ -1,3 +1,4 @@
+import {createTrailerModal,trailerVideos} from './trailer-modal.js';
 import {renderRichMetadata,detailFacts} from './tmdb-rich-view.js';
 /* Full-viewport Lux 2.0-inspired film and series pages.
  * HTML strings below are static only; provider data is assigned via textContent.
@@ -5,6 +6,7 @@ import {renderRichMetadata,detailFacts} from './tmdb-rich-view.js';
 const make=(tag,klass,label)=>{const el=document.createElement(tag);el.className=klass||'';if(label!==undefined)el.textContent=String(label);return el};
 const photo=raw=>{try{const url=new URL(String(raw||''));return url.protocol==='https:'?url.href:''}catch{return''}};
 export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
+ const trailers=createTrailerModal();let trailerData={};
  const shell=make('dialog','lux-fullscreen-detail');shell.hidden=true;shell.id='lux-fullscreen-detail';
  shell.innerHTML=
  '<section class="lux-full-detail-page" role="dialog" aria-modal="true" aria-label="Detalhes do conteúdo" tabindex="-1">'+
@@ -14,7 +16,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  '<div class="lux-full-summary"><span class="lux-full-eyebrow" id="lux-full-kind">FILME</span><h1 id="lux-full-title"></h1>'+
  '<div class="lux-full-meta"></div><p class="lux-full-description" hidden></p>'+
  '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play>▶ <span>Começar</span></button>'+
- '<a class="lux-full-trailer" data-full-trailer hidden target="_blank" rel="noopener noreferrer">▶ Trailer</a><button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
+ '<button class="lux-full-trailer" type="button" data-full-trailer hidden>▶ Trailer</button><button class="lux-full-favorite" type="button" data-full-favorite>＋ Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
  '<section class="lux-full-seasons" hidden aria-label="Temporadas e episódios">'+
  '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2></div>'+
  '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section><section class="lux-full-credits" hidden aria-label="Informações do TMDB"></section></section>';
@@ -22,6 +24,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
  let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
  const selectedSeasons=new Map();
+ $('[data-full-trailer]').addEventListener('click',()=>trailers.open(trailerData));
  const setPhoto=(target,value)=>{target.onerror=()=>{const reserve=target===poster?photo(lastOptions.fallbackPoster):'';if(reserve&&target.src!==reserve){target.src=reserve;return}target.hidden=true;if(target===poster)fallback.hidden=false};const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
  const play=entry=>{if(!entry)return;suspend();onPlay?.(entry)};
  function renderSeason(focusSelected=false){
@@ -49,7 +52,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   $('.lux-full-episode-grid').replaceChildren(grid);
  }
  function open(next,opts={}){
-  if(!next)return;lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
+  if(!next)return;trailers.close();trailerData={};lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
   epoch++;const currentEpoch=epoch;
   if(first){returnFocus=document.activeElement;oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden'}
   opened=true;suspended=false;shell.hidden=false;if(!shell.open)shell.showModal();shell.scrollTop=0;
@@ -82,7 +85,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
     const extended=await extendedFor?.(info,target);
     if(!opened||currentEpoch!==epoch||!extended)return;
     if(extended.overview){desc.textContent=extended.overview;desc.hidden=false;}
-    const rich=make('div');renderRichMetadata(rich,extended);credits.append(rich);
+    const rich=make('div');renderRichMetadata(rich,extended,{onVideo:url=>trailers.open(trailerData,url)});credits.append(rich);
     const richFacts=detailFacts(extended);if(richFacts.length)$('.lux-full-meta').textContent=richFacts.join(' · ');
     if(extended.collection?.name){
       credits.append(make('h2','','Coleção: '+extended.collection.name));
@@ -106,14 +109,13 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
     };
     appendRelations(extended.collectionItems,'Da mesma coleção no seu catálogo');
     appendRelations(extended.similarItems,'Títulos semelhantes no seu catálogo');
-    if(extended.trailer&&/^https:\/\/www\.youtube\.com\/watch\?v=[\w-]{11}$/.test(extended.trailer)){
-      trailerLink.href=extended.trailer;trailerLink.hidden=false;
-    }
+    trailerData=extended;trailerLink.hidden=!trailerVideos(extended).length;
     credits.hidden=!credits.childNodes.length;
    }catch{/* Metadata never affects playback. */}
   })();
  }
  function suspend(){
+   trailers.close();
    if(!opened)return;
    opened=false;suspended=true;shell.close();shell.hidden=true;
    document.body.style.overflow=oldOverflow;
@@ -123,6 +125,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
    open(item,lastOptions);return true;
  }
  function close(){
+   trailers.close();
    if(!opened&&!suspended)return;
    opened=false;suspended=false;epoch++;shell.close();shell.hidden=true;returnFocus?.focus?.();
    document.body.style.overflow=oldOverflow;series=null;item=null;

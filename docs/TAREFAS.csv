@@ -269,3 +269,4 @@ LUX-LOADING-ART-CACHE;Cinema;Frases na abertura, transição de seções e cache
 LUX-NATIVE-CURSOR;Cinema;Cursor com contorno luminoso inspirado na referência;concluído;SVG nativo 32 px, brilho azul e lilás nos itens clicáveis, sem loop JS. Cursor de texto e toque preservados.;;2026-10-26
 LUX-SECTION-SPLASH-DURATION;Cinema;Alongar transição de seções para 800 ms;concluído;Animação e fechamento sincronizados em 800 ms;;2026-10-26
 LUX-HOVER-POLISH;Cinema;Padronizar hover elegante e cursor de ações;concluído;Brilho suave em ações e campos, foco por teclado, cursor Lux também nos filhos dos botões e links. Movimento reduzido respeitado.;;2026-10-26
+LUX-TRAILER-MODAL;Cinema;Faixa horizontal de vídeos e modal com iframe de trailers;concluído;Seletor de vídeos no botão superior. Iframe apenas após selecionar vídeo. Fechar ou trocar obra interrompe reprodução. URLs YouTube validadas e duplicados removidos.;;2026-10-26
