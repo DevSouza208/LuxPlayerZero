@@ -32,3 +32,4 @@ button .lux-icon,a .lux-icon{color:inherit}
 #profile-form button,#pin-form button,#logout,#revoke-all,#diagnostics-refresh,#invite,.profile button:not(:first-child){display:inline-flex;align-items:center;justify-content:center;gap:.5rem}
 #filters button,#xml-form button,#sports-form button,body:has(#filters)>header>a{display:inline-flex;align-items:center;gap:.5rem}
 @media(max-width:780px){.cinema-icon-button,.cinema-search{min-width:44px;min-height:44px}.cinema-search{padding:0 12px}.cinema-search:focus-within{right:117px}}
+.primary-btn>span{font-size:inherit}.upload{display:flex;align-items:center;justify-content:center;gap:.5rem}
