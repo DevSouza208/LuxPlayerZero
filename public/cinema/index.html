@@ -50,11 +50,12 @@
   </style>
   <script type="module" src="/cinema-app.js"></script>
   <script defer src="/cinema/install.js"></script>
-<link rel="stylesheet" href="/cinema-detail-page.css"><link rel="stylesheet" href="/lux-tag-palette.css"><link rel="stylesheet" href="/connectivity.css"><script type="module" src="/connectivity.js"></script><script type="module" src="/catalog-navigation.js"></script></head>
+<link rel="stylesheet" href="/cinema-detail-page.css"><link rel="stylesheet" href="/lux-tag-palette.css"><link rel="stylesheet" href="/connectivity.css"><script type="module" src="/connectivity.js"></script><script type="module" src="/catalog-navigation.js"></script><link rel="stylesheet" href="/lux-icons.css">
+</head>
 <body>
 <div id="lux-boot" class="lux-boot" role="status" aria-live="polite" aria-label="Carregando Lux Player">
   <div class="lux-galaxy" aria-hidden="true"><span class="lux-galaxy-stars"></span><span class="lux-galaxy-stars"></span><span class="lux-galaxy-shade"></span></div>
-  <div class="lux-boot-title"><span class="lux-boot-symbol" aria-hidden="true">✧</span><span>Abrindo seu Lux Player...</span></div>
+  <div class="lux-boot-title"><span class="lux-boot-symbol" aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span><span>Abrindo seu Lux Player...</span></div>
   <span id="lux-boot-status" class="lux-boot-status">A pipoca fica por sua conta 🍿</span>
   <button id="lux-boot-skip" class="lux-boot-skip" type="button" hidden>Entrar mesmo assim</button>
 </div>
@@ -69,22 +70,22 @@
       <span class="cinema-brand-mark"><img src="/assets/lux-icon.png" alt=""></span><span class="cinema-brand-word">LUX <span>PLAYER</span></span>
     </a>
     <nav class="cinema-nav" aria-label="Seções">
-      <a href="#inicio" class="cinema-nav-link is-active"><span class="cinema-nav-symbol">⌂</span>Início</a>
-      <a href="#destaques-tv" class="cinema-nav-link"><span class="cinema-nav-symbol">▣</span>Ao vivo</a>
-      <a href="#destaques-filmes" class="cinema-nav-link" id="nav-movies">Filmes</a>
-      <a href="#destaques-series" class="cinema-nav-link" id="nav-series">Séries</a>
-      <a href="#minha-lista" class="cinema-nav-link">Minha lista</a>
+      <a href="#inicio" class="cinema-nav-link is-active"><span class="cinema-nav-symbol"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Início</a>
+      <a href="#destaques-tv" class="cinema-nav-link"><span class="cinema-nav-symbol"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span>Ao vivo</a>
+      <a href="#destaques-filmes" class="cinema-nav-link" id="nav-movies"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>Filmes</a>
+      <a href="#destaques-series" class="cinema-nav-link" id="nav-series"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>Séries</a>
+      <a href="#minha-lista" class="cinema-nav-link"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>Minha lista</a>
     </nav>
     <div class="cinema-header-actions">
-      <label class="cinema-search" for="nav-search"><span aria-hidden="true">⌕</span><input id="nav-search" type="search" placeholder="Buscar no catálogo..." autocomplete="off" aria-label="Buscar no catálogo"></label>
-      <button type="button" id="open-source" class="cinema-icon-button" title="Conectar fonte" aria-label="Gerenciar fontes">＋</button>
-      <button type="button" id="open-admin" class="cinema-icon-button" title="Personalizar" aria-label="Painel de personalização">⚙</button>
+      <label class="cinema-search" for="nav-search"><span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><input id="nav-search" type="search" placeholder="Buscar no catálogo..." autocomplete="off" aria-label="Buscar no catálogo"></label>
+      <button type="button" id="open-source" class="cinema-icon-button" title="Conectar fonte" aria-label="Gerenciar fontes"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+      <button type="button" id="open-admin" class="cinema-icon-button" title="Personalizar" aria-label="Painel de personalização"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
       <span class="cinema-avatar" aria-hidden="true">L</span>
     </div>
   </header>
   <div id="source-overlay" class="source-overlay" hidden></div>
   <aside id="source-drawer" class="source-drawer" role="dialog" aria-modal="true" aria-label="Gerenciar fonte" aria-hidden="true" inert>
-    <div class="source-drawer-top"><div><span class="eyebrow">SUA BIBLIOTECA</span><h2>Conectar conteúdo</h2></div><button id="drawer-close" class="drawer-close" type="button" aria-label="Fechar painel">×</button></div>
+    <div class="source-drawer-top"><div><span class="eyebrow">SUA BIBLIOTECA</span><h2>Conectar conteúdo</h2></div><button id="drawer-close" class="drawer-close" type="button" aria-label="Fechar painel"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <p class="source-drawer-note">Sua fonte, seus títulos. O motor de importação continua o mesmo.</p>
     <section id="minha-fonte" class="source-card" aria-label="Gerenciar fonte de conteúdo">
       <div class="source-heading"><span class="source-signal"></span><div><strong>Minha fonte</strong><small>Conecte sua biblioteca</small></div></div>
@@ -108,10 +109,10 @@
           <label for="xc-pass">SENHA</label>
           <input id="xc-pass" type="password" autocomplete="new-password">
         </div>
-        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true">↗</span></button>
+        <button id="connect" class="primary-btn" type="submit">Conectar fonte <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></button>
         <div id="file-fields" hidden>
           <div class="divider-text">OU IMPORTE UM ARQUIVO</div>
-          <label for="m3u-file" class="upload">Selecionar arquivo .m3u / .txt</label>
+          <label for="m3u-file" class="upload"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Selecionar arquivo .m3u / .txt</span></label>
           <input id="m3u-file" type="file" accept=".m3u,.m3u8,.txt,audio/x-mpegurl" hidden>
         </div>
       </form>
@@ -119,7 +120,7 @@
     <div id="restore-library-panel" class="restore-library-panel" hidden>
       <strong>Biblioteca anterior encontrada</strong>
       <p>O catálogo já está no R2. Se a sessão venceu, digite a chave do gateway acima e recupere seus títulos, sem reenviar a M3U do fornecedor.</p>
-      <button id="restore-library" type="button">↺ &nbsp; Reconectar e restaurar biblioteca</button>
+      <button id="restore-library" type="button"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> &nbsp; Reconectar e restaurar biblioteca</button>
     </div>
     <p class="drawer-footnote">O Lux Player é um reprodutor independente e não fornece conteúdo.</p>
   </aside>
@@ -135,11 +136,11 @@
         <p id="hero-subtitle">Tudo o que você gosta, em um só lugar. Sua biblioteca, do seu jeito.</p>
         <p id="hero-tagline" class="hero-tagline" hidden></p><div id="hero-facts" class="hero-facts" hidden></div>
         <div class="hero-actions">
-          <button id="hero-play" class="hero-primary" type="button" hidden><span aria-hidden="true">▶</span> Assistir agora</button>
-          <button id="hero-connect" class="hero-primary" type="button"><span aria-hidden="true">＋</span> Conectar fonte</button>
-          <button id="hero-details" class="hero-secondary" type="button" hidden>Mais informações</button>
-          <button id="hero-add" class="hero-secondary" type="button" hidden>＋ Minha lista</button>
-          <a class="hero-secondary" href="#home-rails">Explorar biblioteca <span aria-hidden="true">↓</span></a>
+          <button id="hero-play" class="hero-primary" type="button" hidden><span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg></span> Assistir agora</button>
+          <button id="hero-connect" class="hero-primary" type="button"><span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Conectar fonte</button>
+          <button id="hero-details" class="hero-secondary" type="button" hidden><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Mais informações</span></button>
+          <button id="hero-add" class="hero-secondary" type="button" hidden><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Minha lista</button>
+          <a class="hero-secondary" href="#home-rails">Explorar biblioteca <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></span></a>
         </div>
         <div class="hero-meta"><span class="hero-meta-line"></span><span id="catalog-total">Seu conteúdo, suas escolhas.</span></div>
       </div>
@@ -152,24 +153,24 @@
         <div><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1></div>
         <div class="browse-pager" aria-label="Navegação entre páginas">
           <span id="browse-page-label">Página 1 de 1</span>
-          <button type="button" data-browse-page="first" aria-label="Primeira página">«</button>
-          <button type="button" data-browse-page="prev" aria-label="Página anterior">‹</button>
+          <button type="button" data-browse-page="first" aria-label="Primeira página"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg></button>
+          <button type="button" data-browse-page="prev" aria-label="Página anterior"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="15 18 9 12 15 6"/></svg></button>
           <label class="browse-page-entry"><input id="browse-page-input" type="number" min="1" value="1" aria-label="Número da página"></label>
           <button id="browse-page-go" type="button" class="browse-go" aria-label="Ir para página">Ir</button>
-          <button type="button" data-browse-page="next" aria-label="Próxima página">›</button>
-          <button type="button" data-browse-page="last" aria-label="Última página">»</button>
+          <button type="button" data-browse-page="next" aria-label="Próxima página"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <button type="button" data-browse-page="last" aria-label="Última página"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="6 17 11 12 6 7"/><polyline points="13 17 18 12 13 7"/></svg></button>
         </div>
       </div>
       <div class="browse-toolbar">
         <label class="browse-group-label" hidden>CATEGORIA<select id="browse-tv-category"><option value="">Todas as categorias</option></select></label><label class="browse-group-label">ANO<select id="browse-year" aria-label="Filtrar por ano"></select></label><label class="browse-group-label">GÊNERO<select id="browse-genre" aria-label="Filtrar por gênero"></select></label><label class="browse-group-label" hidden>ÁUDIO<select id="browse-language" aria-label="Filtrar por áudio declarado"></select></label><label class="browse-group-label">ORDEM<select id="browse-sort" aria-label="Ordenar catálogo"><option value="source">Ordem do fornecedor</option><option value="title">Título A–Z</option><option value="year">Ano mais recente</option></select></label><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span>
       </div>
       <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
-      <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button">Voltar ao topo ↑</button></div>
+      <div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg><span>Voltar ao topo</span></button></div>
     </section>
     <section class="watch-area" id="reproduzir" aria-label="Reprodutor e busca completa">
     <header class="topbar">
       <div class="topbar-title"><span class="eyebrow">SEU ENTRETENIMENTO, DO SEU JEITO</span><h1>TV ao vivo<span class="title-accent">.</span></h1></div>
-      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true">↗</span></a></div>
+      <div class="topbar-actions"><span class="topbar-live"><span></span> AO VIVO</span><a class="source-shortcut" href="#minha-fonte">Gerenciar fonte <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></a></div>
     </header>
 
     <div id="message" class="message" role="status" aria-live="polite">Conecte uma fonte para começar a assistir.</div>
@@ -178,16 +179,16 @@
       <div class="player-column">
         <div class="section-head"><div><span class="eyebrow">SUA TELA</span><h2>Agora assistindo</h2></div><span id="format" class="format-pill">SEM FONTE</span></div>
         <div class="video-wrap">
-          <div id="idle-stage" class="idle-stage"><div class="play-orbit">▶</div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
+          <div id="idle-stage" class="idle-stage"><div class="play-orbit"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg></div><p>Sua programação começa aqui</p><span>Conecte uma fonte e selecione o que assistir.</span></div>
           <video id="video" controls playsinline preload="none" hidden></video>
-          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph">♪</div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
+          <div id="audio-stage" class="audio-stage" hidden><div class="radio-glyph"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><h3 id="radio-title">Rádio</h3><p>Reprodução de áudio</p><audio id="audio" controls preload="none"></audio></div>
         </div>
         <div class="now-playing"><div><span class="eyebrow">EM REPRODUÇÃO</span><h3 id="playing-title">Nenhuma mídia selecionada</h3></div><span id="playback-state" class="state-pill">AGUARDANDO</span></div>
         <p class="disclaimer">O Lux Player é um reprodutor independente. Não fornece conteúdo, canais ou assinaturas.</p>
       </div>
 
       <section class="library" id="biblioteca" aria-label="Biblioteca de canais">
-        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual">Limpar</button></div>
+        <div class="section-head"><div><span class="eyebrow">ENCONTRE O QUE ASSISTIR</span><h2>Seus canais <span id="channel-count">00</span></h2></div><button id="clear" class="text-button" type="button" title="Desconectar a lista atual"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg><span>Limpar</span></button></div>
         <div class="list-tools"><input id="search" type="search" placeholder="Buscar canais..." aria-label="Buscar canais"><select id="kind-filter" aria-label="Filtrar tipo"><option value="all">Todos</option><option value="tv">TV</option><option value="radio">Rádio</option></select></div>
         <div id="channels" class="channels" role="list"><div class="list-empty">Seus canais aparecem aqui quando você conectar uma fonte.</div></div>
       </section>
@@ -202,7 +203,7 @@
 <dialog id="admin-dialog" class="lux-admin-dialog" aria-labelledby="admin-dialog-title">
   <div class="admin-dialog-head">
     <div><span class="eyebrow">SUA PLATAFORMA, SUAS REGRAS</span><h2 id="admin-dialog-title">Personalizar vitrines</h2></div>
-    <button class="admin-close" type="button" data-close-dialog="admin-dialog" aria-label="Fechar">×</button>
+    <button class="admin-close" type="button" data-close-dialog="admin-dialog" aria-label="Fechar"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   </div>
   <p class="admin-description">Escolha como sua biblioteca aparece. Os nomes e grupos funcionam com IPTV, cursos, aulas e outras playlists M3U.</p>
   <form id="admin-form" class="admin-form">
@@ -253,9 +254,9 @@
     <p id="admin-tmdb-status" class="admin-connection-status" role="status" aria-live="polite">Abra o painel para verificar se o TMDB está configurado.</p>
     <div class="admin-section-title">MODELOS RÁPIDOS PARA SUA BIBLIOTECA</div>
     <div class="admin-presets" role="group" aria-label="Sugestões de nomes para as vitrines">
-      <button type="button" data-admin-preset="streaming" aria-pressed="false"><span class="preset-icon">▣</span> Streaming</button>
-      <button type="button" data-admin-preset="courses" aria-pressed="false"><span class="preset-icon">▤</span> Cursos e aulas</button>
-      <button type="button" data-admin-preset="generic" aria-pressed="false"><span class="preset-icon">✦</span> Biblioteca livre</button>
+      <button type="button" data-admin-preset="streaming" aria-pressed="false"><span class="preset-icon"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span> Streaming</button>
+      <button type="button" data-admin-preset="courses" aria-pressed="false"><span class="preset-icon"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span> Cursos e aulas</button>
+      <button type="button" data-admin-preset="generic" aria-pressed="false"><span class="preset-icon"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> Biblioteca livre</button>
     </div>
     <p id="admin-preset-status" class="admin-preset-status" role="status" aria-live="polite">Selecione um modelo ou personalize os títulos manualmente.</p>
     <div class="admin-section-title">VITRINES PERSONALIZÁVEIS</div>
@@ -266,11 +267,11 @@
     <div class="admin-groups"><strong>Grupos detectados na sua playlist</strong><p id="detected-groups">Conecte uma playlist para identificar os grupos disponíveis.</p></div>
     <p class="admin-notice">A personalização é privada do perfil selecionado e sincronizada entre dispositivos.</p>
     <p id="admin-save-status" class="admin-save-status" role="status" aria-live="polite">As alterações serão aplicadas na Home e salvas no seu perfil.</p>
-    <div class="admin-actions"><button type="button" id="admin-export" class="admin-reset" title="Copiar personalização como JSON">Copiar configuração</button><button type="button" id="admin-reset" class="admin-reset">Restaurar padrão</button><button type="submit" class="admin-save">Aplicar e salvar <span aria-hidden="true">↗</span></button></div>
+    <div class="admin-actions"><button type="button" id="admin-export" class="admin-reset" title="Copiar personalização como JSON"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copiar configuração</span></button><button type="button" id="admin-reset" class="admin-reset"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Restaurar padrão</span></button><button type="submit" class="admin-save">Aplicar e salvar <span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></span></button></div>
   </form>
 </dialog>
 <dialog id="details-dialog" class="lux-details-dialog" aria-labelledby="details-title">
-  <button type="button" id="details-close" class="details-close" aria-label="Fechar detalhes">×</button>
+  <button type="button" id="details-close" class="details-close" aria-label="Fechar detalhes"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   <div class="details-visual">
     <img id="details-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
     <div class="details-shade"></div>
@@ -284,12 +285,12 @@
     <p id="details-overview" class="details-overview" hidden></p>
     <p id="details-metadata-status" class="details-metadata-status" role="status" aria-live="polite"></p>
     <div id="details-tags" class="lux-tag-strip"></div><label id="details-variants" hidden>Fonte do canal<select id="details-variant-select"></select></label><div class="details-actions">
-      <button type="button" id="details-play" class="details-play"><span aria-hidden="true">▶</span> Assistir agora</button>
-      <button type="button" id="details-favorite" class="details-favorite">＋ Minha lista</button>
+      <button type="button" id="details-play" class="details-play"><span aria-hidden="true"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg></span> Assistir agora</button>
+      <button type="button" id="details-favorite" class="details-favorite"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Minha lista</button>
     </div>
   </div>
 </dialog>
 <div id="cinema-feedback" class="cinema-feedback" role="status" aria-live="polite" hidden></div>
-<a class="account-link" href="/account/">Perfis e conta</a><a class="guide-link" href="/guide/">Guia e esportes</a><footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
+<a class="account-link" href="/account/"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Perfis e conta</span></a><a class="guide-link" href="/guide/"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Guia e esportes</span></a><footer class="cinema-credits" aria-label="Créditos e informações"><span>LUX PLAYER ZERO · Sua biblioteca, do seu jeito.</span><span>Metadados opcionais: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. Este produto usa a API TMDB, mas não é endossado nem certificado pelo TMDB.</span></footer>
 </body>
 </html>

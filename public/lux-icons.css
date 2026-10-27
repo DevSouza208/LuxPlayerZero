@@ -1,0 +1,35 @@
+.lux-icon{display:inline-block;width:1.25rem;height:1.25rem;flex:none;vertical-align:middle;pointer-events:none;overflow:visible}
+button .lux-icon,a .lux-icon{color:inherit}
+.cinema-nav-link,.nav-link{gap:.5rem}
+.cinema-nav-symbol,.nav-icon,.preset-icon{display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.cinema-search>span{display:inline-flex;align-items:center}
+.cinema-icon-button,.drawer-close,.admin-close,.details-close{align-items:center;justify-content:center}
+.hero-primary,.hero-secondary,.details-play,.details-favorite,.lux-full-actions>button,.lux-player-modal-back,.lux-full-detail-top button{display:inline-flex;align-items:center;justify-content:center;gap:.55rem}
+.media-play-glyph,.lux-full-episode-play,.play-orbit{display:grid;place-items:center}
+.media-play-glyph .lux-icon,.lux-full-episode-play .lux-icon,.play-orbit .lux-icon{width:1.6rem;height:1.6rem}
+.media-favorite .lux-icon{width:1.15rem;height:1.15rem}
+.lux-video-button .lux-icon{width:1.5rem;height:1.5rem}
+.lux-video-skip{position:relative;display:grid;place-items:center}
+.lux-video-skip .lux-icon{width:1.85rem;height:1.85rem}
+.lux-video-skip small{position:absolute;inset:0;display:grid;place-items:center;padding-top:2px;font:700 9px/1 sans-serif;pointer-events:none}
+.lux-video-episodes,.lux-video-tracks{gap:.45rem}
+.lux-boot-symbol .lux-icon{width:2rem;height:2rem}
+@media(max-width:600px){.cinema-nav-link .lux-icon{width:1.1rem;height:1.1rem}}
+.lux-video-skip>span{position:static;display:grid;place-items:center;font:inherit}
+.lux-video-skip small{margin:0}
+.lux-video-episodes,.lux-video-tracks{display:flex;align-items:center;justify-content:center}
+
+/* Keep labels readable while icons provide a stable scanning cue. */
+.account-link,.guide-link,.hero-secondary,.source-submit,.upload-button,.browse-foot button,.admin-actions button,.lux-last-channel,.lux-continuation button,.lux-quick-guide-button,.lux-quick-guide>a,.lux-quick-guide>button,.lux-connectivity button{display:inline-flex;align-items:center;justify-content:center;gap:.5rem}
+.account-link .lux-icon,.guide-link .lux-icon{width:1.1rem;height:1.1rem}
+.radio-glyph{display:grid;place-items:center}.radio-glyph .lux-icon{width:2.5rem;height:2.5rem}
+.profile .avatar{display:grid;place-items:center}.profile .avatar .lux-icon{width:2rem;height:2rem}
+.lux-video-menu button[aria-pressed=true]{display:flex;align-items:center;gap:.5rem}
+.lux-full-favorite[aria-pressed=true]{color:#cbb9ff;border-color:#b38aff80}
+.cinema-nav-link .lux-icon{flex-shrink:0}
+@media(forced-colors:active){.lux-icon{forced-color-adjust:auto}}
+.media-favorite[aria-pressed=true]{color:#cbb9ff}
+#profile-form button,#pin-form button,#logout,#revoke-all,#diagnostics-refresh,#invite,.profile button:not(:first-child){display:inline-flex;align-items:center;justify-content:center;gap:.5rem}
+#filters button,#xml-form button,#sports-form button,body:has(#filters)>header>a{display:inline-flex;align-items:center;gap:.5rem}
+@media(max-width:780px){.cinema-icon-button,.cinema-search{min-width:44px;min-height:44px}.cinema-search{padding:0 12px}.cinema-search:focus-within{right:117px}}
+.primary-btn>span{font-size:inherit}.upload{display:flex;align-items:center;justify-content:center;gap:.5rem}

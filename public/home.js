@@ -1,3 +1,4 @@
+import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
 import {detailFacts} from './tmdb-rich-view.js';
 import {isGuestMode,createGuestStore} from './guest-mode.js';
@@ -634,7 +635,7 @@ export function createHome({ play } = {}) {
         }
       }
       const favorite = card.querySelector('.media-favorite');
-      if (favorite) favorite.textContent = (favorites.some(entry => entry.key === itemKey(item)) ? '♥' : '＋') + ' Minha lista';
+      if (favorite) setIconLabel(favorite,favorites.some(entry => entry.key === itemKey(item))?'heart':'plus','Minha lista',favorites.some(entry => entry.key === itemKey(item)));
       fragment.append(card);
     }
     browseGrid.replaceChildren(fragment);
@@ -718,7 +719,7 @@ export function createHome({ play } = {}) {
     monogram.className = 'media-monogram';
     monogram.textContent = (titleForDisplay(item) || 'L').slice(0, 1).toUpperCase();
     visual.append(monogram);
-    appendText(visual, 'span', 'media-play-glyph', '▶');
+    setIcon(appendText(visual, 'span', 'media-play-glyph', ''),'play',true);
     if (saved && shouldResume(saved.position, saved.duration)) {
       const progress = document.createElement('span');
       progress.className = 'media-progress';
@@ -738,9 +739,10 @@ export function createHome({ play } = {}) {
     heart.className = 'media-favorite';
     heart.dataset.favorite = item.id;
     const isFavorite = favorites.some(x => x.key === itemKey(item));
-    heart.textContent = isFavorite ? '♥' : '♡';
+    setIcon(heart,'heart',isFavorite);
     heart.title = isFavorite ? 'Remover da minha lista' : 'Adicionar à minha lista';
     heart.setAttribute('aria-label', heart.title);
+    heart.setAttribute('aria-pressed',String(isFavorite));
     labels.append(heart);
     info.append(labels);
     if (item.catalogYear) appendText(info, 'span', 'media-group', String(item.catalogYear));
@@ -845,7 +847,7 @@ export function createHome({ play } = {}) {
     $('hero-play').hidden = !heroItem;
     $('hero-add').hidden = !heroItem;
     $('hero-connect').hidden = !!heroItem;
-    $('hero-add').textContent = heroItem && favorites.some(x => x.key === itemKey(heroItem)) ? '♥ Na minha lista' : '＋ Minha lista';
+    setIconLabel($('hero-add'),heroItem && favorites.some(x => x.key === itemKey(heroItem))?'heart':'plus',heroItem && favorites.some(x => x.key === itemKey(heroItem))?'Na minha lista':'Minha lista',Boolean(heroItem && favorites.some(x => x.key === itemKey(heroItem))));
   }
 
   function render() {
@@ -877,15 +879,15 @@ export function createHome({ play } = {}) {
     const lastTv=availableRecent.find(([item])=>classifyRole(item)==='tv')?.[0];
     if(lastTv){
       const last=document.createElement('button');last.type='button';last.className='lux-last-channel';
-      last.textContent='Voltar ao último canal · '+titleForDisplay(lastTv);
+      setIconLabel(last,'arrow-left','Voltar ao último canal · '+titleForDisplay(lastTv));
       last.addEventListener('click',()=>start(lastTv));railsRoot.prepend(last);
     }
 
     if (recommendations.length) railsRoot.append(createRail('recommendations', 'Para você',
       recommendations.map(row => row.item), 'Porque você assistiu ou salvou ' + recommendations[0].reason));
     document.querySelector('.cinema-shell')?.classList.toggle('is-compact', config.density === 'compact');
-    $('nav-movies').textContent = configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes';
-    $('nav-series').textContent = configRaw.seriesTitle ? settingsTitle('series') : 'Séries';
+    setIconLabel($('nav-movies'),'film',configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes');
+    setIconLabel($('nav-series'),'layers',configRaw.seriesTitle ? settingsTitle('series') : 'Séries');
     observeCurrentArtwork();
     if(!browseRole&&heroItem&&metadataNeeded(config,'auto'))void autoArtRequest(heroItem,{priority:true});
     $('catalog-total').textContent = items.length ? items.length.toLocaleString('pt-BR') + ' títulos na biblioteca' : 'Sua biblioteca, seu universo';
@@ -965,7 +967,7 @@ export function createHome({ play } = {}) {
     if (info) { info.hidden = true; info.textContent = ''; }
     if (overview) { overview.hidden = true; overview.textContent = ''; }
     if (state) state.textContent = '';
-    $('details-favorite').textContent = favorites.some(x => x.key === itemKey(item)) ? '♥ Na minha lista' : '＋ Minha lista';
+    setIconLabel($('details-favorite'),favorites.some(x => x.key === itemKey(item))?'heart':'plus',favorites.some(x => x.key === itemKey(item))?'Na minha lista':'Minha lista',Boolean(favorites.some(x => x.key === itemKey(item))));
     openDialog(detailsDialog);
     const needArt = config.imageEngine !== 'playlist';
     if (!needArt && config.summaryEngine !== 'tmdb') return;
@@ -1004,7 +1006,7 @@ export function createHome({ play } = {}) {
   $('details-favorite')?.addEventListener('click', () => {
     if (!detailsItem) return;
     toggleFavorite(detailsItem);
-    $('details-favorite').textContent = favorites.some(x => x.key === itemKey(detailsItem)) ? '♥ Na minha lista' : '＋ Minha lista';
+    setIconLabel($('details-favorite'),favorites.some(x => x.key === itemKey(detailsItem))?'heart':'plus',favorites.some(x => x.key === itemKey(detailsItem))?'Na minha lista':'Minha lista',Boolean(favorites.some(x => x.key === itemKey(detailsItem))));
   });
   function start(item) {
     if (!item) return;
@@ -1098,7 +1100,7 @@ export function createHome({ play } = {}) {
     // Apenas preferências visuais; nunca inclui playlist, credenciais ou URLs de stream.
     try {
       await navigator.clipboard.writeText(JSON.stringify(configRaw, null, 2));
-      if (button) button.textContent = 'Configuração copiada ✓';
+      if (button) setIconLabel(button,'check','Configuração copiada');
     } catch {
       if (button) button.textContent = 'Cópia indisponível';
     }

@@ -1,3 +1,4 @@
+import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
@@ -192,7 +193,7 @@ function render() {
     btn.title = item.name;
     const symbol = document.createElement('span');
     symbol.className = 'channel-icon';
-    symbol.textContent = item.kind === 'radio' ? '♫' : '▶';
+    setIcon(symbol,item.kind === 'radio'?'music':'play');
     const label = document.createElement('span');
     label.className = 'channel-content';
     const name = document.createElement('span');
@@ -204,7 +205,7 @@ function render() {
     label.append(name, group);
     const arrow = document.createElement('span');
     arrow.className = 'channel-arrow';
-    arrow.textContent = '↗';
+    setIcon(arrow,'arrow-up-right');
     btn.append(symbol, label, arrow);
     btn.addEventListener('click', () => { void playItem(item); });
     fragment.append(btn);
@@ -420,7 +421,7 @@ async function importSource(event) {
   } finally {
     if (generation === sourceLoad) {
       els.connect.disabled = false;
-      els.connect.innerHTML = 'Conectar fonte <span aria-hidden="true">↗</span>';
+      setIconLabel(els.connect,'arrow-up-right','Conectar fonte');
     }
   }
 }

@@ -1,6 +1,7 @@
+import {setIcon,setIconLabel} from '/lux-icons.js';
 let simpleAccount=false;
 import {savedSnapshot} from '/saved-catalog.js';
-const $=id=>document.getElementById(id),avatars={luxite:'',violet:'◈',moon:'☾',star:'☆'};
+const $=id=>document.getElementById(id),avatars={luxite:'',violet:'user',moon:'moon',star:'star'};
 function askPin(manage=false){
  const dialog=$('pin-dialog'),form=$('pin-form');form.reset();$('pin-password-label').hidden=!manage;
  $('pin-title').textContent=manage?'Definir PIN (vazio para remover)':'Digite o PIN do perfil';
@@ -16,7 +17,7 @@ async function api(path,body){
  const r=await fetch('/api/account/'+path,{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:body?{'content-type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined});
  const data=await r.json();if(!r.ok){if(r.status===401)location.replace('/');throw Error(data.error||'Não foi possível concluir.')}return data;
 }
-function button(label,action){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>run(b,action);return b}
+function button(label,action){const b=document.createElement('button');b.type='button';const icons={Editar:'edit-2',PIN:'lock',Excluir:'trash-2',Encerrar:'log-out','Remover padrão':'star','Usar como padrão':'star'};if(icons[label])setIconLabel(b,icons[label],label);else b.textContent=label;b.onclick=()=>run(b,action);return b}
 async function run(button,action){button.disabled=true;try{await action()}catch(e){status(e.message,true)}finally{button.disabled=false}}
 function row(text,action){const d=document.createElement('div');d.className='row';const s=document.createElement('span');s.textContent=text;d.append(s);if(action)d.append(action);return d}
 async function profiles(){
@@ -26,7 +27,7 @@ async function profiles(){
   const card=document.createElement('div');card.className='profile';card.dataset.default=String(Boolean(p.is_default));
   const choose=button(p.name,async()=>{const answer=p.protected?await askPin():{};if(answer===null)return;await api('profile/select',{id:p.id,pin:answer.pin});location.assign('/cinema/')});
   if(p.avatar==='luxite'){const img=document.createElement('img');img.src='/assets/luxite.png';img.alt='';choose.prepend(img)}
-  else{const avatar=document.createElement('span');avatar.className='avatar';avatar.textContent=avatars[p.avatar]||'◈';choose.prepend(avatar)}
+  else{const avatar=document.createElement('span');avatar.className='avatar';setIcon(avatar,avatars[p.avatar]||'user');choose.prepend(avatar)}
   if(simpleAccount){card.append(choose);$('profiles').append(card);continue;}
   card.append(choose,button('Editar',()=>{$('profile-id').value=p.id;$('profile-name').value=p.name;$('profile-avatar').value=p.avatar;$('profile-form').closest('details').open=true;$('profile-name').focus()}),
    button('PIN',async()=>{const answer=await askPin(true);if(!answer)return;await api('profile/pin',{id:p.id,...answer});await profiles();status('Proteção do perfil atualizada.')}),

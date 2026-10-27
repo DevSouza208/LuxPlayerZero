@@ -154,3 +154,6 @@
 .lux-vod-editor{width:300px;flex-shrink:0;padding:18px;border:1px solid #9c7bff40;border-radius:12px;background:#15101e}.lux-vod-editor[hidden]{display:none}.lux-vod-editor label{display:flex;flex-direction:column;gap:6px;font-size:11px;color:#c5b6d7;margin-bottom:13px}.lux-vod-editor input{width:100%;box-sizing:border-box}.lux-vod-editor .lux-vod-primary{width:100%}.lux-vod-pages{justify-content:flex-end;margin-top:16px;font-size:12px;color:#bdb0cd}
 .lux-vod-admin :focus-visible,.lux-vod-launch:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
 @media(max-width:800px){.lux-vod-admin{padding:18px}.lux-vod-admin h2{font-size:23px}.lux-vod-layout{flex-direction:column-reverse}.lux-vod-editor,.lux-vod-table-wrap{width:100%;box-sizing:border-box}.lux-vod-toolbar{align-items:flex-start;flex-direction:column}.lux-vod-filters{flex-wrap:wrap}.lux-vod-pages{justify-content:center}.lux-vod-launch{padding:8px}}
+
+.lux-vod-launch,.lux-vod-admin button{display:inline-flex;align-items:center;justify-content:center;gap:8px}.lux-vod-launch .lux-icon,.lux-vod-admin button .lux-icon{width:16px;height:16px;flex-shrink:0}
+@media(max-width:800px){.lux-vod-admin input,.lux-vod-admin select,.lux-vod-admin button,.lux-vod-launch{min-height:44px}}

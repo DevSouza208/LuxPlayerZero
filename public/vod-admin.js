@@ -1,3 +1,4 @@
+import {setIconLabel} from './lux-icons.js';
 import {uniqueVod} from './vod-model.js';
 const element=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el};
 const array=value=>{try{return JSON.parse(value||'[]')}catch{return []}};
@@ -6,11 +7,11 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
  const session=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
  if(!session?.authenticated||session.role!=='admin')return;
  const anchor=document.querySelector('#open-admin');if(!anchor)return;
- const launcher=element('button','lux-vod-launch','Admin');launcher.type='button';launcher.setAttribute('aria-label','Abrir administração do catálogo');anchor.after(launcher);
+ const launcher=element('button','lux-vod-launch','Admin');launcher.type='button';setIconLabel(launcher,'shield','Admin');launcher.setAttribute('aria-label','Abrir administração do catálogo');anchor.after(launcher);
  const modal=element('dialog','lux-vod-admin');modal.setAttribute('aria-labelledby','lux-vod-admin-title');
  const header=element('header','lux-vod-admin-header'),heading=element('div');heading.append(element('span','lux-vod-kicker','ADMINISTRAÇÃO · LUX ZERO'));const title=element('h2','','Seu catálogo, do seu jeito');title.id='lux-vod-admin-title';heading.append(title);
- const close=element('button','lux-vod-close','Fechar ✕');close.type='button';header.append(heading,close);
- const actions=element('div','lux-vod-toolbar'),sync=element('button','lux-vod-primary','Atualizar conteúdo geral');sync.type='button';
+ const close=element('button','lux-vod-close','Fechar ✕');close.type='button';setIconLabel(close,'x','Fechar');header.append(heading,close);
+ const actions=element('div','lux-vod-toolbar'),sync=element('button','lux-vod-primary','Atualizar conteúdo geral');sync.type='button';setIconLabel(sync,'refresh-cw','Atualizar conteúdo geral');
  const summary=element('span','lux-vod-summary','Carregando resumo…');actions.append(sync,summary);
  const status=element('p','lux-vod-status','Atualiza as fontes, importa filmes e séries e classifica somente o que ainda está pendente.');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const note=element('p','lux-vod-note','TV não entra nesta etapa. Tags e coleções editadas por você são preservadas. A classificação continua em lotes; você pode fechar este painel.');
@@ -24,8 +25,8 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
  const inputs={};for(const [key,label,inputType]of [['titulo','Título de apresentação','text'],['ano','Ano','number'],['id_provedor','ID do fornecedor (representante)','text'],['tmdb_id','ID do TMDB','number'],['generos','Gêneros (separados por vírgula)','text'],['tags','Suas tags (separadas por vírgula)','text'],['colecoes','Suas coleções (separadas por vírgula)','text']]){
   const wrap=element('label','',label),input=element('input');input.type=inputType;input.name=key;wrap.append(input);editor.append(wrap);inputs[key]=input;
  }
- const original=element('p','lux-vod-note'),save=element('button','lux-vod-primary','Salvar alterações');save.type='submit';editor.append(original,save,element('p','lux-vod-note','Salvar marca o registro como manual. A rotina automática não sobrescreve essa classificação. Alterar IDs aqui não muda o endereço de reprodução da playlist.'));layout.append(tableWrap,editor);
- const pages=element('div','lux-vod-pages'),previous=element('button','','‹ Anterior'),next=element('button','','Próxima ›'),pageText=element('span');previous.type=next.type='button';pages.append(previous,pageText,next);
+ const original=element('p','lux-vod-note'),save=element('button','lux-vod-primary','Salvar alterações');save.type='submit';setIconLabel(save,'save','Salvar alterações');editor.append(original,save,element('p','lux-vod-note','Salvar marca o registro como manual. A rotina automática não sobrescreve essa classificação. Alterar IDs aqui não muda o endereço de reprodução da playlist.'));layout.append(tableWrap,editor);
+ const pages=element('div','lux-vod-pages'),previous=element('button','','‹ Anterior'),next=element('button','','Próxima ›'),pageText=element('span');previous.type=next.type='button';setIconLabel(previous,'chevron-left','Anterior');setIconLabel(next,'chevron-right','Próxima');pages.append(previous,pageText,next);
  modal.append(header,actions,status,note,filters,layout,pages);document.body.append(modal);
  let page=1,selected=null,viewGeneration=0,running=false,closed=false;
  async function api(body,query=''){
@@ -37,7 +38,7 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
   const epoch=++viewGeneration;status.textContent='Consultando a tabela…';
   try{const data=await api(null,'?'+new URLSearchParams({view:'rows',tipo:type.value,page:String(page),q:search.value}));if(epoch!==viewGeneration)return;
    tbody.replaceChildren();for(const row of data.rows){const line=element('tr');for(const value of [row.titulo,row.ano||'—',row.id_provedor||'Não informado',row.tmdb_id||'—',array(row.generos).concat(array(row.tags)).join(' · ')||row.status_metadados])line.append(element('td','',String(value)));
-    const cell=element('td'),edit=element('button','','Editar');edit.type='button';edit.setAttribute('aria-label','Editar '+row.titulo);edit.addEventListener('click',()=>{selected={...row,tipo:type.value};editor.hidden=false;for(const key of Object.keys(inputs))inputs[key].value=['generos','tags','colecoes'].includes(key)?array(row[key]).join(', '):row[key]??'';original.textContent='Original: '+(row.nome_original||row.titulo)+' · Fornecedor: '+(row.fornecedor||'não informado');inputs.titulo.focus()});cell.append(edit);line.append(cell);tbody.append(line);
+    const cell=element('td'),edit=element('button','','Editar');edit.type='button';setIconLabel(edit,'edit-2','Editar');edit.setAttribute('aria-label','Editar '+row.titulo);edit.addEventListener('click',()=>{selected={...row,tipo:type.value};editor.hidden=false;for(const key of Object.keys(inputs))inputs[key].value=['generos','tags','colecoes'].includes(key)?array(row[key]).join(', '):row[key]??'';original.textContent='Original: '+(row.nome_original||row.titulo)+' · Fornecedor: '+(row.fornecedor||'não informado');inputs.titulo.focus()});cell.append(edit);line.append(cell);tbody.append(line);
    }
    if(!data.rows.length){const line=element('tr'),cell=element('td','','Nenhum título encontrado.');cell.colSpan=6;line.append(cell);tbody.append(line)}
    previous.disabled=page<=1;next.disabled=page*40>=data.total;pageText.textContent=`Página ${page} · ${data.total.toLocaleString('pt-BR')} registros`;if(!running)status.textContent='Escolha um título para editar.';
