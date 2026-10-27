@@ -147,27 +147,31 @@
 @media(max-width:760px){
   .auth-layout{min-height:0;display:block}
   .auth-layout .experience-panel{display:none}
-  .auth-layout .login-side{min-height:0;height:auto;overflow:visible;padding:24px 22px 14px}
-  .auth-layout .brand-row{min-height:40px;gap:12px}
-  .auth-layout .brand-lockup{max-width:158px;min-height:36px}
-  .auth-layout .brand-lockup img{max-height:36px}
+  .auth-layout .login-side{min-height:0;height:auto;overflow:visible;padding:16px 20px 10px}
+  .auth-layout .brand-row{min-height:32px;gap:10px}
+  .auth-layout .brand-lockup{max-width:140px;min-height:30px}
+  .auth-layout .brand-lockup img{max-height:30px}
   .auth-layout .version-mark{font-size:8px;letter-spacing:.7px;padding:6px 8px}
-  .auth-layout .auth-center{width:100%;max-width:420px;margin:0 auto;padding:28px 0 24px;animation:none}
+  .auth-layout .auth-center{width:100%;max-width:420px;margin:0 auto;padding:16px 0 10px;animation:none}
   .auth-layout .intro-eyebrow{display:none}
-  .auth-layout .auth-title{font-size:clamp(29px,8vw,35px);line-height:1.1;letter-spacing:-1px;margin:0 0 10px}
-  .auth-layout .auth-lead{display:block;font-size:13px;line-height:1.5;margin:0 0 22px;color:#b2aabd}
-  .auth-layout .auth-form{gap:12px}
-  .auth-layout .field{gap:7px}
+  .auth-layout .auth-title{font-size:clamp(25px,6.8vw,28px);line-height:1.1;letter-spacing:-1px;margin:0 0 16px}
+  .auth-layout #login-view .auth-lead{display:none}
+  .auth-layout #recovery-view .auth-lead{font-size:12px;margin-bottom:16px}
+  .auth-layout .auth-form{gap:8px}
+  .auth-layout #login-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .auth-layout #login-form>div,.auth-layout #login-form>button{grid-column:1/-1}
+  .auth-layout #login-form details[open]{grid-column:1/-1}
+  .auth-layout .field{gap:4px}
   .auth-layout .field-label{font-size:12px}
   .auth-layout .field-label small{font-size:11px}
-  .auth-layout .input-wrap{min-height:50px;border-radius:10px}
-  .auth-layout .input-wrap input{height:48px;font-size:16px}
+  .auth-layout .input-wrap{min-height:46px;border-radius:10px}
+  .auth-layout .input-wrap input{height:44px;font-size:16px}
   .auth-layout .icon-button{width:44px;height:44px}
-  .auth-layout .form-meta{margin:-4px 0 -4px;min-height:36px}
-  .auth-layout .inline-link{min-height:36px;font-size:12px;padding:8px 0}
-  .auth-layout .primary-btn{min-height:50px;margin:0;font-size:14px}
+  .auth-layout .form-meta{margin:-4px 0;min-height:32px}
+  .auth-layout .inline-link{min-height:32px;font-size:11px;padding:6px 0}
+  .auth-layout .primary-btn{min-height:46px;margin:0;font-size:13px}
   .auth-layout .auth-form details{margin:0;border:1px solid #cbb9ff18;border-radius:9px;background:#ffffff02;min-width:0}
-  .auth-layout .auth-form summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 12px;list-style:none;font-size:12px;line-height:1.4;color:#c1b9d1;cursor:pointer}
+  .auth-layout .auth-form summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:7px 10px;list-style:none;font-size:11px;line-height:1.4;color:#c1b9d1;cursor:pointer}
   .auth-layout .auth-form summary::-webkit-details-marker{display:none}
   .auth-layout .auth-form summary::after{content:'';width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-right:3px;flex:none}
   .auth-layout .auth-form details[open] summary::after{transform:rotate(225deg)}
@@ -176,11 +180,11 @@
   .auth-layout .auth-form details>input{display:block;width:calc(100% - 24px);max-width:100%;min-height:48px;margin:0 12px;padding:10px 12px;border:1px solid #cbb9ff30;border-radius:8px;background:#14111e;color:#f7f4ff;font-size:16px;font-family:inherit}
   .auth-layout .auth-form details>p{margin:9px 12px 0;font-size:12px;line-height:1.5;color:#c1b9d1}
   .auth-layout summary:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
-  .auth-layout .splitter{margin:20px 0 12px;font-size:9px}
+  .auth-layout .splitter{margin:12px 0 8px;font-size:9px}
   .auth-layout .social-actions{gap:10px}
-  .auth-layout .social-button{min-height:48px;font-size:13px;gap:9px}
-  .auth-layout .demo-link{min-height:44px;margin:12px 0 0;padding:10px 0;font-size:12px}
-  .auth-layout .auth-footer{padding:14px 0 0;font-size:10px;gap:10px}
+  .auth-layout .social-button{min-height:44px;font-size:12px;gap:8px}
+  .auth-layout .demo-link{min-height:44px;margin:4px 0 0;padding:8px 0;font-size:12px}
+  .auth-layout .auth-footer{padding:8px 0 0;font-size:9px;gap:10px}
   .auth-layout~.lux-legal-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px;margin:0 auto;max-width:464px;padding:0 22px max(24px,env(safe-area-inset-bottom));font-size:11px;text-align:center}
   .auth-layout~.lux-legal-links a{justify-content:center;min-height:44px;white-space:normal;overflow-wrap:anywhere}
   .auth-layout .recovery-back{min-height:44px;margin-bottom:16px}
@@ -188,9 +192,10 @@
 @media(max-width:360px){
   .auth-layout .login-side{padding-left:18px;padding-right:18px}
   .auth-layout .brand-lockup{max-width:140px}
+  .auth-layout~.lux-legal-links{font-size:10px;gap:0 4px}
   .auth-layout .field-label{align-items:baseline;gap:6px}
 }
 @media(max-width:760px) and (orientation:landscape){
   .auth-layout .login-side{max-width:500px;margin:auto;padding-top:18px}
-  .auth-layout .auth-center{padding-top:20px}
+  .auth-layout .auth-center{padding-top:16px}
 }
