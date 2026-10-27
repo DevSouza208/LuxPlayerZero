@@ -83,3 +83,15 @@ test('Vitrines processam 260 mil entradas com até 16 cards por seção', () => 
   for (const rail of Object.values(result.rails)) assert.ok(rail.length <= 16);
   assert.equal(result.matches.get(key)?.name, 'Entrada 3');
 });
+
+ test('tipo Xtream prevalece sobre grupos ambíguos e regras da vitrine',()=>{
+ const settings=normalizeSettings({moviesKeywords:'canais',seriesKeywords:'novelas'});
+ for(const group of ['FILMES','NOVELAS','CANAIS COMPLETO(SD,HD,FHD,4K)','CANAIS INTERNACIONAIS']){
+  const channel=item('Canal de novelas HD',group,'https://provider.example/live/test/test/100.m3u8');
+  const before=JSON.stringify(channel);
+  assert.equal(classifyItem(channel,settings),'tv');assert.equal(JSON.stringify(channel),before);
+ }
+ assert.equal(classifyItem(item('Filme','CANAIS','https://provider.example/movie/test/test/1.mp4'),settings),'movies');
+ assert.equal(classifyItem(item('Episódio','FILMES','https://provider.example/series/test/test/2.mp4'),settings),'series');
+ assert.equal(classifyItem(item('Filme','FILMES','https://live.example/movie/test/test/3.mp4')),'movies');
+});

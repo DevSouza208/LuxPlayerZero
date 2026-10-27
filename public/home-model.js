@@ -42,6 +42,12 @@ function words(value) {
 }
 
 export function classifyItem(item, settings = DEFAULT_SETTINGS, compiledKeywords = null) {
+  // Xtream declara o tipo no caminho. Um canal pode estar no grupo NOVELAS
+  // ou FILMES sem deixar de ser uma transmissão ao vivo.
+  const path = String(item?.url || '').toLowerCase().split(/[?#]/)[0].replace(/^https?:\/\/[^/]+/, '');
+  if (path.startsWith('/live/')) return 'tv';
+  if (path.startsWith('/movie/')) return 'movies';
+  if (path.startsWith('/series/')) return 'series';
   const group = normalize(item?.group);
   const name = normalize(item?.name);
   // Os campos do admin permitem usar qualquer grupo da M3U em cada vitrine.
@@ -54,7 +60,6 @@ export function classifyItem(item, settings = DEFAULT_SETTINGS, compiledKeywords
     if (terms.some(term => group.includes(term))) return role;
   }
   // Evita instanciar URL centenas de milhares de vezes ao classificar uma M3U grande.
-  const path = String(item?.url || '').toLowerCase().split('?')[0];
   if (/\/series\//.test(path) || /serie|temporad|episod|novela|dorama|anime|modulo/.test(group)) return 'series';
   if (/\/movie\//.test(path) || /filme|movie|cinema|lancamento|vod|documentario|curso|aula|treinamento|workshop/.test(group)) return 'movies';
   if (/\/live\//.test(path) || /tv|canal|ao vivo|esporte|noticia|radio/.test(group)) return 'tv';
