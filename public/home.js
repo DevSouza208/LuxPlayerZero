@@ -1122,6 +1122,10 @@ export function createHome({ play } = {}) {
       autoEnriched = 0;
       catalogueEpoch++;searchCatalog=createCatalogSearch();requestedKey=remoteKey='';remotePage=null;
       items=next;
+      // Uma biblioteca nova nunca herda filtros da fonte anterior, mesmo via cache.
+      browseSearch=browseGroup=tvCategory=browseYear=browseGenre=browseLanguage='';
+      browsePage=1;facetSource=null;browseLastGroupSource=null;
+      if(navSearch)navSearch.value='';
       active=null;rebuild();
       render();
       // O formulário original permanece na gaveta; só fecha ao importar com sucesso.
