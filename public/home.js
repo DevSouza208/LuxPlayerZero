@@ -1,3 +1,4 @@
+import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
 import {detailFacts} from './tmdb-rich-view.js';
 import {isGuestMode,createGuestStore} from './guest-mode.js';
@@ -634,7 +635,7 @@ export function createHome({ play } = {}) {
         }
       }
       const favorite = card.querySelector('.media-favorite');
-      if (favorite) favorite.textContent = (favorites.some(entry => entry.key === itemKey(item)) ? '♥' : '＋') + ' Minha lista';
+      if (favorite) setIconLabel(favorite,favorites.some(entry => entry.key === itemKey(item))?'heart':'plus','Minha lista',favorites.some(entry => entry.key === itemKey(item)));
       fragment.append(card);
     }
     browseGrid.replaceChildren(fragment);
@@ -718,7 +719,7 @@ export function createHome({ play } = {}) {
     monogram.className = 'media-monogram';
     monogram.textContent = (titleForDisplay(item) || 'L').slice(0, 1).toUpperCase();
     visual.append(monogram);
-    appendText(visual, 'span', 'media-play-glyph', '▶');
+    setIcon(appendText(visual, 'span', 'media-play-glyph', ''),'play',true);
     if (saved && shouldResume(saved.position, saved.duration)) {
       const progress = document.createElement('span');
       progress.className = 'media-progress';
@@ -738,7 +739,7 @@ export function createHome({ play } = {}) {
     heart.className = 'media-favorite';
     heart.dataset.favorite = item.id;
     const isFavorite = favorites.some(x => x.key === itemKey(item));
-    heart.textContent = isFavorite ? '♥' : '♡';
+    setIcon(heart,'heart',isFavorite);
     heart.title = isFavorite ? 'Remover da minha lista' : 'Adicionar à minha lista';
     heart.setAttribute('aria-label', heart.title);
     labels.append(heart);
@@ -845,7 +846,7 @@ export function createHome({ play } = {}) {
     $('hero-play').hidden = !heroItem;
     $('hero-add').hidden = !heroItem;
     $('hero-connect').hidden = !!heroItem;
-    $('hero-add').textContent = heroItem && favorites.some(x => x.key === itemKey(heroItem)) ? '♥ Na minha lista' : '＋ Minha lista';
+    setIconLabel($('hero-add'),heroItem && favorites.some(x => x.key === itemKey(heroItem))?'heart':'plus',heroItem && favorites.some(x => x.key === itemKey(heroItem))?'Na minha lista':'Minha lista',Boolean(heroItem && favorites.some(x => x.key === itemKey(heroItem))));
   }
 
   function render() {
@@ -965,7 +966,7 @@ export function createHome({ play } = {}) {
     if (info) { info.hidden = true; info.textContent = ''; }
     if (overview) { overview.hidden = true; overview.textContent = ''; }
     if (state) state.textContent = '';
-    $('details-favorite').textContent = favorites.some(x => x.key === itemKey(item)) ? '♥ Na minha lista' : '＋ Minha lista';
+    setIconLabel($('details-favorite'),favorites.some(x => x.key === itemKey(item))?'heart':'plus',favorites.some(x => x.key === itemKey(item))?'Na minha lista':'Minha lista',Boolean(favorites.some(x => x.key === itemKey(item))));
     openDialog(detailsDialog);
     const needArt = config.imageEngine !== 'playlist';
     if (!needArt && config.summaryEngine !== 'tmdb') return;
@@ -1004,7 +1005,7 @@ export function createHome({ play } = {}) {
   $('details-favorite')?.addEventListener('click', () => {
     if (!detailsItem) return;
     toggleFavorite(detailsItem);
-    $('details-favorite').textContent = favorites.some(x => x.key === itemKey(detailsItem)) ? '♥ Na minha lista' : '＋ Minha lista';
+    setIconLabel($('details-favorite'),favorites.some(x => x.key === itemKey(detailsItem))?'heart':'plus',favorites.some(x => x.key === itemKey(detailsItem))?'Na minha lista':'Minha lista',Boolean(favorites.some(x => x.key === itemKey(detailsItem))));
   });
   function start(item) {
     if (!item) return;
