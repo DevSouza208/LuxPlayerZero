@@ -250,3 +250,12 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
  .hero-fact.hero-age{min-width:28px;justify-content:center;padding:4px;font-weight:800;border:0;color:white}
  .hero-age-L{background:#168442!important}.hero-age-10{background:#1674b8!important}.hero-age-12{background:#f4ce26!important;color:#17130a!important}.hero-age-14{background:#dc751c!important}.hero-age-16{background:#c53036!important}.hero-age-18{background:#171717!important;outline:1px solid #ffffff50}
 }
+
+/* Keep the mobile metadata strip on one readable row. */
+@media(max-width:760px){
+ .cinema-shell .lux-last-channel{display:none}
+ .cinema-shell .hero-facts{display:block;min-width:0;max-width:100%;width:100%}
+ .cinema-shell .hero-facts[hidden]{display:none!important}
+ .cinema-shell .hero-facts-mobile{display:flex;flex-wrap:nowrap;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;gap:7px;padding:2px 1px 7px;scrollbar-width:thin;scrollbar-color:#b38aff55 transparent}
+ .cinema-shell .hero-fact{flex:0 0 auto;white-space:nowrap}
+}
