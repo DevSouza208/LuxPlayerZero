@@ -825,7 +825,7 @@ export function createHome({ play } = {}) {
     const description=rich?.overview||data?.overview;
     if(description){$('hero-subtitle').textContent=description;$('hero-subtitle').classList.add('hero-overview');}
     else $('hero-subtitle').classList.remove('hero-overview');
-    const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.textContent=values.join(' · ');facts.hidden=!values.length;}
+    const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.replaceChildren();const plain=document.createElement('span');plain.className='hero-facts-desktop';plain.textContent=values.join(' · ');facts.append(plain);const mobile=document.createElement('span');mobile.className='hero-facts-mobile';for(const value of values){const badge=document.createElement('span');badge.className='hero-fact';let text=String(value);const age=text.match(/^Classificação\s+(L|Livre|10|12|14|16|18)$/i);const date=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(age){text=/^(L|Livre)$/i.test(age[1])?'L':age[1];badge.classList.add('hero-age','hero-age-'+text);badge.setAttribute('aria-label','Classificação indicativa: '+(text==='L'?'Livre':text+' anos'));}else if(date){text=date[3]+'/'+date[2]+'/'+date[1];badge.setAttribute('aria-label','Lançamento: '+text);}badge.textContent=text;mobile.append(badge);}facts.append(mobile);facts.hidden=!values.length;}
     const tagline=$('hero-tagline');if(tagline){tagline.textContent=rich?.tagline||'';tagline.hidden=!rich?.tagline;}
     if(data?.status==='matched'&&!richCache.has(richKey)&&!richPending.has(richKey)){
       const selected=heroItem;void extendedMetadata(data,selected).then(()=>{if(heroItem===selected)renderHero()});
@@ -890,6 +890,7 @@ export function createHome({ play } = {}) {
     setIconLabel($('nav-series'),'layers',configRaw.seriesTitle ? settingsTitle('series') : 'Séries');
     observeCurrentArtwork();
     if(!browseRole&&heroItem&&metadataNeeded(config,'auto'))void autoArtRequest(heroItem,{priority:true});
+    const boot=document.getElementById('lux-boot');if(boot&&items.length){let count=document.getElementById('lux-boot-count');if(!count){count=document.createElement('span');count.id='lux-boot-count';count.className='lux-boot-status';boot.append(count);}count.textContent=items.length.toLocaleString('pt-BR')+' títulos na sua biblioteca';}
     $('catalog-total').textContent = items.length ? items.length.toLocaleString('pt-BR') + ' títulos na biblioteca' : 'Sua biblioteca, seu universo';
     if (browseRole) renderBrowse();
   }

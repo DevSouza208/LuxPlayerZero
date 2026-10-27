@@ -240,3 +240,13 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
   .cinema-shell.is-browsing .browse-screen{margin-top:0}
   .cinema-shell .home-rails{scroll-margin-top:70px}
 }
+
+.hero-facts-mobile{display:none}
+@media(max-width:760px){
+ .cinema-shell .hero-meta{display:none}
+ .hero-facts-desktop{display:none}
+ .hero-facts-mobile{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+ .hero-fact{display:inline-flex;align-items:center;min-height:28px;padding:4px 9px;border:1px solid #ffffff24;border-radius:7px;background:#17131ed9;color:#e8e1ee;font-size:11px;line-height:1.4}
+ .hero-fact.hero-age{min-width:28px;justify-content:center;padding:4px;font-weight:800;border:0;color:white}
+ .hero-age-L{background:#168442!important}.hero-age-10{background:#1674b8!important}.hero-age-12{background:#f4ce26!important;color:#17130a!important}.hero-age-14{background:#dc751c!important}.hero-age-16{background:#c53036!important}.hero-age-18{background:#171717!important;outline:1px solid #ffffff50}
+}
