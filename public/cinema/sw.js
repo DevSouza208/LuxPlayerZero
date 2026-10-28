@@ -1,7 +1,7 @@
 /* Lux Cinema: interface pública e capas visíveis. Catálogos, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-70';
+const VERSION = 'lux-cinema-shell-71';
 const ASSETS = [
-  '/tv-feature-model.js', '/tv-experience.js', '/tv-experience.css',
+  '/tv-guide-categories.js', '/tv-feature-model.js', '/tv-experience.js', '/tv-experience.css',
   '/local-data.js', '/profile-sync-model.js', '/library-cache.js', '/player-visibility.js', '/playback-errors.js',
   '/legal/links.css',
   '/catalog-prepare.js', '/catalog-prepare-worker.js', '/presentation-metadata.js', '/episode-metadata.js', '/vod-admin.js', '/vod-model.js', '/lux-icons.js', '/lux-icons.css',
