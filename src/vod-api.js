@@ -3,14 +3,16 @@ import {ensureVodSchema} from './vod-schema.js';
 import {startVodJobs,advanceVodJob,enrichVod,writeVodRows} from './vod-catalog.js';
 import {refreshDailyCatalogs} from './catalog-snapshot.js';
 import {normalizeSearchText} from '../public/media-taxonomy.js';
+import {vodFailure} from './vod-errors.js';
 const TABLES=['filmes','series'];
 function labels(value){if(!Array.isArray(value)||value.length>30||value.some(s=>typeof s!=='string'||s.length>80||/[\x00-\x1f]/.test(s)))throw new HttpError(400,'Tags inválidas.');return JSON.stringify([...new Set(value.map(s=>s.trim()).filter(Boolean))]);}
 export async function vodAdminApi(request,env){
+ let stage='session';
  try{
   const user=await requiredSession(request,env);
   if(user.role!=='admin')throw new HttpError(403,'Somente o administrador pode organizar o catálogo.');
   if(request.method==='GET'){
-   await ensureVodSchema(env.DB);const url=new URL(request.url);
+   stage='schema';await ensureVodSchema(env.DB);stage='summary';const url=new URL(request.url);
    if(url.searchParams.get('view')==='rows'){
     const table=url.searchParams.get('tipo');if(!TABLES.includes(table))throw new HttpError(400,'Tipo inválido.');
     const query=normalizeSearchText((url.searchParams.get('q')||'').slice(0,100));
@@ -32,7 +34,7 @@ export async function vodAdminApi(request,env){
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
   const body=await bodyJson(request,131072);
   if(!['start','step','edit','enrich','refresh','seed','rebuild'].includes(body.action))throw new HttpError(400,'Ação inválida.');
-  await ensureVodSchema(env.DB);
+  stage='schema';await ensureVodSchema(env.DB);stage=body.action;
   if(body.action==='rebuild'){
    if(body.confirmation!=='RECONSTRUIR CATALOGO')throw new HttpError(400,'Confirme a exclusão das edições manuais do catálogo.');
    // A condição é repetida dentro da transação: uma leitura anterior não protege de outro Worker.
@@ -57,10 +59,11 @@ export async function vodAdminApi(request,env){
     const refs=Array.isArray(row.referencias)?row.referencias.slice(0,80).filter(ref=>typeof ref.id_provedor==='string'&&/^[a-z0-9_.:-]{1,160}$/i.test(ref.id_provedor)&&typeof ref.fornecedor==='string'&&/^[a-z0-9.:[\]-]{1,255}$/i.test(ref.fornecedor)):[];
     return {referencias:refs,tipo:row.tipo,id:nome+'|'+(ano||''),titulo:row.titulo.trim(),titulo_normalizado:nome,ano,nome_original:String(row.nome_original||row.titulo).slice(0,240),id_provedor:provider,fornecedor:host,tags_fonte:JSON.parse(labels(row.tags_fonte||[]))};
    });
-   for(const table of TABLES)await writeVodRows(env.DB,table,rows.filter(row=>row.tipo===table),now);
-   await env.DB.prepare(`INSERT INTO vod_catalog_items(catalog_id,tipo,item_id,generation,ids_provedor)
+   stage='seed_titles';for(const table of TABLES)await writeVodRows(env.DB,table,rows.filter(row=>row.tipo===table),now);
+   stage='seed_links';await env.DB.prepare(`INSERT INTO vod_catalog_items(catalog_id,tipo,item_id,generation,ids_provedor)
     SELECT ?,json_extract(value,'$.tipo'),json_extract(value,'$.id'),'manual',json_extract(value,'$.referencias') FROM json_each(?) WHERE 1
-    ON CONFLICT(catalog_id,tipo,item_id) DO UPDATE SET ids_provedor=(SELECT json_group_array(json(value)) FROM (SELECT value FROM json_each(vod_catalog_items.ids_provedor) UNION SELECT value FROM json_each(excluded.ids_provedor)))`).bind('manual:'+user.user_id,JSON.stringify(rows)).run();
+    ON CONFLICT(catalog_id,tipo,item_id) DO UPDATE SET ids_provedor=(SELECT json_group_array(json(value)) FROM (SELECT value FROM json_each(vod_catalog_items.ids_provedor) UNION SELECT value FROM json_each(excluded.ids_provedor)))
+    WHERE EXISTS(SELECT 1 FROM json_each(excluded.ids_provedor) incoming WHERE NOT EXISTS(SELECT 1 FROM json_each(vod_catalog_items.ids_provedor) saved WHERE json_extract(saved.value,'$.id_provedor')=json_extract(incoming.value,'$.id_provedor') AND json_extract(saved.value,'$.fornecedor')=json_extract(incoming.value,'$.fornecedor')))`).bind('manual:'+user.user_id,JSON.stringify(rows)).run();
    return reply({imported:rows.length});
   }
   if(body.action==='refresh'){
@@ -80,5 +83,10 @@ export async function vodAdminApi(request,env){
    .bind(titulo,normalizeSearchText(titulo),ano,tmdb,provider||null,labels(body.generos),labels(body.tags),labels(body.colecoes),Date.now(),body.id).run();
   if(!changed.meta.changes)throw new HttpError(404,'Título não encontrado.');
   return reply({ok:true});
- }catch(error){return reply({error:error instanceof HttpError?error.message:'Catálogo VOD indisponível. Execute o SQL 0013 e confira os bindings DB e CATALOG_BUCKET.'},error instanceof HttpError?error.status:503)}
+ }catch(error){
+  if(error instanceof HttpError)return reply({error:error.message},error.status);
+  const failure=vodFailure(error,stage);const reference=crypto.randomUUID();
+  console.error('vod_admin_failure',{reference,code:failure.code,stage});
+  const {status,...payload}=failure;return reply({...payload,reference},status);
+ }
 }
