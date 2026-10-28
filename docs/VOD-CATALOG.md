@@ -5,7 +5,7 @@
 1. Execute `migrations/0013_vod_catalog.sql` no D1 usado pelo Lux Zero.
 2. Entre com a conta cujo `usuarios.nivel_acesso` seja `administrador` ou `admin`.
 3. Abra **Admin** na navegação do Cinema.
-4. Use **Atualizar conteúdo geral**. O painel atualiza fontes R2 cadastradas, importa os títulos e inicia a classificação dos pendentes. Também usa os títulos da lista aberta no navegador, sem enviar suas URLs de mídia. Mantenha o painel aberto durante essa primeira leitura local; as etapas R2/TMDB já iniciadas ficam salvas para a rotina automática.
+4. Use **Atualizar**. O painel atualiza fontes R2 cadastradas, importa os títulos e inicia a classificação dos pendentes. Também usa os títulos da lista aberta no navegador, sem enviar suas URLs de mídia. Mantenha o painel aberto durante essa primeira leitura local; as etapas R2/TMDB já iniciadas ficam salvas para a rotina automática.
 
 O painel permite consultar Filmes/Séries, buscar por início do título, paginar e editar título, ano, ID do fornecedor, ID TMDB, gêneros, tags e coleções. As listas no formulário usam vírgulas; no banco são arrays JSON. Salvar um registro marca `status_metadados='manual'`.
 
@@ -44,3 +44,15 @@ A lista real de teste, com 263.582 entradas, foi percorrida em lotes usando as m
 Validação final: 223 testes locais passaram; o painel teve smoke test de DOM (abrir, listar, editar, fechar, negar usuário comum e não interpretar HTML de títulos). O Worker compilou em dry-run. A ativação do SQL e uma execução autenticada no D1 de produção dependem da conta do administrador.
 
 Para catálogos muito grandes, os limites de CPU do plano Cloudflare também precisam ser conferidos. Os lotes de leitura são pequenos (64 KiB), mas o tempo de CPU real e os bindings do Worker devem ser medidos na produção; o teste local não comprova o limite do plano contratado.
+
+
+## Controles de importação (28/10/2026)
+
+- **Scan rápido** percorre a lista aberta em blocos, agrupa filmes/séries por título e ano e informa os totais únicos sem escrever no D1. TV e episódios individuais não viram títulos. É uma leitura completa local, sem consultar o TMDB. Não estima a duração de consultas futuras do TMDB.
+- **Atualizar** faz o scan antes do envio. Importa os registros únicos em lotes de 60 e preserva classificações, gêneros, tags e edições existentes. Mostra percentual e ETA do envio usando a velocidade observada. Nas fontes R2, o progresso é por entradas lidas do snapshot, incluindo episódios e TV, não pelo número de séries únicas. Cada etapa tem seu próprio percentual.
+- **Reconstruir catálogo** faz o scan antes da confirmação destrutiva. A API exige administrador, mesma origem e confirmação explícita. A exclusão das tabelas filmes/series, vínculos e jobs é atômica e recusada enquanto houver lease de importação ou TMDB ativo. Edições manuais do catálogo são apagadas. Contas, configurações, snapshots e fontes são preservados. Em seguida o painel refaz a importação. Se a lista local for interrompida, Atualizar pode enviar novamente os títulos de forma idempotente.
+- As fontes R2 são retomadas por checkpoint, até quatro trechos de 64 KiB por execução. O parser não reprocessa a playlist inteira para cada linha. A classificação agora pode rodar durante a indexação, com alternância de prioridade entre filmes e séries por minuto. Chave ausente, quota ou HTTP indisponível retornam motivo explícito ao painel. O Worker registra o último resultado de classificação em vod_catalog_state.
+
+O front consulta tmdb_meta_cache. Isso não atualiza filmes/series diretamente. enrichVod cruza os títulos pendentes, reaproveita esse cache e persiste IDs/imagens/gêneros nas tabelas. Antes a manutenção só fazia isso quando toda a indexação ficava ociosa, atrasando o enriquecimento. A correção remove essa dependência. Ainda é necessário verificar os bindings e segredos do Worker em produção.
+
+Validação desta alteração: 243 testes locais, incluindo reconstrução com proteção de lease, preservação de contas, progresso e persistência a partir do cache do front. Scan local da lista de 263.582 entradas: 24.556 filmes e 6.668 séries, cerca de 9 segundos neste ambiente. O desempenho de rede/D1/TMDB e CPU do plano Cloudflare não é inferido desse tempo local.

@@ -22,7 +22,7 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export default {
   async scheduled(event, env, ctx) {
     if(event.cron==='0 7 * * *'||event.cron==='* * * * *'){
-      if(!env.DB?.prepare)return;
+      if(!env.DB?.prepare)throw new Error('Configure o binding DB no Worker de manutenção do catálogo.');
       // 04h de São Paulo descobre snapshots. Demais execuções retomam lotes pendentes.
       const work=runVodMaintenance(env,{discover:event.cron==='0 7 * * *'});ctx.waitUntil(work);return work;
     }

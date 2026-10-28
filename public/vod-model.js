@@ -1,8 +1,8 @@
 import {parseM3u} from './playlist.js';
-import {presentationForEntry,deriveCatalogPresentation} from './cinema-title.js';
+import {deriveCatalogPresentation} from './cinema-title.js';
 import {classifyItem} from './home-model.js';
 import {parseEpisodeLabel} from './cinema-series.js';
-import {normalizeSearchText} from './media-taxonomy.js';
+import {normalizeSearchText,mediaFeatures} from './media-taxonomy.js';
 
 export function providerReference(entry,type){
  let fornecedor='',id=null;
@@ -16,16 +16,16 @@ export function providerReference(entry,type){
 /** Somente títulos: não persiste episódios, URLs, credenciais ou linhas da M3U. */
 export function vodRecord(entry){
  const type=classifyItem(entry);if(!['movies','series'].includes(type))return null;
- const shown=presentationForEntry(entry);
- const episode=type==='series'?parseEpisodeLabel(shown.displayName||entry.name):null;
- const clean=deriveCatalogPresentation(episode?.showTitle||entry.seriesName||shown.displayName||entry.name);
+ const shown=deriveCatalogPresentation(entry.name,entry.catalogYear??entry.year);
+ const episode=type==='series'?parseEpisodeLabel(entry.displayName||shown.title):null;
+ const clean=deriveCatalogPresentation(episode?.showTitle||entry.seriesName||entry.displayName||shown.title,shown.year);
  const titulo=clean.title.trim().slice(0,240),normalized=normalizeSearchText(titulo);
  if(!normalized)return null;
- const ano=clean.year||shown.catalogYear||null;
+ const ano=clean.year||shown.year||null,reference=providerReference(entry,type);
  return {tipo:type==='movies'?'filmes':'series',id:normalized+'|'+(ano||''),titulo,titulo_normalizado:normalized,ano,
-  nome_original:episode?.showTitle||entry.seriesName||entry.name.slice(0,240),...providerReference(entry,type),
-  referencias:[providerReference(entry,type)].filter(ref=>ref.id_provedor),
-  tags_fonte:[...new Set([...(shown.catalogTags||[]),...(clean.tags||[])])].slice(0,24)};
+  nome_original:episode?.showTitle||entry.seriesName||entry.name.slice(0,240),...reference,
+  referencias:reference.id_provedor?[reference]:[],
+  tags_fonte:[...new Set([...(entry.catalogTags||mediaFeatures(entry.name+' '+(entry.group||''))),...shown.tags,...clean.tags])].slice(0,24)};
 }
 export function uniqueVod(entries){
  const filmes=new Map(),series=new Map();
@@ -35,20 +35,18 @@ export function uniqueVod(entries){
 }
 /** Retoma pela última URL completa. Uma EXTINF cortada será lida novamente. */
 export function readVodChunk(bytes,{group='',final=false}={}){
- const decoder=new TextDecoder();let begin=0,consumed=0,header='',override=false,nextGroup=group,committed=group,count=0;
- const entries=[];
+ const decoder=new TextDecoder();let begin=0,consumed=0,header='',nextGroup=group,committed=group;
  for(let i=0;i<=bytes.length;i++){
   if(i===bytes.length&&!final)break;
   if(i<bytes.length&&bytes[i]!==10)continue;
   const line=decoder.decode(bytes.subarray(begin,i)).trim(),end=i<bytes.length?i+1:i;begin=end;
-  if(line.startsWith('#EXTINF:')){header=line;override=false;}
-  else if(line.startsWith('#EXTGRP:')){nextGroup=line.slice(8).trim();if(header)override=true;}
+  if(line.startsWith('#EXTINF:')){header=line;}
+  else if(line.startsWith('#EXTGRP:')){nextGroup=line.slice(8).trim();}
   else if(line&&!line.startsWith('#')){
-   const entry=parseM3u('#EXTM3U\n#EXTGRP:'+nextGroup+'\n'+(header?header+'\n':'')+(override?'#EXTGRP:'+nextGroup+'\n':'')+line)[0];
-   if(entry){count++;entries.push(entry)}
    header='';consumed=end;committed=nextGroup;
   }else if(!header){consumed=end;committed=nextGroup;}
  }
  if(final&&begin>=bytes.length&&!header){consumed=bytes.length;committed=nextGroup;}
- return {...uniqueVod(entries),consumed,group:committed,count};
+ const entries=parseM3u('#EXTM3U\n#EXTGRP:'+group+'\n'+decoder.decode(bytes.subarray(0,consumed)));
+ return {...uniqueVod(entries),consumed,group:committed,count:entries.length};
 }
