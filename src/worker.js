@@ -1,3 +1,4 @@
+import {metadataRequestBudget} from './request-budget.js';
 import {vodAdminApi} from './vod-api.js';
 import {runVodMaintenance} from './vod-catalog.js';
 import {syncCatalog,serveCatalog,refreshDailyCatalogs} from './catalog-snapshot.js';
@@ -35,6 +36,7 @@ export default {
   },
   async fetch(request, env) {
     const url = new URL(request.url);
+    const limited=await metadataRequestBudget(request,env);if(limited)return limited;
     if (url.pathname === '/api/admin/vod')return vodAdminApi(request,env);
     if (url.pathname === '/api/metadata/status' && request.method === 'GET') return json({configured:Boolean(env.TMDB_API_KEY?.trim() && env.DB?.prepare)});
     if (url.pathname === '/api/metadata/tmdb') return lookupTmdb(request, env);

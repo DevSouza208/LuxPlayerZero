@@ -1,3 +1,4 @@
+import {checkRequestBudget} from './request-budget.js';
 import {HttpError,reply,bodyJson,cookie,randomToken,digest,equal} from './account-security.js';
 const encoder=new TextEncoder(),ready=new WeakMap(),DAYS=7*86400000;
 const SQL=[
@@ -78,6 +79,10 @@ export async function usuariosApi(request,env,validateState){
   const user=await usuarioSession(request,env);
   if(path==='/api/account/session'&&request.method==='GET')return reply(user?{authenticated:true,backend:'usuarios',username:user.username,role:user.role,profileId:user.profile_id}:{authenticated:false});
   if(!user)throw new HttpError(401,'Entre na sua conta para continuar.');
+  if(path!=='/api/account/logout'){
+   const blocked=await checkRequestBudget(env,user.user_id,path==='/api/account/state'&&request.method==='POST'?'sync':'account');
+   if(blocked)return blocked;
+  }
   if(path==='/api/account/source'){
    if(request.method==='GET'){
     const row=await env.DB.prepare('SELECT lista_http,lista_https FROM usuarios WHERE id=?').bind(user.usuario_id).first();return reply(row);
