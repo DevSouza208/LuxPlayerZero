@@ -749,7 +749,7 @@ export function createHome({ play } = {}) {
     heart.setAttribute('aria-label', heart.title);
     heart.setAttribute('aria-pressed',String(isFavorite));
     info.append(labels, heart);
-    if (item.catalogYear) appendText(info, 'span', 'media-group', String(item.catalogYear));
+    if (item.catalogYear) appendText(labels, 'span', 'media-group', String(item.catalogYear));
     const tags=(item.catalogTags||[]).filter(tag=>tag!=='Dublado' && tag!=='Legendado').slice(0,3);
     if(tags.length){
       const strip=appendText(info,'div','lux-tag-strip','');
