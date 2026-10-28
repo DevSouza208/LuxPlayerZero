@@ -24,8 +24,7 @@ let personal;
 try { personal = guest?createGuestStore():await createProfileStore(); }
 catch { location.replace('/account/'); throw Error('Perfil indisponível'); }
 if(guest){
- document.querySelector('.account-link')?.setAttribute('href','/');
- const link=document.querySelector('.account-link');if(link)link.textContent='Entrar na conta';
+ const link=document.querySelector('.cinema-account-link');if(link){link.setAttribute('href','/');link.setAttribute('aria-label','Entrar na conta');link.setAttribute('title','Entrar na conta');}
  const guide=document.querySelector('.guide-link');if(guide)guide.hidden=true;
  const notice=document.createElement('p');notice.className='guest-notice';notice.textContent='Modo visitante · Abra sua lista para explorar. Favoritos e preferências duram apenas enquanto esta página estiver aberta.';
  document.querySelector('main')?.prepend(notice);

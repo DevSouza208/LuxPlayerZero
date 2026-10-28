@@ -257,3 +257,10 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
  .cinema-shell .hero-facts-mobile{display:flex;flex-wrap:nowrap;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;gap:7px;padding:2px 1px 7px;scrollbar-width:thin;scrollbar-color:#b38aff55 transparent}
  .cinema-shell .hero-fact{flex:0 0 auto;white-space:nowrap}
 }
+
+/* A single account entry point, shared by desktop and phone. */
+.cinema-shell .cinema-account-link{display:grid;flex-shrink:0;color:#fff;text-decoration:none}
+.cinema-shell .cinema-account-link:focus-visible{outline:2px solid #cbb9ff;outline-offset:4px}
+@media(max-width:760px){
+ .cinema-shell .cinema-account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;z-index:36;width:44px;height:44px;min-width:44px}
+}
