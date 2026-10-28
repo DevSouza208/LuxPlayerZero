@@ -5,15 +5,17 @@ import { DEFAULT_SETTINGS, normalizeSettings } from '../public/home-model.js';
 import { chooseArtwork, metadataNeeded } from '../public/tmdb-client.js';
 const file = p => readFileSync(new URL('../public/' + p, import.meta.url), 'utf8');
 
-test('Splash aparece no primeiro paint e cobre a Home até terminar o restore', () => {
+test('Splash aparece no primeiro paint e biblioteca tem estado próprio de carregamento', () => {
   const html = file('cinema.html'), js = file('cinema-app.js');
   assert.ok(html.includes('id="lux-boot"'));
   assert.ok(html.includes('Abrindo seu Lux Player...'));
   assert.ok(html.includes('.lux-boot{position:fixed;inset:0;z-index:9999'));
-  assert.ok(html.indexOf('id="lux-boot"') < html.indexOf('class="shell cinema-shell"'));
+  assert.ok(html.indexOf('id="lux-boot"') < html.indexOf('class="shell cinema-shell is-library-loading"'));
   assert.ok(js.includes('await refreshBridgeStatus()'));
   assert.ok(js.includes('await restoreSavedLibrary()'));
-  assert.ok(js.includes('finally {\n    // Somente mostra a Home após tentar a restauração'));
+  assert.ok(js.includes('finishLibraryLoading();'));
+  assert.ok(js.includes('setTimeout(finishBoot,Math.max(0,MIN_BOOT_MS-'));
+  assert.ok(html.includes('id="lux-library-loading"'));
   assert.ok(js.includes('finishBoot();'));
   assert.ok(html.includes('id="lux-boot-skip"'));
   assert.ok(html.includes('}, 75000)'));

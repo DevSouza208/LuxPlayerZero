@@ -46,13 +46,21 @@ export function deriveCatalogPresentation(raw, suppliedYear = null) {
  * Mantém name/url exatamente como fornecidos; adiciona somente dados de UI.
  * O chamador já cria uma cópia para atribuir o id cNNNNNN, sem segundo catálogo.
  */
+const categoryPresentationCache=new Map();
+function categoryPresentation(group,genres){
+ const key=JSON.stringify([group,genres]);
+ if(categoryPresentationCache.has(key))return categoryPresentationCache.get(key);
+ const value={classified:classifyMediaCategories([group],genres),normalizedGroup:group.split('|').map(normalizeMediaGroup).filter(Boolean).join(' | ')};
+ categoryPresentationCache.set(key,value);if(categoryPresentationCache.size>512)categoryPresentationCache.delete(categoryPresentationCache.keys().next().value);
+ return value;
+}
 export function presentationForEntry(item) {
   const result = deriveCatalogPresentation(item.name, item.catalogYear ?? item.year);
-  const classified=classifyMediaCategories([item.group||''],item.genres||[]);
+  const rawGroup=String(item.group||'');
+  const {classified,normalizedGroup}=categoryPresentation(rawGroup,item.genres||[]);
   const tags=[...new Set([...result.tags,...mediaFeatures(item.name),...classified.genres,
     ...classified.platforms,...classified.collections])];
-  const rawGroup=String(item.group||'');
-  const normalizedGroup=rawGroup.split('|').map(normalizeMediaGroup).filter(Boolean).join(' | ');
+
   const tvTitle=item.kind==='tv'&&/(\/live\/|canal|tv|esporte|sport|ao vivo)/i.test((item.url||'')+' '+rawGroup)
     ?canonicalTvName(result.title):result.title;
   return {
@@ -60,9 +68,9 @@ export function presentationForEntry(item) {
     ...(result.year?{catalogYear:result.year}:{}),
     ...(tags.length?{catalogTags:tags}:{}),
     ...(normalizedGroup&&normalizedGroup!==rawGroup?{normalizedGroup}:{}),
-    ...(classified.genreIds.length?{catalogGenreIds:classified.genreIds}:{}),
-    ...(classified.platformIds.length?{catalogPlatformIds:classified.platformIds}:{}),
-    ...(classified.collectionIds.length?{catalogCollectionIds:classified.collectionIds}:{})
+    ...(classified.genreIds.length?{catalogGenreIds:classified.genreIds.slice()}:{}),
+    ...(classified.platformIds.length?{catalogPlatformIds:classified.platformIds.slice()}:{}),
+    ...(classified.collectionIds.length?{catalogCollectionIds:classified.collectionIds.slice()}:{})
   };
 }
 

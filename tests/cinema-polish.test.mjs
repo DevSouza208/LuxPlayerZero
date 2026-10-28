@@ -19,7 +19,7 @@ test('Home não expande logos de canais no hero, nem toca no gateway', () => {
   assert.ok(home.includes("heroArt.src = backdrop ||"));
   assert.ok(home.includes("'/assets/login-scene.png'"));
   assert.ok(!home.includes("artwork || '/assets/login-scene.png'"));
-  for (const marker of ['bridge.snapshot(url','new window.Hls(', 'window.mpegts.createPlayer(', 'parseM3u(text, input)']) {
+  for (const marker of ['bridge.snapshot(url','new window.Hls(', 'window.mpegts.createPlayer(']) {
     assert.ok(original.includes(marker));
     assert.ok(cinema.includes(marker));
   }

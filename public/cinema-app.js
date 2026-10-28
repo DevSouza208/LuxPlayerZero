@@ -5,13 +5,14 @@ import {createPlayerModal} from './player-modal.js';
 import {createCatalogCache} from './catalog-cache.js';
 import {isGuestMode} from './guest-mode.js';
 const guestCatalogCache = isGuestMode() ? createCatalogCache() : null;
-import { parseM3u, isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
+import { isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from './playlist.js';
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
-import { createHome } from './home.js';
+import {createHome,prepareHomeProfile} from './home.js';
+import {createCatalogPreparer,isPreparedCatalog} from './catalog-prepare.js';
+const prepareCatalog=createCatalogPreparer();
 import { presentationForEntry, titleForDisplay } from './cinema-title.js';
-import { attachCinemaTmdbIds } from './cinema-tmdb-tags.js';
 import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot, snapshotPath } from './saved-catalog.js';
 
 const $ = id => document.getElementById(id);
@@ -41,12 +42,15 @@ function finishBoot() {
     return;
   }
   bootFinished = true;
+  performance.mark?.('lux:boot-revealed');
   clearTimeout(slowBootTimer);
   clearInterval(bootPhraseTimer);
   if (!bootSplash) return;
   bootSplash.classList.add('is-leaving');
   setTimeout(() => { bootSplash.hidden = true; }, 300);
 }
+// A abertura visual não aguarda a transferência e preparação do catálogo inteiro.
+setTimeout(finishBoot,Math.max(0,MIN_BOOT_MS-(performance.now()-bootStartedAt)));
 bootSkip?.addEventListener('click', finishBoot);
 const slowBootTimer = setTimeout(() => {
   if (!bootFinished) {
@@ -85,8 +89,6 @@ let home = null;
 const playerModal=createPlayerModal($('reproduzir'),{onClose:()=>{stop();homeCall('resumeDetails');}});
 let playerControls=null;
 try { playerControls=createPlayerControls(document.querySelector('.lux-player-modal'),{getEpisodes:()=>homeCall('playbackEpisodes'),onEpisode:id=>homeCall('playEpisode',id),getEngine:()=>hls}); } catch (error) { console.warn('Controles nativos preservados.',error); }
-try { home = createHome({ play: item => playItem(item) }); }
-catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
 function homeCall(method, ...args) {
   try { return home?.[method]?.(...args); }
   catch (error) { console.warn('Falha isolada da vitrine Lux:', method, error); }
@@ -244,7 +246,7 @@ function setChannels(items, caption, snapshotId = null, persist = true) {
   if (persist && guestCatalogCache) void guestCatalogCache.save(items).then(saved => {
     if (!saved) log('Biblioteca', 'Não foi possível guardar o catálogo neste dispositivo.');
   });
-  channels = items.map((item, index) => ({ ...item, id: 'c' + index, ...presentationForEntry(item) }));
+  channels = isPreparedCatalog(items)?items:items.map((item, index) => ({ ...item, id: 'c' + index, ...presentationForEntry(item) }));
   selected = null;
   stop();
   els.search.value = '';
@@ -488,7 +490,7 @@ async function importSource(event) {
       if (generation === sourceLoad) setChannels([{ name: 'Mídia conectada', group: 'URL direta', kind: inferKind('Mídia conectada', input), url: input }], 'URL direta');
     } else if (mode === 'm3u') {
       const text = await request(input);
-      const entries = attachCinemaTmdbIds(text, parseM3u(text, input), input);
+      const entries = await prepareCatalog(text, input);
       if (!entries.length) throw new Error('A lista não contém mídias HTTP/HTTPS válidas.');
       if (generation === sourceLoad) {
         setChannels(entries, 'M3U', lastSnapshotId);
@@ -505,7 +507,7 @@ async function importSource(event) {
       let entries;
       try {
         const playlistText = await request(m3uUrl);
-        entries = attachCinemaTmdbIds(playlistText, parseM3u(playlistText, m3uUrl), m3uUrl);
+        entries = await prepareCatalog(playlistText, m3uUrl);
         if (!entries.length) throw new Error('M3U vazia.');
         log('Xtream', 'M3U original importada; links preservados');
       } catch (m3uError) {
@@ -544,7 +546,7 @@ els.file.addEventListener('change', async () => {
   try {
     if (file.size > 256 * 1024 * 1024) throw new Error('Arquivo excede 256 MB.');
     const contents = await file.text();
-    const entries = attachCinemaTmdbIds(contents, parseM3u(contents));
+    const entries = await prepareCatalog(contents);
     if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
     if (generation === sourceLoad) {
       setChannels(entries, file.name);
@@ -563,7 +565,7 @@ els.demo.addEventListener('click', async () => {
   note('Importando playlist de demonstração...', 'info');
   try {
     const text = await request(url);
-    const entries = attachCinemaTmdbIds(text, parseM3u(text, url), url);
+    const entries = await prepareCatalog(text, url);
     if (!entries.length) throw new Error('A playlist de demonstração não possui fontes válidas.');
     if (generation === sourceLoad) setChannels(entries, 'playlist M3U de demonstração');
   } catch (error) {
@@ -619,7 +621,7 @@ async function restoreSavedLibrary() {
       return;
     }
     showBootPhrase();
-    const entries = attachCinemaTmdbIds(result.content, parseM3u(result.content));
+    const entries = await prepareCatalog(result.content);
     if (!entries.length) throw new Error('O snapshot salvo não tem mídias válidas.');
     if (generation === sourceLoad) {
       setChannels(entries, 'R2 (biblioteca restaurada)', id);
@@ -667,9 +669,9 @@ async function saveAccountSource(source,id) {
       lista_https:id?new URL(snapshotPath(id),location.origin).href:url.protocol==='https:'?url.href:null})});
   if(!response.ok&&response.status!==404)note('Lista carregada, mas não foi possível salvar o endereço na conta.','info');
 }
-async function loadAccountSource() {
+async function loadAccountSource(prefetchedResponse=null) {
   if(isGuestMode())return false;
-  const response=await fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'});
+  const response=prefetchedResponse||await fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'});
   if(response.status===404)return false;
   if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
   const source=await response.json(),generation=sourceLoad;
@@ -684,13 +686,13 @@ async function loadAccountSource() {
         if(saved.kind!=='ok')throw new Error('Não foi possível recuperar sua lista HTTPS.');content=saved.content;
       }else content=await request(source.lista_https);
     }else{content=await request(source.lista_http);id=lastSnapshotId;}
-    const entries=attachCinemaTmdbIds(content,parseM3u(content));
+    const entries=await prepareCatalog(content);
     if(!entries.length)throw new Error('A lista da conta não contém mídias válidas.');
     if(generation===sourceLoad){setChannels(entries,'sua conta',id);if(id&&!source.lista_https)await saveAccountSource(source.lista_http,id);}
   } catch(error){
     if(source.lista_https&&source.lista_http&&generation===sourceLoad){
       try{
-        const content=await request(source.lista_http),entries=attachCinemaTmdbIds(content,parseM3u(content));
+        const content=await request(source.lista_http),entries=await prepareCatalog(content);
         if(!entries.length)throw error;
         if(generation===sourceLoad){setChannels(entries,'sua conta',lastSnapshotId);await saveAccountSource(source.lista_http,lastSnapshotId);}
       }catch(fallbackError){if(generation===sourceLoad)note(errorText(fallbackError),'error');}
@@ -699,16 +701,22 @@ async function loadAccountSource() {
   return true;
 }
 updateForm();
-void (async () => {
+function finishLibraryLoading(){document.querySelector('.cinema-shell')?.classList.remove('is-library-loading');document.querySelector('main')?.removeAttribute('aria-busy');}
+async function initializeCinema(){
   try {
     showBootPhrase();
-    await refreshBridgeStatus();
-    if(!await loadAccountSource())await restoreSavedLibrary();
+    const sourceResponse=isGuestMode()?Promise.resolve(null):fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'}).catch(()=>new Response('',{status:503}));
+    const [,,accountResponse]=await Promise.all([refreshBridgeStatus(),prepareHomeProfile(),sourceResponse]);
+    try { home = createHome({ play: item => playItem(item) }); }
+    catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
+    if(!await loadAccountSource(accountResponse))await restoreSavedLibrary();
   } catch {
     // Erros de boot não impedem abrir o formulário manual de conexão.
     bootProgress('Não foi possível restaurar automaticamente.');
   } finally {
-    // Somente mostra a Home após tentar a restauração, nunca o catálogo em branco primeiro.
+    // Os títulos aparecem após a restauração; o splash já pode ter terminado.
+    finishLibraryLoading();
     finishBoot();
   }
-})();
+}
+void initializeCinema();

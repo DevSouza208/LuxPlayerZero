@@ -23,8 +23,8 @@ import { createProfileStore } from './profile-store.js';
 const $ = id => document.getElementById(id);
 const guest=isGuestMode();
 let personal;
-try { personal = guest?createGuestStore():await createProfileStore(); }
-catch { location.replace('/account/'); throw Error('Perfil indisponível'); }
+const profileReady=(guest?Promise.resolve(createGuestStore()):createProfileStore()).then(store=>{personal=store;}).catch(()=>{location.replace('/account/');throw Error('Perfil indisponível');});
+export function prepareHomeProfile(){return profileReady;}
 if(guest){
  const link=document.querySelector('.cinema-account-link');if(link){link.setAttribute('href','/');link.setAttribute('aria-label','Entrar na conta');link.setAttribute('title','Entrar na conta');}
  const guide=document.querySelector('.guide-link');if(guide)guide.hidden=true;
