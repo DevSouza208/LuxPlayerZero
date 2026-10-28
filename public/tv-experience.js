@@ -33,7 +33,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   const actions=el('div','lux-tv-hero-actions');
   if(current){const play=button('',()=>onPlay?.(current.primary),'lux-tv-watch');setIconLabel(play,'play','Assistir ao vivo',true);actions.append(play);const details=button('Fontes e informações',()=>onDetails?.(current.primary),'lux-tv-quiet');actions.append(details);}
   else actions.append(button('Explorar canais',()=>host.querySelector('#browse-grid')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}),'lux-tv-watch'));
-  if(canEdit)actions.append(button('Programar destaques',openEditor,'lux-tv-quiet'));content.append(actions);
+  if(canEdit){const edit=button('Programar destaques',openEditor,'lux-tv-quiet');edit.dataset.tvEditor='true';actions.append(edit)}content.append(actions);
   if(choices.length>1){const picker=el('div','lux-tv-featured-choices');picker.setAttribute('role','group');picker.setAttribute('aria-label','Destaques de hoje');for(const group of choices){const node=button(group.title,()=>{selectedKey=group.key;renderHero();[...hero.querySelectorAll('[data-channel]')].find(value=>value.dataset.channel===group.key)?.focus({preventScroll:true})});node.dataset.channel=group.key;node.setAttribute('aria-pressed',String(group===current));picker.append(node)}content.append(picker)}
   hero.append(content);
   const art=el('div','lux-tv-hero-logo');art.setAttribute('aria-hidden','true');
@@ -63,7 +63,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   if(!available.length)results.append(el('p','','Nenhum outro canal encontrado na sua playlist.'));
  }
  function openEditor(){if(!canEdit)return;draft=cleanTvSchedule(schedule);editingDay=day;daySelect.value=String(day);search.value='';editorStatus.textContent='';renderEditor();returnFocus=document.activeElement;dialog.showModal();daySelect.focus()}
- dialog.addEventListener('close',()=>returnFocus?.isConnected&&returnFocus.focus());
+ dialog.addEventListener('close',()=>{const target=returnFocus?.isConnected?returnFocus:hero.querySelector('[data-tv-editor]');target?.focus()});
  daySelect.addEventListener('change',()=>{editingDay=Number(daySelect.value);search.value='';renderEditor()});search.addEventListener('input',renderEditor);
  async function request(options={}){const response=await fetcher('/api/editorial/tv-highlights',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(12000),...options});const value=await response.json();if(!response.ok)throw Error(value.error||'Destaques indisponíveis.');return {...value,schedule:cleanTvSchedule(value.schedule)}}
  async function storeSchedule(){try{const key=cacheKey();if(key)await storage.set(key,{schedule,checkedAt:Date.now(),canEdit})}catch{/* Optional local cache never blocks TV. */}}
@@ -75,7 +75,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   })().finally(()=>{loading=null});return loading;
  }
  form.addEventListener('submit',async event=>{event.preventDefault();if(!canEdit)return;save.disabled=true;editorStatus.textContent='Salvando agenda…';try{
-  const data=await request({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({schedule:cleanTvSchedule(draft)})});schedule=data.schedule;lastRead=Date.now();await storeSchedule();renderHero();dialog.close();message('Destaques da semana salvos.');
+  const data=await request({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({schedule:cleanTvSchedule(draft)})});schedule=data.schedule;selectedKey='';lastRead=Date.now();await storeSchedule();renderHero();dialog.close();message('Destaques da semana salvos.');
  }catch(error){editorStatus.textContent=error.message}finally{save.disabled=false}});
  function refreshDay(){const current=saoPauloDay(now());if(current!==day){day=current;selectedKey='';renderHero()}}
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&active){refreshDay();void load()}});
