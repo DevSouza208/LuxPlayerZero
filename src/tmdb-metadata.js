@@ -1,6 +1,6 @@
 /**
- * /api/metadata/tmdb — lookup opcional, privado e estritamente limitado.
- * Requer TMDB_API_KEY (Secret) + DB (D1) no Pages. Falha fechada.
+ * Shared TMDB matching. Internal classifier uses D1 by default.
+ * Public routes inject transient storage via live-metadata.js and never touch D1.
  * Não manipula mídia, catálogos, playlist, R2 ou rotas /api/bridge.
  */
 import { apiError, apiOk, sameOriginPost } from './bridge-core.js';
@@ -16,11 +16,11 @@ async function ensureTables(db) {
 }
 function fail(status, message) { return apiError(status, message); }
 
-export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now) {
+export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now, store = null) {
   if (request.method !== 'POST') return fail(405, 'Método não permitido.');
   if (!sameOriginPost(request)) return fail(403, 'Origem não permitida.');
   if (typeof env?.TMDB_API_KEY !== 'string' || !env.TMDB_API_KEY.trim() ||
-      typeof env?.DB?.prepare !== 'function') {
+      (!store && typeof env?.DB?.prepare !== 'function')) {
     return fail(503, 'Metadados TMDB não configurados. Mantendo imagens da lista.');
   }
   if (Number(request.headers.get('content-length') || 0) > MAX_BODY) {
@@ -38,6 +38,8 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
   const day = new Date(now).toISOString().slice(0, 10);
   let cache;
   try {
+    if(store){const hit=await store.get(query.key);if(hit)return apiOk(hit);}
+    else {
     await ensureTables(env.DB);
     cache = await env.DB.prepare('SELECT payload, expires_at FROM tmdb_meta_cache WHERE id = ?')
       .bind(query.key).first();
@@ -48,6 +50,7 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
       const saved = JSON.parse(previous.payload);
       if(saved.status === 'matched' && saved.poster) return apiOk(saved);
     }
+    }
   } catch {
     // Sem D1: não há cache nem limite confiável. Bloquear consultas.
     return fail(503, 'Cache de metadados indisponível. Usando os dados originais.');
@@ -55,11 +58,14 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
 
   let result;
   async function remote(path, parameters = {}) {
+    if(store){if(!store.take())throw Object.assign(new Error(),{name:'QuotaError'});}
+    else {
     const quota = await env.DB.prepare(
       'INSERT INTO tmdb_meta_daily (day, used) VALUES (?, 1) ' +
       'ON CONFLICT(day) DO UPDATE SET used = used + 1 WHERE used < ?'
     ).bind(day, TMDB_LIMITS.dailyRemoteLookups).run();
     if (!quota?.meta?.changes) throw Object.assign(new Error(), { name: 'QuotaError' });
+    }
     const url = new URL('https://api.themoviedb.org/3/' + path);
     url.searchParams.set('api_key', env.TMDB_API_KEY.trim());
     for (const [key,value] of Object.entries(parameters)) url.searchParams.set(key,value);
@@ -119,6 +125,7 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
   const payload = result || { status: 'unmatched' };
   const expires = now + (result ? TMDB_LIMITS.matchTtlMs : TMDB_LIMITS.missTtlMs);
   try {
+    if(store){await store.put(query.key,payload,expires);return apiOk(payload);}
     await env.DB.prepare(
       'INSERT INTO tmdb_meta_cache (id, payload, expires_at) VALUES (?, ?, ?) ' +
       'ON CONFLICT(id) DO UPDATE SET payload = excluded.payload, expires_at = excluded.expires_at'

@@ -7,7 +7,7 @@ export async function accountGate(request, env) {
   // Public interface only. Private APIs retain their own authorization.
   if(['GET','HEAD'].includes(request.method)&&/^\/cinema\/?$/.test(path)&&url.searchParams.get('guest')==='1')return null;
   // Public title metadata contains no account/catalog data; lookup keeps its own
-  // same-origin validation, bounded queries, D1 cache and daily quota.
+  // same-origin validation, bounded queries and transient cache/rate limits.
   if((request.method==='GET'&&path==='/api/metadata/status')||
      (request.method==='POST'&&['/api/metadata/tmdb','/api/metadata/details'].includes(path)))return null;
   const cinema=/^\/(cinema(?:\/|\.html|$)|player\.html$)/.test(path);

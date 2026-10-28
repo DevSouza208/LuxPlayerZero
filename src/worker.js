@@ -2,9 +2,8 @@ import {vodAdminApi} from './vod-api.js';
 import {runVodMaintenance} from './vod-catalog.js';
 import {syncCatalog,serveCatalog,refreshDailyCatalogs} from './catalog-snapshot.js';
 import {connect,status,catalog,sign,media} from './bridge-core.js';
-import { lookupTmdb } from './tmdb-metadata.js';
+import {liveMetadata,liveMetadataStatus} from './live-metadata.js';
 import { importGuestPlaylist } from './guest-playlist.js';
-import { detailMetadata } from './detail-metadata.js';
 import { catalogSearchApi } from './catalog-search.js';
 import { editorialApi } from './editorial-api.js';
 import { accountApi } from './account-api.js';
@@ -36,8 +35,8 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/api/admin/vod')return vodAdminApi(request,env);
-    if (url.pathname === '/api/metadata/status' && request.method === 'GET') return json({configured:Boolean(env.TMDB_API_KEY?.trim() && env.DB?.prepare)});
-    if (url.pathname === '/api/metadata/tmdb') return lookupTmdb(request, env);
+    if (url.pathname === '/api/metadata/status' && request.method === 'GET') return liveMetadataStatus(env);
+    if (url.pathname === '/api/metadata/tmdb') return liveMetadata(request,env,'lookup');
     if (url.pathname === '/api/bridge/status' && request.method === 'GET') return status(request,env);
     if (url.pathname === '/api/bridge/connect' && request.method === 'POST') return connect(request,env);
     if (url.pathname === '/api/bridge/sync' && request.method === 'POST') return syncCatalog(request,env);
@@ -46,7 +45,7 @@ export default {
     if (url.pathname === '/api/bridge/sign' && request.method === 'POST') return sign(request,env);
     if (url.pathname === '/api/bridge/media' && request.method === 'GET') return media(request,env);
     if (url.pathname === '/api/bridge/import') return importGuestPlaylist(request, env);
-    if (url.pathname === '/api/metadata/details') return detailMetadata(request, env);
+    if (url.pathname === '/api/metadata/details') return liveMetadata(request,env,'details');
     if (url.pathname === '/api/catalog/search') return catalogSearchApi(request, env);
     if (url.pathname.startsWith('/api/editorial/')) return editorialApi(request, env);
     if (url.pathname.startsWith('/api/account/')) return accountApi(request, env);

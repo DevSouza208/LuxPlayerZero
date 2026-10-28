@@ -65,3 +65,8 @@ O botão **Preencher metadados TMDB** chama somente a classificação dos títul
 Reenvios idênticos deixam de atualizar vod_catalog_items quando não há novas referências. A API retorna classes seguras para cota diária de leitura/gravação, armazenamento, esquema incompleto, limite de execução ou falha temporária, além da etapa e referência para correlação. Não devolve SQL, parâmetros, URLs ou mensagens brutas do banco. A mensagem genérica anterior não provava falta de migração ou R2.
 
 A lista privada completa foi enviada localmente pela API autenticada em lotes de 60: 24.556 filmes e 6.668 séries, maior corpo de requisição com 30.803 bytes. O erro de produção não foi reproduzido nesse teste. Cota/timeout na Cloudflare são hipóteses até observar o diagnóstico ou os logs reais. A cota diária do D1 Free, quando atingida, não pode ser ampliada por código e renova às 00h UTC (21h São Paulo).
+
+
+## Separação de apresentação e classificação
+
+As rotas públicas TMDB agora usam live-metadata sem D1, enquanto enrichVod continua chamando o classificador persistente diretamente. A navegação não preenche filmes/series automaticamente. Os testes de reaproveitamento do cache persistente se referem ao fluxo administrativo, não mais ao cache do front. O cache novo de apresentação é do navegador/memória/borda e independe da cota do D1. O plano para distribuir tags editoriais em um índice estático está em FUNCTIONS-DATA-PLAN.md e ainda não está implementado.
