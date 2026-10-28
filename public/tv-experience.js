@@ -2,15 +2,16 @@ import {safeImage} from './home-model.js';
 import {setIconLabel} from './lux-icons.js';
 import {normalizeSearchText} from './media-taxonomy.js';
 import {createLocalData} from './local-data.js';
-import {TV_DAYS,providerTvGroups,saoPauloDay,emptyTvSchedule,cleanTvSchedule,channelsForDay} from './tv-feature-model.js';
+import {TV_DAYS,saoPauloDay,emptyTvSchedule,cleanTvSchedule,channelsForDay} from './tv-feature-model.js';
+import {guideTvGroups} from './tv-guide-categories.js';
 const el=(tag,cls='',text)=>{const node=document.createElement(tag);node.className=cls;if(text!==undefined)node.textContent=text;return node};
 const button=(text,action,cls='')=>{const node=el('button',cls,text);node.type='button';node.addEventListener('click',action);return node};
 export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},guest=false,getProfileId=()=>null,fetcher=fetch,storage=createLocalData(),now=()=>new Date()}={}){
  let sourceGroups=null;
- let groups=[],index=providerTvGroups([]),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
+ let groups=[],index=guideTvGroups([]),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
  const root=el('div','lux-tv-experience');root.hidden=true;host.prepend(root);
  const hero=el('section','lux-tv-hero');hero.setAttribute('aria-label','Canais em destaque');
- const navigation=el('nav','lux-tv-navigation');navigation.setAttribute('aria-label','Categorias do fornecedor');
+ const navigation=el('nav','lux-tv-navigation');navigation.setAttribute('aria-label','Categorias de canais');
  const notices=el('p','lux-tv-notice');notices.setAttribute('role','status');notices.hidden=true;root.append(hero,navigation,notices);
  const dialog=el('dialog','lux-tv-editor');dialog.setAttribute('aria-labelledby','tv-editor-title');
  const form=el('form'),header=el('header'),heading=el('h2','','Destaques da semana');heading.id='tv-editor-title';
@@ -75,7 +76,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&active){refreshDay();void load()}});
  const timer=setInterval(()=>{if(active&&!document.hidden)refreshDay()},60000);
  return {
-  setGroups(next){if(sourceGroups===next)return;sourceGroups=next;index=providerTvGroups(next);groups=index.groups;if(section!=='all'&&!index.categories.some(row=>row.key===section))section='all';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor()},
+  setGroups(next){if(sourceGroups===next)return;sourceGroups=next;index=guideTvGroups(next);groups=index.groups;if(section!=='all'&&!index.categories.some(row=>row.key===section))section='all';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor()},
   show(value){active=value;root.hidden=!value;if(value){refreshDay();if(!hero.children.length)renderHero();if(!navigation.children.length)renderNavigation();void load()}},
   get filterKey(){return section},
   get allChannels(){return index.channels},
