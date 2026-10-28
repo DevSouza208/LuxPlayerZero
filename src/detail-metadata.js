@@ -45,26 +45,39 @@ export function sanitizeDetails(data,type,id){
   similar:(data.recommendations?.results||[]).filter(row=>row.adult!==true).slice(0,20).map(row=>({id:row.id,title:clean(row.title||row.name,240),year:clean(row.release_date||row.first_air_date,4),...(image(row.poster_path)?{poster:image(row.poster_path)}:{})}))
  };
 }
+export function sanitizeSeason(data,id,season){
+ if(data?.season_number!==season||!validId(data.id)||!Array.isArray(data.episodes))throw new HttpError(503,'Temporada indisponível.');
+ const seen=new Set();
+ const episodes=data.episodes.filter(row=>row&&Number.isInteger(row.episode_number)&&row.episode_number>0&&row.episode_number<=999&&row.season_number===season&&(!row.show_id||row.show_id===id)&&!seen.has(row.episode_number)&&seen.add(row.episode_number)).slice(0,999).map(row=>({
+  number:row.episode_number,season,title:clean(row.name,240),overview:clean(row.overview,2000),
+  runtime:number(row.runtime)>0&&row.runtime<=1440?row.runtime:null,
+  airDate:/^\d{4}-\d{2}-\d{2}$/.test(row.air_date)?row.air_date:null,
+  rating:number(row.vote_average)<=10?number(row.vote_average):null,voteCount:number(row.vote_count),still:image(row.still_path,'w780')
+ }));
+ return {tmdbId:id,type:'tv',seasonNumber:season,episodes};
+}
 export async function detailMetadata(request,env,fetcher=fetch){
  try{
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
   const body=await bodyJson(request,500),id=Number(body.tmdbId),type=body.type;
   if(!['movie','tv'].includes(type)||!Number.isSafeInteger(id)||id<1||id>999999999)throw new HttpError(400,'Identificador inválido.');
+  const isSeason=body.seasonNumber!==undefined,season=body.seasonNumber;
+  if(isSeason&&(type!=='tv'||!Number.isInteger(season)||season<0||season>99))throw new HttpError(400,'Temporada inválida.');
   if(!env.TMDB_API_KEY?.trim()||!env.DB?.prepare)throw new HttpError(503,'TMDB indisponível.');
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_cache (id TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at INTEGER NOT NULL)').run();
-  const key='v4:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
+  const key=isSeason?'season:v1:'+id+':'+season:'v4:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
   if(cached)return reply(JSON.parse(cached.payload));
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_daily (day TEXT PRIMARY KEY,used INTEGER NOT NULL DEFAULT 0)').run();
   const quota=await env.DB.prepare('INSERT INTO detail_metadata_daily(day,used) VALUES (?,1) ON CONFLICT(day) DO UPDATE SET used=used+1 WHERE used<5000').bind(new Date().toISOString().slice(0,10)).run();
   if(!quota.meta.changes)throw new HttpError(429,'Limite diário de detalhes atingido.');
-  const url=new URL('https://api.themoviedb.org/3/'+type+'/'+id);
+  const url=new URL('https://api.themoviedb.org/3/'+type+'/'+id+(isSeason?'/season/'+season:''));
   url.searchParams.set('api_key',env.TMDB_API_KEY.trim());url.searchParams.set('language','pt-BR');
-  url.searchParams.set('append_to_response','credits,videos,recommendations,images,keywords,reviews,'+(type==='movie'?'release_dates':'content_ratings'));
+  if(!isSeason)url.searchParams.set('append_to_response','credits,videos,recommendations,images,keywords,reviews,'+(type==='movie'?'release_dates':'content_ratings'));
   url.searchParams.set('include_image_language','pt,en,null');
   const signal=AbortSignal.timeout(7000);
   const response=await fetcher(url.href,{redirect:'manual',signal,headers:{accept:'application/json'}});
   if(!response.ok)throw new HttpError(503,'Detalhes indisponíveis no momento.');
-  const result=sanitizeDetails(await response.json(),type,id);
+  const result=isSeason?sanitizeSeason(await response.json(),id,season):sanitizeDetails(await response.json(),type,id);
   if(result.collection){
    result.collection.status='unavailable';result.collection.parts=[];
    try{
@@ -74,7 +87,7 @@ export async function detailMetadata(request,env,fetcher=fetch){
     if(response.ok){result.collection.parts=sanitizeCollection(await response.json(),result.collection.id);result.collection.status='ready'}
    }catch{/* Partial metadata remains usable when collection lookup fails. */}
   }
-  await env.DB.prepare('INSERT INTO detail_metadata_cache(id,payload,expires_at) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,expires_at=excluded.expires_at').bind(key,JSON.stringify(result),Date.now()+(result.collection?.status==='unavailable'?300000:604800000)).run();
+  await env.DB.prepare('INSERT INTO detail_metadata_cache(id,payload,expires_at) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,expires_at=excluded.expires_at').bind(key,JSON.stringify(result),Date.now()+(isSeason?86400000:result.collection?.status==='unavailable'?300000:604800000)).run();
   return reply(result);
  }catch(error){return reply({error:error instanceof HttpError?error.message:'Detalhes indisponíveis.'},error instanceof HttpError?error.status:503)}
 }

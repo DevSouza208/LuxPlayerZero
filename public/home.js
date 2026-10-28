@@ -14,6 +14,7 @@ import {createEpisodeContinuation} from './episode-continuation.js';
 import {buildSeriesIndex,nextEpisode} from './cinema-series.js';
 import {groupTvEntries,TV_CATEGORY_LABELS} from './cinema-tv-groups.js';
 import {createFullDetails} from './cinema-detail-page.js';
+import {createSeasonMetadataClient} from './episode-metadata.js';
 import { genreLabel } from './media-taxonomy.js';
 import { browseRoleFromHash, browsePageData, browseGroups, browseFacets } from './cinema-browse.js';
 
@@ -107,7 +108,9 @@ export function createHome({ play } = {}) {
       .then(async response=>response.ok?response.json():null).catch(()=>null).then(details=>{richCache.set(key,details);return details}).finally(()=>richPending.delete(key));
     richPending.set(key,promise);return promise;
   }
+  const seasonMetadata=createSeasonMetadataClient();
   const fullDetails=createFullDetails({
+    seasonFor:(id,number)=>config.summaryEngine==='off'?null:seasonMetadata(id,number),
     onPlay:entry=>start(entry),
     onRelated:entry=>{if(getById(entry?.id)===entry)showDetails(entry);},
     metadataFor:entry=>metadataFor(entry),

@@ -1,12 +1,13 @@
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createTrailerModal,trailerVideos} from './trailer-modal.js';
 import {renderRichMetadata,detailFacts,renderFactBadges} from './tmdb-rich-view.js';
+import {episodePresentation} from './episode-metadata.js';
 /* Full-viewport Lux 2.0-inspired film and series pages.
  * HTML strings below are static only; provider data is assigned via textContent.
  */
 const make=(tag,klass,label)=>{const el=document.createElement(tag);el.className=klass||'';if(label!==undefined)el.textContent=String(label);return el};
 const photo=raw=>{try{const url=new URL(String(raw||''));return url.protocol==='https:'?url.href:''}catch{return''}};
-export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
+export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seasonFor,isFavorite,onFavorite,getSeason,onSeason,getProgress,isWatched,onWatched}){
  const trailers=createTrailerModal();let trailerData={};
  const shell=make('dialog','lux-fullscreen-detail');shell.hidden=true;shell.id='lux-fullscreen-detail';
  shell.innerHTML=
@@ -25,6 +26,24 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
  let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
  const selectedSeasons=new Map();
+ let seriesTmdbId=null,episodeViews=[];
+ function updateEpisode(view,metadata){
+  const data=episodePresentation(view.row,metadata);
+  view.title.textContent=data.title;view.info.textContent=data.info;
+  view.overview.textContent=data.overview;view.overview.hidden=!data.overview;
+  view.card.setAttribute('aria-label','Reproduzir '+data.title+' · temporada '+view.row.season+', episódio '+view.row.number);
+  const src=photo(data.still)||view.fallback;
+  if(src&&view.image.getAttribute('src')!==src){view.image.src=src;view.image.hidden=false;}
+ }
+ async function loadSeason(){
+  if(!series||!seriesTmdbId||typeof seasonFor!=='function')return;
+  const currentEpoch=epoch,selectedSeason=season,id=seriesTmdbId;
+  try{
+   const metadata=await seasonFor(id,selectedSeason);
+   if(!opened||epoch!==currentEpoch||season!==selectedSeason||seriesTmdbId!==id||metadata?.tmdbId!==id||metadata.seasonNumber!==selectedSeason)return;
+   for(const view of episodeViews)updateEpisode(view,metadata);
+  }catch{/* Episode selection remains usable without metadata. */}
+ }
  $('[data-full-trailer]').addEventListener('click',()=>trailers.open(trailerData));
  const setPhoto=(target,value)=>{target.onerror=()=>{const reserve=target===poster?photo(lastOptions.fallbackPoster):'';if(reserve&&target.src!==reserve){target.src=reserve;return}target.hidden=true;if(target===poster)fallback.hidden=false};const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
  const play=entry=>{if(!entry)return;suspend();onPlay?.(entry)};
@@ -39,22 +58,25 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   $('.lux-full-season-choices').replaceChildren(header);
   if(focusSelected)$('[role=tab][aria-selected=true]')?.focus();
   const grid=document.createDocumentFragment();
+  episodeViews=[];
   for(const row of selected.episodes){
    const card=make('button','lux-full-episode-card');card.type='button';
    const visual=make('span','lux-full-episode-art');
-   const imgSrc=photo(row.item.logo)||photo(series?.poster);if(imgSrc){const image=make('img');image.src=imgSrc;image.alt='';image.loading='lazy';visual.append(image)}
+   const imgSrc=photo(row.item.logo)||photo(series?.poster),image=make('img');image.alt='';image.loading='lazy';image.hidden=true;visual.append(image);
+   image.onerror=()=>{if(imgSrc&&image.getAttribute('src')!==imgSrc){image.src=imgSrc;image.hidden=false;}else image.hidden=true;};
    visual.append(setIcon(make('span','lux-full-episode-play'),'play',true));
-   const info=make('span','lux-full-episode-info');info.append(make('b','', 'T'+row.season+':E'+row.number));
+   const info=make('span','lux-full-episode-info'),title=make('b','lux-full-episode-title'),meta=make('small','lux-full-episode-meta'),overview=make('span','lux-full-episode-overview');info.append(title,meta,overview);
+   const view={row,card,image,title,info:meta,overview,fallback:imgSrc};episodeViews.push(view);updateEpisode(view,null);
    if(isWatched?.(row.item))info.append(make('small','','Assistido'));
    const progress=getProgress?.(row.item);if(progress?.duration>0){const bar=make('progress');bar.max=progress.duration;bar.value=progress.position;bar.setAttribute('aria-label','Progresso do episódio');info.append(bar)}
-   if(row.title)info.append(make('small','',row.title));
-   card.append(visual,info);card.setAttribute('aria-label','Reproduzir temporada '+row.season+', episódio '+row.number);
+   card.append(visual,info);
    card.addEventListener('click',()=>play(row.item));grid.append(card)}
   $('.lux-full-episode-grid').replaceChildren(grid);
+  void loadSeason();
  }
  function open(next,opts={}){
   if(!next)return;trailers.close();trailerData={};lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
-  epoch++;const currentEpoch=epoch;
+  epoch++;const currentEpoch=epoch;seriesTmdbId=null;episodeViews=[];
   if(first){returnFocus=document.activeElement;oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden'}
   opened=true;suspended=false;shell.hidden=false;if(!shell.open)shell.showModal();shell.scrollTop=0;
   $('#lux-full-kind').textContent=series?'SÉRIE':'FILME';
@@ -77,6 +99,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   if(typeof metadataFor==='function')void (async()=>{
    try{const target=series?{...next,name:series.title,displayName:series.title}:next;
     const info=await metadataFor(target);if(!opened||currentEpoch!==epoch||info?.status!=='matched')return;
+    if(series){seriesTmdbId=Number(info.tmdbId);void loadSeason();}
     setPhoto(banner,info.backdrop||opts.backdrop);
     fallback.hidden=setPhoto(poster,info.poster||(opts.poster??next.logo));
     if(info.overview){desc.textContent=info.overview;desc.hidden=false}
