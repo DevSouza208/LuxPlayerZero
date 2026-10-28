@@ -44,15 +44,23 @@ export function buildSeriesIndex(items){
     if(!key)continue;
     let group=groups.get(key);
     if(!group){
-      group={key,title:parsed.showTitle,representative:item,poster:'',episodes:[],seasonMap:new Map()};
+      group={key,title:parsed.showTitle,representative:item,poster:'',episodes:[],uniqueEpisodes:[],episodeMap:new Map(),seasonMap:new Map()};
       groups.set(key,group);
     }
     if(!group.poster)group.poster=safeImage(item.logo);
     const row={item,season:parsed.season,number:parsed.episode,title:parsed.episodeTitle,episodeId:item.episodeId||null};
+    // Preserve every original row for playback/progress lookup, but render once.
     group.episodes.push(row);
-    let episodes=group.seasonMap.get(row.season);
-    if(!episodes){episodes=[];group.seasonMap.set(row.season,episodes)}
-    episodes.push(row);
+    const episodeKey=row.season+':'+row.number,sourceKey=item.url||'id:'+item.id;
+    let logical=group.episodeMap.get(episodeKey);
+    if(!logical){
+      logical={...row,variants:[],sourceKeys:new Set()};group.episodeMap.set(episodeKey,logical);group.uniqueEpisodes.push(logical);
+      let episodes=group.seasonMap.get(row.season);
+      if(!episodes){episodes=[];group.seasonMap.set(row.season,episodes)}
+      episodes.push(logical);
+    }
+    if(!logical.sourceKeys.has(sourceKey)){logical.sourceKeys.add(sourceKey);logical.variants.push(item);}
+    if(!logical.title&&row.title)logical.title=row.title;
     byItemId.set(item.id,group);
   }
   const ordered=[...groups.values()];
@@ -60,6 +68,7 @@ export function buildSeriesIndex(items){
     group.seasons=[...group.seasonMap.entries()].sort((a,b)=>a[0]-b[0])
       .map(([number,episodes])=>({number,episodes:episodes.sort((a,b)=>a.number-b.number)}));
     group.episodes.sort((a,b)=>a.season-b.season||a.number-b.number);
+    group.uniqueEpisodes.sort((a,b)=>a.season-b.season||a.number-b.number);
   }
   const seen=new Set(),representatives=[];
   for(const item of items||[]){
