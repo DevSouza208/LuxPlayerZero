@@ -19,7 +19,7 @@ const $ = id => document.getElementById(id);
 const bootSplash = $('lux-boot');
 const bootMessage = $('lux-boot-status');
 const bootSkip = $('lux-boot-skip');
-const MIN_BOOT_MS = 5000;
+const MIN_BOOT_MS = 2500;
 const bootStartedAt = window.__luxBootStarted ?? performance.now();
 let bootFinishTimer = null;
 let bootFinished = false;
