@@ -6,7 +6,8 @@ export function channelCountry(name,providerGroup=''){
  let rest=String(name||'');let prefixed=false;
  for(let i=0;i<3;i++){
   const match=rest.match(/^\s*(?:\[([a-z]{2,3})\]|([a-z]{2,3})\s*[:|])\s*/i);if(!match)break;
-  prefixed=true;const code=(match[1]||match[2]).toUpperCase(),country=ALIASES[code]||code;
+  const code=(match[1]||match[2]).toUpperCase(),country=ALIASES[code]||code;
+  if(['LA','LT'].includes(code))prefixed=true;
   if(COUNTRIES[country])return {international:country!=='BR',code:country,label:COUNTRIES[country]};
   rest=rest.slice(match[0].length);
  }

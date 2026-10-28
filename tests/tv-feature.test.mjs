@@ -10,7 +10,7 @@ const entry=(id,name,epgId='',group='TV')=>({id,name,group,epgId,url:'https://so
 test('siglas explícitas reconhecem países e aliases sem inferir país ambíguo',()=>{
  for(const [name,code]of [['EC: CANAL UNO','EC'],['US: NBC','US'],['USA: ABC HD','US'],['ARG : Canal 1','AR'],['PR | WAPA HD','PR'],['MX: Canal','MX'],['CO: Canal','CO'],['DR: Canal','DO'],['SP: USA: Canal','US'],['[PT] RTP','PT']])assert.equal(channelCountry(name).code,code,name);
  assert.deepEqual(channelCountry('BR: Globo'),{international:false,code:'BR',label:'Brasil'});
- assert.equal(channelCountry('SporTV').international,false);assert.equal(channelCountry('Record TV').international,false);
+ assert.equal(channelCountry('TV: Globo').international,false);assert.equal(channelCountry('HD: Globo').international,false);assert.equal(channelCountry('SP: Record').international,false);assert.equal(channelCountry('SporTV').international,false);assert.equal(channelCountry('Record TV').international,false);
  assert.equal(channelCountry('LA: Canal').code,'unknown');assert.equal(channelCountry('LT: Canal').code,'unknown');
  assert.equal(channelCountry('Canal sem sigla','CANAIS INTERNACIONAIS').international,true);
 });
