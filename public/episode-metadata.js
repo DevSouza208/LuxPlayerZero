@@ -1,3 +1,11 @@
+// Return labels only for the provider season number that was requested.
+export function seasonPresentation(number,metadata){
+ const fallback='Temporada '+number;
+ const candidate=metadata?.seasonNumber===number?metadata?.name:metadata?.seasons?.find(row=>row.number===number)?.name;
+ const name=typeof candidate==='string'?candidate.trim().slice(0,120):'';
+ const title=!name||/^(?:season|temporada)\s*\d+$/i.test(name)?fallback:name;
+ return {title,caption:title===fallback?'':fallback,label:title===fallback?fallback:fallback+' · '+title};
+}
 // Metadata is presentation only: never modify provider entries or media URLs.
 export function episodePresentation(row,metadata){
  const episode=metadata?.episodes?.find(e=>e.season===row.season&&e.number===row.number);
