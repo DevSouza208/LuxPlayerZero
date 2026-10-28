@@ -696,13 +696,16 @@ export function createHome({ play } = {}) {
   $('browse-top')?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
   function createCard(item, category, saved = null) {
+    const cardTitle=(category==='series'||category==='destaques-series')
+      ?seriesIndex.byItemId.get(item.id)?.title||titleForDisplay(item)
+      :titleForDisplay(item);
     const card = document.createElement('article');
     card.className = 'media-card';
     const visual = document.createElement('button');
     visual.type = 'button';
     visual.className = 'media-visual';
     visual.dataset.details = item.id;
-    visual.setAttribute('aria-label', 'Ver detalhes de ' + titleForDisplay(item));
+    visual.setAttribute('aria-label', 'Ver detalhes de ' + cardTitle);
     const image = artworkFor(item);
     if(!image&&config.imageEngine!=='playlist'&&classifyRole(item)!=='tv'&&!cachedMetadata(item))visual.classList.add('is-art-loading');
     if (image) {
@@ -721,7 +724,7 @@ export function createHome({ play } = {}) {
     }
     const monogram = document.createElement('span');
     monogram.className = 'media-monogram';
-    monogram.textContent = (titleForDisplay(item) || 'L').slice(0, 1).toUpperCase();
+    monogram.textContent = (cardTitle || 'L').slice(0, 1).toUpperCase();
     visual.append(monogram);
     setIcon(appendText(visual, 'span', 'media-play-glyph', ''),'play',true);
     if (saved && shouldResume(saved.position, saved.duration)) {
@@ -737,7 +740,7 @@ export function createHome({ play } = {}) {
     info.className = 'media-info';
     const labels = document.createElement('div');
     labels.className = 'media-labels';
-    appendText(labels, 'span', 'media-title', titleForDisplay(item));
+    appendText(labels, 'span', 'media-title', cardTitle);
     const heart = document.createElement('button');
     heart.type = 'button';
     heart.className = 'media-favorite';
