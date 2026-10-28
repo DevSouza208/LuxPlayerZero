@@ -1,7 +1,7 @@
 /* Lux Cinema: interface pública e capas visíveis. Catálogos, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-59';
+const VERSION = 'lux-cinema-shell-60';
 const ASSETS = [
-  '/player-visibility.js', '/playback-errors.js',
+  '/local-data.js', '/profile-sync-model.js', '/library-cache.js', '/player-visibility.js', '/playback-errors.js',
   '/legal/links.css',
   '/catalog-prepare.js', '/catalog-prepare-worker.js', '/presentation-metadata.js', '/episode-metadata.js', '/vod-admin.js', '/vod-model.js', '/lux-icons.js', '/lux-icons.css',
   '/player-controls.js', '/player-modal.js', '/artwork-preload.js', '/artwork-metadata-cache.js', '/tmdb-rich-view.js', '/trailer-modal.js', '/guest-mode.js', '/catalog-relations.js', '/quick-guide.js', '/guide-model.js', '/catalog-navigation.js', '/connectivity.js', '/connectivity.css', '/style.css', '/home.css', '/cinema-premium.css', '/cinema-polish.css', '/cinema-browse.css',
@@ -64,7 +64,7 @@ self.addEventListener('fetch', event => {
   }
   if (!isPublicAsset(url)) return;
 
-  // Network first, cache só para o shell. O catálogo e os streams sempre usam rede.
+  // Network first, cache só para o shell. Catálogo privado usa IndexedDB no app; streams nunca entram neste cache.
   event.respondWith(
     fetch(request).then(response => {
       if (response.ok && response.type === 'basic') {

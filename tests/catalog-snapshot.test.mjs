@@ -1,6 +1,8 @@
+import {database} from './helpers/d1.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { syncCatalog, serveCatalog, snapshotReady, refreshDailyCatalogs } from '../src/catalog-snapshot.js';
+import {serveCatalogVersion} from '../src/catalog-version.js';
 import { connect, status } from '../src/bridge-core.js';
 
 const origin = 'https://luxzero.example';
@@ -15,6 +17,7 @@ function mockResources() {
   const objects = new Map();
   const rows = new Map();
   const refreshRows = new Map();
+  const locks = new Map();
   let failD1 = false;
   const database = {
     prepare(query) {
@@ -29,6 +32,8 @@ function mockResources() {
               throw new Error('Consulta inesperada: ' + sql);
             },
             async run() {
+              if(sql.startsWith('DELETE FROM CATALOG_REFRESH_LOCKS')){if(locks.get(params[0])===params[1])locks.delete(params[0]);return {meta:{changes:1}};}
+              if(sql.startsWith('INSERT INTO CATALOG_REFRESH_LOCKS')){const [hash,lease,now]=params;if((locks.get(hash)||0)>now)return {meta:{changes:0}};locks.set(hash,lease);return {meta:{changes:1}};}
               if (!sql.startsWith('INSERT INTO')) throw new Error('Comando inesperado');
               if (failD1) throw new Error('Falha do banco de teste');
               if(sql.startsWith('INSERT INTO CATALOG_REFRESH_SOURCES')) {refreshRows.set(params[0],{source_hash:params[0],source_cipher:params[1]});return {success:true};}
@@ -126,7 +131,7 @@ test('sincronização HTTP grava M3U original no R2, referência no D1 e devolve
   assert.equal(data.cached,false);
   assert.equal(data.itemCount,1);
   assert.equal(rows.size,1);
-  assert.equal(objects.size,1);
+  assert.equal(objects.size,2);
   const record=[...rows.values()][0];
   assert.equal(record.catalog_id,data.catalogId);
   assert.ok(record.r2_key.startsWith('catalogos/'));
@@ -152,8 +157,9 @@ test('segunda sincronização mantém endereço HTTPS e remove cópia anterior d
   const first=await (await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
   const second=await (await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
   assert.equal(first.url,second.url);
-  assert.equal(second.cached,false);
-  assert.equal(objects.size,1);
+  assert.equal(second.cached,true);
+  assert.equal(first.contentVersion,second.contentVersion);
+  assert.equal(objects.size,2);
 });
 
 test('se origem falha, usa a última versão salva em R2', async () => {
@@ -242,7 +248,7 @@ test('reconexão explícita não apresenta snapshot antigo como download novo',a
  const {env,objects}=mockResources(),c=await cookie(env);
  const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
  const failed=await syncCatalog(req('sync','POST',{url:original,requireFresh:true},c),env,async()=>new Response('erro',{status:502}));
- assert.equal(failed.status,502);assert.equal(objects.size,1);
+ assert.equal(failed.status,502);assert.equal(objects.size,2);
  const saved=await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env);
  assert.equal(await saved.text(),m3u);
 });
@@ -250,7 +256,7 @@ test('download truncado não substitui a playlist inteira no R2',async()=>{
  const {env,objects}=mockResources(),c=await cookie(env);
  await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock);
  const failed=await syncCatalog(req('sync','POST',{url:original,requireFresh:true},c),env,async()=>new Response(m3u,{headers:{'content-length':String(new TextEncoder().encode(m3u).length+1000)}}));
- assert.equal(failed.status,502);assert.match((await failed.json()).error,/incompleto/);assert.equal(objects.size,1);
+ assert.equal(failed.status,502);assert.match((await failed.json()).error,/incompleto/);assert.equal(objects.size,2);
 });
 
 
@@ -262,10 +268,54 @@ test('cron baixa novamente a origem, preserva entrega HTTPS e substitui arquivo 
  const updated=m3u+'#EXTINF:-1 group-title="TV",Outro canal\nhttp://lista.example.org:8080/live/cliente/privada/2.m3u8\n';
  let calls=0;
  const result=await refreshDailyCatalogs(env,async(url)=>{assert.equal(url,original);calls++;return new Response(updated)});
- assert.deepEqual(result,{updated:1,failed:0});assert.equal(calls,1);assert.equal(objects.size,1);
+ assert.deepEqual(result,{updated:1,failed:0});assert.equal(calls,1);assert.equal(objects.size,2);
  const delivered=await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env);
  assert.equal(await delivered.text(),updated);
  const failed=await refreshDailyCatalogs(env,async()=>new Response('indisponível',{status:503}));
- assert.deepEqual(failed,{updated:0,failed:1});assert.equal(objects.size,1);
+ assert.deepEqual(failed,{updated:0,failed:1});assert.equal(objects.size,2);
  assert.equal(await(await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env)).text(),updated);
+});
+
+test('manifesto de versão é autenticado e não consulta tabelas do catálogo no D1',async()=>{
+ const {env,objects}=mockResources(),c=await cookie(env);
+ const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ assert.equal((await serveCatalogVersion(req('catalog-version?id='+first.catalogId),env)).status,401);
+ const old=env.DB.prepare;env.DB.prepare=sql=>{if(/catalog_sources|catalog_refresh_sources/i.test(sql))throw Error('No catalog database reads');return old(sql)};
+ const response=await serveCatalogVersion(req('catalog-version?id='+first.catalogId,'GET',null,c),env);
+ assert.equal(response.status,200);const data=await response.json();assert.equal(data.contentVersion,first.contentVersion);assert.equal(data.itemCount,1);
+ assert.doesNotMatch(JSON.stringify(data),/fileKey|privada|password|username/);
+ assert.equal(await(await serveCatalog(req('playlist?id='+first.catalogId+'&version='+data.contentVersion,'GET',null,c),env)).text(),m3u);
+ assert.equal((await serveCatalog(req('playlist?id='+first.catalogId+'&version='+'b'.repeat(64),'GET',null,c),env)).status,409);
+ assert.equal(objects.size,2);
+});
+test('mesmos bytes em chunks de rede diferentes mantêm versão e não regravam D1',async()=>{
+ const {env,rows}=mockResources(),c=await cookie(env);
+ const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json(),oldRow=structuredClone([...rows.values()][0]);
+ const bytes=new TextEncoder().encode(m3u),stream=new ReadableStream({start(controller){for(const byte of bytes)controller.enqueue(Uint8Array.of(byte));controller.close()}});
+ const next=await(await syncCatalog(req('sync','POST',{url:original},c),env,async()=>new Response(stream))).json();
+ assert.equal(next.contentVersion,first.contentVersion);assert.equal(next.cached,true);assert.deepEqual([...rows.values()][0],oldRow);
+});
+test('falha ao publicar manifesto preserva o arquivo apontado pela versão anterior',async()=>{
+ const {env,objects}=mockResources(),c=await cookie(env);
+ const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ const key='catalogos/'+first.catalogId+'/manifest.json',previous=objects.get(key),originalPut=env.CATALOG_BUCKET.put;
+ env.CATALOG_BUCKET.put=async(...args)=>{if(args[0]===key)throw Error('R2 unavailable');return originalPut(...args)};
+ const updated=m3u.replace('Canal de teste','Nome atualizado');
+ assert.equal((await syncCatalog(req('sync','POST',{url:original},c),env,async()=>new Response(updated))).status,503);
+ assert.equal(objects.get(key),previous);assert.equal(await(await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env)).text(),m3u);
+});
+test('atualizações simultâneas da mesma fonte usam lease e a próxima tentativa libera normalmente',async()=>{
+ const {env}=mockResources(),c=await cookie(env);let begin,release;const started=new Promise(r=>begin=r);
+ const first=syncCatalog(req('sync','POST',{url:original},c),env,async()=>{begin();await new Promise(r=>release=r);return new Response(m3u)});
+ await started;assert.equal((await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).status,409);
+ release();assert.equal((await first).status,200);assert.equal((await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).status,200);
+});
+
+test('lease e snapshot executam SQL real sem duplicar referência para conteúdo idêntico',async()=>{
+ const {env}=mockResources();env.DB=database();const c=await cookie(env);
+ const a=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ const b=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ assert.equal(a.catalogId,b.catalogId);assert.equal(b.cached,true);
+ assert.equal(env.DB.db.prepare('SELECT COUNT(*) n FROM catalog_sources').get().n,1);
+ assert.equal(env.DB.db.prepare('SELECT COUNT(*) n FROM catalog_refresh_locks').get().n,0);
 });

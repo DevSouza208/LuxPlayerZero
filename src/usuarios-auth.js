@@ -103,7 +103,7 @@ export async function usuariosApi(request,env,validateState){
   if(path==='/api/account/state'){
    if(request.method==='GET'){const row=await env.DB.prepare('SELECT valor,versao FROM usuarios_estado WHERE usuario_id=?').bind(user.usuario_id).first();return reply({profileId:user.profile_id,value:row?JSON.parse(row.valor):{},version:row?.versao||0});}
    if(request.method==='POST'){
-    const body=await bodyJson(request);if(body.profileId!==user.profile_id||!Number.isSafeInteger(body.version))throw new HttpError(400,'Estado inválido.');const value=validateState(body.value);
+    const body=await bodyJson(request,262144);if(body.profileId!==user.profile_id||!Number.isSafeInteger(body.version))throw new HttpError(400,'Estado inválido.');const value=validateState(body.value);
     await env.DB.prepare('INSERT OR IGNORE INTO usuarios_estado(usuario_id) VALUES (?)').bind(user.usuario_id).run();
     const changed=await env.DB.prepare('UPDATE usuarios_estado SET valor=?,versao=versao+1 WHERE usuario_id=? AND versao=?').bind(JSON.stringify(value),user.usuario_id,body.version).run();if(!changed.meta.changes)throw new HttpError(409,'Recarregue para sincronizar suas alterações.');return reply({ok:true,version:body.version+1});
    }

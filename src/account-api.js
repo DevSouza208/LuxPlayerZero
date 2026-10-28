@@ -125,7 +125,7 @@ export async function accountApi(request,env) {
       throw new HttpError(404,'Recurso não encontrado.');
     }
     if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
-    const body=await bodyJson(request);
+    const body=await bodyJson(request,path==='/api/account/state'?262144:32768);
     if(path==='/api/account/mfa'){
       await limit(env,await digest('mfa:'+user.user_id),10);
       return reply(await mfaAction(env,user,body));

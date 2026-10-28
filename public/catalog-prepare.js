@@ -2,6 +2,7 @@ import {parseM3u} from './playlist.js';
 import {attachCinemaTmdbIds} from './cinema-tmdb-tags.js';
 import {presentationForEntry} from './cinema-title.js';
 const prepared=new WeakSet();
+export function restorePreparedCatalog(items){prepared.add(items);return items;}
 export const isPreparedCatalog=items=>prepared.has(items);
 /** Same parser and display rules; original names, groups and URLs stay intact. */
 export function prepareCatalogText(text,baseUrl){

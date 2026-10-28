@@ -63,7 +63,7 @@ test('Aplicar e salvar realmente grava e mostra estado do TMDB', () => {
   const html = path('cinema.html'), js = path('home.js');
   for (const marker of ['Aplicar e salvar', 'id="cinema-feedback"', 'id="admin-tmdb-status"', 'id="admin-save-status"']) assert.ok(html.includes(marker));
   assert.ok(js.includes("if (!await write('settings', next)"));
-  assert.ok(js.includes("'✓ Personalização aplicada e salva no seu perfil.'"));
+  assert.ok(js.includes("'✓ Personalização salva neste dispositivo. Sincronização em segundo plano.'"));
   assert.ok(js.includes("fetch('/api/metadata/status'"));
   assert.ok(js.includes("tmdbCalls = 0"));
 });

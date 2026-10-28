@@ -1,3 +1,6 @@
+import {localData} from './local-data.js';
+import {createLibraryCache} from './library-cache.js';
+const loadLibraryCache=createLibraryCache();
 import {playbackErrorMessage} from './playback-errors.js';
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {mountVodAdmin} from './vod-admin.js';
@@ -10,8 +13,8 @@ import { isHttpUrl, normalizeXtreamBase, buildXtreamLiveUrl, inferKind } from '.
 import { createBridge, isBridgeRequired } from './gateway.js';
 import { describeBridge } from './bridge-state.js';
 import { preferHttps, xtreamM3uUrl } from './direct-source.js';
-import {createHome,prepareHomeProfile} from './home.js';
-import {createCatalogPreparer,isPreparedCatalog} from './catalog-prepare.js';
+import {createHome,prepareHomeProfile,homeProfileId} from './home.js';
+import {createCatalogPreparer,isPreparedCatalog,restorePreparedCatalog} from './catalog-prepare.js';
 const prepareCatalog=createCatalogPreparer();
 import { presentationForEntry, titleForDisplay } from './cinema-title.js';
 import { rememberSnapshot, savedSnapshot, forgetSnapshot, readSavedSnapshot, snapshotPath } from './saved-catalog.js';
@@ -74,6 +77,7 @@ const els = {
 let channels = [];
 void mountVodAdmin({getItems:()=>channels}).catch(()=>{});
 let selected = null;
+let pendingLibraryUpdate=null;
 let player = null;
 let hls = null;
 let ts = null;
@@ -87,7 +91,7 @@ let bridgeNeeded = false;
 let lastSnapshotId = null;
 // A vitrine é opcional: erros de interface nunca podem derrubar importação/reprodução.
 let home = null;
-const playerModal=createPlayerModal($('reproduzir'),{onClose:()=>{stop();homeCall('resumeDetails');}});
+const playerModal=createPlayerModal($('reproduzir'),{onClose:()=>{stop();homeCall('resumeDetails');if(pendingLibraryUpdate){const apply=pendingLibraryUpdate;pendingLibraryUpdate=null;apply();}}});
 let playerControls=null;
 try { playerControls=createPlayerControls(document.querySelector('.lux-player-modal'),{getEpisodes:()=>homeCall('playbackEpisodes'),onEpisode:id=>homeCall('playEpisode',id),getEngine:()=>hls}); } catch (error) { console.warn('Controles nativos preservados.',error); }
 function homeCall(method, ...args) {
@@ -243,13 +247,14 @@ function showDeliveryLink(id) {
   deliveryPanel.hidden=!id;
   if(id){deliveryPanel.querySelector('input').value=new URL(snapshotPath(id),location.origin).href;deliveryPanel.querySelector('button').textContent='Copiar link HTTPS';}
 }
-function setChannels(items, caption, snapshotId = null, persist = true) {
+function setChannels(items, caption, snapshotId = null, persist = true, cacheOptions = {}) {
   if (persist && guestCatalogCache) void guestCatalogCache.save(items).then(saved => {
     if (!saved) log('Biblioteca', 'Não foi possível guardar o catálogo neste dispositivo.');
   });
   channels = isPreparedCatalog(items)?items:items.map((item, index) => ({ ...item, id: 'c' + index, ...presentationForEntry(item) }));
-  selected = null;
+  if(persist&&!isGuestMode()&&homeProfileId())void loadLibraryCache.remember({profileId:homeProfileId(),items:channels,catalogId:snapshotId,...cacheOptions}).catch(()=>note('Biblioteca carregada, mas o cache local está indisponível.','info'));
   stop();
+  selected = null;
   els.search.value = '';
   els.filter.value = 'all';
   els.count.textContent = String(channels.length).padStart(2, '0');
@@ -259,6 +264,7 @@ function setChannels(items, caption, snapshotId = null, persist = true) {
   note(channels.length + ' item(ns) disponíveis em ' + caption + '. Selecione um para reproduzir.');
   log('Catálogo importado', String(channels.length) + ' entradas');
   showDeliveryLink(snapshotId);
+  if(snapshotId&&!isGuestMode()&&homeProfileId())void localData.set('snapshot:'+homeProfileId(),snapshotId).catch(()=>{});
   if (snapshotId) {
     if (!rememberSnapshot(snapshotId)) log('Memória da biblioteca', 'Armazenamento local indisponível');
     else log('Memória da biblioteca', 'Referência privada do R2 salva');
@@ -320,6 +326,7 @@ function cleanMedia(media) {
   try { media.load(); } catch {}
 }
 function stop() {
+  if(player&&selected)void homeCall('onPlaybackExit',selected,player.currentTime,player.duration);
   operation++;
   if (watchdog) clearTimeout(watchdog);
   watchdog = null;
@@ -489,13 +496,13 @@ async function importSource(event) {
   try {
     if (mode === 'direct') {
       checkProtocol(input);
-      if (generation === sourceLoad) setChannels([{ name: 'Mídia conectada', group: 'URL direta', kind: inferKind('Mídia conectada', input), url: input }], 'URL direta');
+      if (generation === sourceLoad) setChannels([{ name: 'Mídia conectada', group: 'URL direta', kind: inferKind('Mídia conectada', input), url: input }], 'URL direta',null,true,{localOnly:true});
     } else if (mode === 'm3u') {
       const text = await request(input);
       const entries = await prepareCatalog(text, input);
       if (!entries.length) throw new Error('A lista não contém mídias HTTP/HTTPS válidas.');
       if (generation === sourceLoad) {
-        setChannels(entries, 'M3U', lastSnapshotId);
+        setChannels(entries, 'M3U', lastSnapshotId,true,{source:input,localOnly:false});
         await saveAccountSource(input,lastSnapshotId);
       }
     } else {
@@ -551,7 +558,7 @@ els.file.addEventListener('change', async () => {
     const entries = await prepareCatalog(contents);
     if (!entries.length) throw new Error('Arquivo não contém canais válidos.');
     if (generation === sourceLoad) {
-      setChannels(entries, file.name);
+      setChannels(entries, file.name,null,true,{localOnly:true});
       updateBridgePanel();
     }
   } catch (error) { fail(errorText(error)); }
@@ -559,7 +566,7 @@ els.file.addEventListener('change', async () => {
 });
 els.search.addEventListener('input', render);
 els.filter.addEventListener('change', render);
-els.clear.addEventListener('click', () => { sourceLoad++; showDeliveryLink(null); void guestCatalogCache?.clear(); forgetSnapshot(); channels = []; selected = null; stop(); render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Biblioteca limpa. Suas fontes não foram salvas no servidor.'); });
+els.clear.addEventListener('click', () => { sourceLoad++; showDeliveryLink(null); void guestCatalogCache?.clear();if(homeProfileId()){void loadLibraryCache.forget(homeProfileId()).catch(()=>{});void localData.remove('snapshot:'+homeProfileId()).catch(()=>{});}forgetSnapshot();stop();channels=[];selected=null; render(); homeCall('clear'); updateBridgePanel(); els.count.textContent = '00'; note('Cache local da biblioteca limpo. Fontes vinculadas à conta permanecem no servidor.'); });
 els.demo.addEventListener('click', async () => {
   const generation = ++sourceLoad;
   const url = new URL('/demo/playlist.m3u', location.href).href;
@@ -578,11 +585,32 @@ els.demo.addEventListener('click', async () => {
 });
 /**
  * Não precisamos guardar 260 mil itens nem URLs com senha no localStorage.
- * O snapshot privado foi salvo em R2; só salvamos seu ID aleatório no dispositivo.
+ * A cópia preparada fica no IndexedDB por perfil; a referência R2 contém apenas um ID.
  * A resposta HTTP é autenticada pelo cookie HttpOnly válido por 7 dias.
  */
+function applyPreparedLibrary(entries,caption,id,generation){
+ if(generation!==sourceLoad)return;
+ const action=()=>{if(generation===sourceLoad)setChannels(restorePreparedCatalog(entries),caption,id,false);};
+ if(player)pendingLibraryUpdate=action;else action();
+}
 async function restoreSavedLibrary() {
-  const id = savedSnapshot();
+  if(!isGuestMode()){
+    const profileId=homeProfileId(),generation=sourceLoad,local=await loadLibraryCache.restore(profileId);
+    const id=local?.catalogId||await localData.get('snapshot:'+profileId).catch(()=>null);
+    if(local?.localOnly||(!id&&local)){applyPreparedLibrary(local.items,'cache deste dispositivo',null,generation);return;}
+    if(!id)return;
+    try{
+      let shown=false;
+      const result=await loadLibraryCache({profileId,source:snapshotPath(id),catalogId:id,cacheKey:local?.key,cachedRecord:local,
+        onCached:items=>{shown=true;applyPreparedLibrary(items,'cache deste dispositivo',id,generation);finishLibraryLoading();},
+        onWarning:message=>note(message,'info'),prepare:prepareCatalog,
+        download:async version=>{const response=await fetch(snapshotPath(id)+(version?'&version='+version:''),{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(180000)});if(!response.ok)throw Object.assign(Error('Não foi possível atualizar a biblioteca.'),{status:response.status,auth:response.status===401||response.status===403});return response.text();}});
+      if(result.changed||!shown)applyPreparedLibrary(result.items,'sua conta',id,generation);
+    }catch(error){note(errorText(error),'error');}
+    return;
+  }
+
+  const id = isGuestMode()?savedSnapshot():await localData.get('snapshot:'+homeProfileId()).catch(()=>null);
   // Com sessão válida, lê sempre a versão atual do link fixo, antes do cache local.
   if (guestCatalogCache && (!id || !bridgeStatus?.connected || !bridgeStatus?.snapshotReady)) {
     const generation = sourceLoad;
@@ -677,21 +705,32 @@ async function loadAccountSource(prefetchedResponse=null) {
   if(response.status===404)return false;
   if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
   const source=await response.json(),generation=sourceLoad;
-  if(!source.lista_https&&!source.lista_http){note('Sua conta está pronta. Conecte uma lista para começar.','info');return true;}
+  const local=await loadLibraryCache.restore(homeProfileId());
+  if(local?.localOnly){applyPreparedLibrary(local.items,'cache deste dispositivo',local.catalogId,generation);return true;}
+  if(!source.lista_https&&!source.lista_http){await restoreSavedLibrary();if(!channels.length)note('Sua conta está pronta. Conecte uma lista para começar.','info');return true;}
   els.url.value=source.lista_http||source.lista_https;
   try {
-    let content,id=null;
-    if(source.lista_https){
-      const url=new URL(source.lista_https);
-      if(url.origin===location.origin&&url.pathname==='/api/bridge/playlist'){
-        id=url.searchParams.get('id');const saved=await readSavedSnapshot(id);
-        if(saved.kind!=='ok')throw new Error('Não foi possível recuperar sua lista HTTPS.');content=saved.content;
-      }else content=await request(source.lista_https);
-    }else{content=await request(source.lista_http);id=lastSnapshotId;}
-    const entries=await prepareCatalog(content);
-    if(!entries.length)throw new Error('A lista da conta não contém mídias válidas.');
-    if(generation===sourceLoad){setChannels(entries,'sua conta',id);if(id&&!source.lista_https)await saveAccountSource(source.lista_http,id);}
+    const sourceUrl=source.lista_https||source.lista_http;
+    const url=new URL(sourceUrl),isSnapshot=url.origin===location.origin&&url.pathname==='/api/bridge/playlist';
+    let id=isSnapshot?url.searchParams.get('id'):null,shown=false;
+    const apply=(entries,caption)=>applyPreparedLibrary(entries,caption,id,generation);
+    const result=await loadLibraryCache({profileId:homeProfileId(),source:sourceUrl,catalogId:id,cacheKey:id&&local?.catalogId===id&&!local?.localOnly?local?.key:undefined,cachedRecord:local,
+      onCached:entries=>{shown=true;apply(entries,'cache deste dispositivo');finishLibraryLoading();},
+      onWarning:message=>note(message,'info'),
+      download:async version=>{
+        if(isSnapshot){
+          const path=snapshotPath(id)+(version?'&version='+encodeURIComponent(version):'');
+          const response=await fetch(path,{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(180000)});
+          if(!response.ok)throw Object.assign(new Error('Não foi possível recuperar sua lista HTTPS.'),{status:response.status,auth:response.status===401||response.status===403});
+          if(version&&response.headers.get('x-lux-catalog-version')!==version)throw Error('A versão do catálogo mudou durante o download.');
+          return response.text();
+        }
+        const content=await request(sourceUrl);id=lastSnapshotId;return content;
+      },prepare:prepareCatalog});
+    if(result.changed||!shown)apply(result.items,'sua conta');
+    if(generation===sourceLoad&&id&&!source.lista_https)await saveAccountSource(source.lista_http,id);
   } catch(error){
+    if(error.auth){note(error.message,'error');return true;}
     if(source.lista_https&&source.lista_http&&generation===sourceLoad){
       try{
         const content=await request(source.lista_http),entries=await prepareCatalog(content);

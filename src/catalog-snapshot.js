@@ -1,3 +1,4 @@
+import {versionKey,readCatalogManifest} from './catalog-version.js';
 /**
  * Lux Player Zero — sincronização simples de catálogos:
  * origem HTTP → R2 privado → referência D1 → entrega HTTPS autenticada.
@@ -39,6 +40,7 @@ const REFRESH_SCHEMA = `CREATE TABLE IF NOT EXISTS catalog_refresh_sources (
 async function ensureSchema(env) {
   await env.DB.prepare(SQL_SCHEMA).run();
   await env.DB.prepare(REFRESH_SCHEMA).run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS catalog_refresh_locks(source_hash TEXT PRIMARY KEY,lease_until INTEGER NOT NULL)').run();
 }
 
 async function sourceHash(url, env) {
@@ -78,6 +80,9 @@ async function streamCatalogToR2(body, bucket, fileKey, expectedBytes = 0) {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   const parts = [];
+  const hashes = [];
+  const hash = async bytes => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+  async function uploadPart(bytes){hashes.push(await hash(bytes));parts.push(await upload.uploadPart(parts.length+1,bytes));}
   let buffer = new Uint8Array(PART_BYTES);
   let used = 0;
   let bytes = 0;
@@ -133,7 +138,7 @@ async function streamCatalogToR2(body, bucket, fileKey, expectedBytes = 0) {
         used += take;
         offset += take;
         if (used === PART_BYTES) {
-          parts.push(await upload.uploadPart(parts.length + 1, buffer));
+          await uploadPart(buffer);
           buffer = new Uint8Array(PART_BYTES);
           used = 0;
         }
@@ -145,9 +150,9 @@ async function streamCatalogToR2(body, bucket, fileKey, expectedBytes = 0) {
     if (!firstLine || itemCount === 0) {
       throw new Error('O fornecedor respondeu, mas o conteúdo não é uma playlist M3U válida.');
     }
-    if (used) parts.push(await upload.uploadPart(parts.length + 1, buffer.subarray(0, used)));
+    if (used) await uploadPart(buffer.subarray(0, used));
     await upload.complete(parts);
-    return { itemCount, bytes };
+    return { itemCount, bytes, contentVersion:await hash(ENCODER.encode(hashes.join(':'))) };
   } catch (error) {
     try { await upload.abort(); } catch {}
     throw error;
@@ -197,7 +202,19 @@ export async function syncCatalog(request, env, fetcher = fetch) {
 }
 
 /** Caminho único para importação manual e cron: arquivo intacto, entrega estável. */
-export async function refreshCatalogSource(rawSource, env, fetcher = fetch, {requireFresh = true} = {}) {
+export async function refreshCatalogSource(rawSource,env,fetcher=fetch,options={}){
+  if(!snapshotReady(env))return apiError(503,'Armazenamento da biblioteca indisponível.');
+  let hash,lease;
+  try{
+    const source=permittedUrl(rawSource,env).href;hash=await sourceHash(source,env);lease=Date.now()+900000;
+    await ensureSchema(env);
+    const locked=await env.DB.prepare('INSERT INTO catalog_refresh_locks(source_hash,lease_until) VALUES (?,?) ON CONFLICT(source_hash) DO UPDATE SET lease_until=excluded.lease_until WHERE catalog_refresh_locks.lease_until<=?').bind(hash,lease,Date.now()).run();
+    if(!locked.meta.changes)return apiError(409,'Esta lista já está sendo atualizada. Tente novamente mais tarde.');
+  }catch{return apiError(503,'Não foi possível iniciar a atualização da biblioteca.');}
+  try{return await refreshCatalogSourceUnlocked(rawSource,env,fetcher,options);}
+  finally{try{await env.DB.prepare('DELETE FROM catalog_refresh_locks WHERE source_hash=? AND lease_until=?').bind(hash,lease).run();}catch{}}
+}
+async function refreshCatalogSourceUnlocked(rawSource, env, fetcher = fetch, {requireFresh = true} = {}) {
   if (!snapshotReady(env)) return apiError(503, 'Armazenamento da biblioteca indisponível.');
   let source;
   try { source = permittedUrl(rawSource, env).href; }
@@ -249,6 +266,12 @@ export async function refreshCatalogSource(rawSource, env, fetcher = fetch, {req
     }
     return apiError(502, 'Não foi possível importar a playlist completa. Confira a origem e a disponibilidade do R2.');
   }
+  let previousManifest;
+  try{previousManifest=await readCatalogManifest(env,id);}catch{}
+  if(old&&old.r2_key===previousManifest?.fileKey&&previousManifest?.contentVersion===imported.contentVersion){
+    await env.CATALOG_BUCKET.delete(fileKey).catch(()=>{});
+    return apiOk({...savedResult(old,true),contentVersion:imported.contentVersion});
+  }
   const row = {
     catalog_id: id,
     r2_key: fileKey,
@@ -281,12 +304,15 @@ export async function refreshCatalogSource(rawSource, env, fetcher = fetch, {req
     return apiError(502, 'A playlist foi recebida, mas o D1 não conseguiu registrar a referência.');
   }
 
+  // Publish the small version manifest last. Old data survives a failed publication.
+  try{await env.CATALOG_BUCKET.put(versionKey(id),JSON.stringify({schemaVersion:1,catalogId:id,contentVersion:imported.contentVersion,generatedAt:row.synced_at,itemCount:row.item_count,bytes:row.size_bytes,fileKey}),{httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'}});}
+  catch{return apiError(503,'A versão do catálogo não pôde ser publicada. A cópia anterior foi preservada.');}
   // Evita acumular snapshots antigos quando a mesma origem é sincronizada.
-  if (old?.r2_key && old.r2_key !== fileKey) {
-    try { await env.CATALOG_BUCKET.delete(old.r2_key); } catch {}
+  for(const obsolete of new Set([old?.r2_key,previousManifest?.fileKey]))if(obsolete&&obsolete!==fileKey){
+    try { await env.CATALOG_BUCKET.delete(obsolete); } catch {}
   }
 
-  return apiOk(savedResult(row));
+  return apiOk({...savedResult(row),contentVersion:imported.contentVersion});
 }
 
 export async function serveCatalog(request, env) {
@@ -299,6 +325,14 @@ export async function serveCatalog(request, env) {
 
   let row;
   try {
+    const manifest=await readCatalogManifest(env,id);
+    if(manifest){
+      const expected=new URL(request.url).searchParams.get('version');
+      if(expected&&expected!==manifest.contentVersion)return apiError(409,'O catálogo mudou durante o download. Tente novamente.');
+      const file=await env.CATALOG_BUCKET.get(manifest.fileKey);
+      if(!file?.body)return apiError(503,'A nova cópia do catálogo não está disponível.');
+      return new Response(file.body,{headers:{'content-type':'audio/x-mpegurl; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','content-length':String(manifest.bytes),'x-lux-catalog-version':manifest.contentVersion}});
+    }
     await ensureSchema(env);
     row = await env.DB.prepare(
       'SELECT r2_key, size_bytes FROM catalog_sources WHERE catalog_id = ?'
