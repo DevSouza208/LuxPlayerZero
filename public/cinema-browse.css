@@ -218,11 +218,15 @@
 
 /* Favoritar junto à capa, como ação independente de abrir os detalhes. */
 .media-cover{position:relative;flex-shrink:0}
-.media-cover .media-favorite{position:absolute;right:10px;bottom:12px;z-index:5;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid #ffffffd9;border-radius:50%;background:#050407b8;color:#fff;box-shadow:0 2px 10px #0005;cursor:pointer;transition:background .18s,box-shadow .18s}
-.media-cover .media-favorite:hover{background:#24182ee6;color:#fff;box-shadow:0 0 0 3px #ffffff20}
-.media-cover .media-favorite[aria-pressed=true]{background:#8b3dcc;color:#fff;border-color:#fff}
-.media-cover .media-favorite[aria-pressed=true]:hover{background:#9c4cdd}
-.media-cover .media-favorite:focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}
-.media-cover .media-favorite .lux-icon{width:21px;height:21px}
-@media(prefers-reduced-motion:reduce){.media-cover .media-favorite{transition:none}}
-@media(forced-colors:active){.media-cover .media-favorite[aria-pressed=true]{border:2px solid Highlight}}
+/* Círculo visível de 30px, com área transparente de toque de 44px. */
+.media-cover .media-favorite{position:absolute;right:4px;bottom:6px;z-index:5;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:#fff;box-shadow:none;cursor:pointer}
+.media-cover .media-favorite::before{content:'';position:absolute;inset:7px;border:1px solid #ffffffb3;border-radius:50%;background:#050407a6;box-shadow:0 1px 5px #0004;pointer-events:none;transition:background .18s,border-color .18s}
+.media-cover .media-favorite:hover{background:transparent;color:#fff}
+.media-cover .media-favorite:hover::before{background:#24182ee6;border-color:#fff}
+.media-cover .media-favorite[aria-pressed=true]{background:transparent;color:#fff}
+.media-cover .media-favorite[aria-pressed=true]::before{background:#8b3dcc;border-color:#fff}
+.media-cover .media-favorite[aria-pressed=true]:hover::before{background:#9c4cdd}
+.media-cover .media-favorite:focus-visible{outline:2px solid #cbb9ff;outline-offset:0}
+.media-cover .media-favorite .lux-icon{position:relative;width:16px;height:16px}
+@media(prefers-reduced-motion:reduce){.media-cover .media-favorite::before{transition:none}}
+@media(forced-colors:active){.media-cover .media-favorite[aria-pressed=true]::before{border:2px solid Highlight}}
