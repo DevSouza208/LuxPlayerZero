@@ -12,7 +12,7 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
  const header=element('header','lux-vod-admin-header'),heading=element('div');heading.append(element('span','lux-vod-kicker','ADMINISTRAÇÃO · LUX ZERO'));const title=element('h2','','Seu catálogo, do seu jeito');title.id='lux-vod-admin-title';heading.append(title);
  const close=element('button','lux-vod-close','Fechar ✕');close.type='button';setIconLabel(close,'x','Fechar');header.append(heading,close);
  const actions=element('div','lux-vod-toolbar'),sync=element('button','lux-vod-primary','Atualizar');sync.type='button';setIconLabel(sync,'refresh-cw','Atualizar');
- const summary=element('span','lux-vod-summary','Carregando resumo…');const scan=element('button','','Scan rápido'),rebuild=element('button','lux-vod-danger','Reconstruir catálogo');scan.type=rebuild.type='button';actions.append(sync,scan,rebuild,summary);
+ const summary=element('span','lux-vod-summary','Carregando resumo…');const scan=element('button','','Scan rápido'),rebuild=element('button','lux-vod-danger','Reconstruir catálogo');scan.type=rebuild.type='button';const metadataOnly=element('button','','Preencher metadados TMDB');metadataOnly.type='button';actions.append(sync,scan,metadataOnly,rebuild,summary);
  const status=element('p','lux-vod-status','Atualiza as fontes, importa filmes e séries e classifica somente o que ainda está pendente.');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const note=element('p','lux-vod-note','TV não entra nesta etapa. Tags e coleções editadas por você são preservadas. A lista aberta precisa deste painel até o envio terminar. Fontes no servidor e classificação são retomadas pela rotina automática.');
  const filters=element('form','lux-vod-filters'),type=element('select');type.setAttribute('aria-label','Tabela do catálogo');
@@ -29,12 +29,12 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
  const pages=element('div','lux-vod-pages'),previous=element('button','','‹ Anterior'),next=element('button','','Próxima ›'),pageText=element('span');previous.type=next.type='button';setIconLabel(previous,'chevron-left','Anterior');setIconLabel(next,'chevron-right','Próxima');pages.append(previous,pageText,next);
  const progress=element('progress','lux-vod-progress');progress.max=100;progress.value=0;progress.hidden=true;progress.setAttribute('aria-label','Progresso da etapa atual');modal.append(header,actions,status,progress,note,filters,layout,pages);document.body.append(modal);
  let page=1,selected=null,viewGeneration=0,running=false,closed=false;
- const busy=value=>{running=value;sync.disabled=scan.disabled=rebuild.disabled=value};
+ const busy=value=>{running=value;sync.disabled=scan.disabled=rebuild.disabled=metadataOnly.disabled=value};
  function showProgress(done,total,label,started){progress.hidden=false;progress.value=total?Math.min(100,done/total*100):0;status.textContent=`${label}: ${done.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} · ${Math.round(progress.value)}% · ${remainingTime(done,total,performance.now()-started)}`;}
  async function prepareScan(){const items=getItems();if(!items.length)throw Error('Abra a lista neste navegador para contar os títulos únicos.');const started=performance.now();const result=await scanVod(items,{cancelled:()=>closed,onProgress:(done,total)=>showProgress(done,total,'Lendo lista',started)});return result;}
  async function api(body,query=''){
   const response=await fetch('/api/admin/vod'+query,{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(45000),...(body?{headers:{'content-type':'application/json'},body:JSON.stringify(body)}:{})});
-  const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'Não foi possível acessar o catálogo.');return data;
+  const data=await response.json().catch(()=>({}));if(!response.ok){const error=Error(data.error||'Não foi possível acessar o catálogo.');error.code=data.code;error.stage=data.stage;error.reference=data.reference;throw error;}return data;
  }
  async function totals(){const data=await api();summary.textContent=`${data.filmes.total.toLocaleString('pt-BR')} filmes · ${data.series.total.toLocaleString('pt-BR')} séries · ${((data.filmes.classificados||0)+(data.series.classificados||0)).toLocaleString('pt-BR')} classificados`;if(!data.tmdb?.configured)note.textContent='TMDB sem configuração neste servidor. É necessário TMDB_API_KEY também no Worker de manutenção. A lista aberta precisa deste painel até o envio terminar.';else if(data.tmdb.last?.reason)note.textContent=data.tmdb.last.reason;return data;}
  async function load(){
@@ -101,8 +101,23 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
    }
    await totals();if(!closed)await load();
    status.textContent=closed?'Lotes enviados estão salvos. A rotina automática pode retomar as fontes no servidor e a classificação.':reason|| (failures?`${failures} fonte(s) não atualizaram. As cópias anteriores foram mantidas.`:'Importação concluída. Registros e classificações existentes foram preservados.');
-  }catch(error){status.textContent=`${error.message} (Etapa: ${phase}.)`;}finally{busy(false);progress.hidden=true;}
+  }catch(error){status.textContent=`${error.message} (Etapa: ${error.stage||phase}${error.reference?' · referência '+error.reference:''}.)`;}finally{busy(false);progress.hidden=true;}
  }
+ metadataOnly.addEventListener('click',async()=>{
+  if(running)return;busy(true);closed=false;progress.hidden=true;let attempts=0,matched=0;
+  try{
+   let reason='';
+   while(!closed){
+    status.textContent=`Preenchendo metadados TMDB… ${attempts.toLocaleString('pt-BR')} títulos consultados · ${matched.toLocaleString('pt-BR')} preenchidos nesta sessão.`;
+    const result=await api({action:'enrich'});attempts+=result.attempts||0;matched+=result.matched||0;
+    if(result.reason)reason=result.reason;
+    if(result.paused||result.pending||result.busy||!result.attempts){if(result.busy)reason='Já existe uma classificação em andamento. Aguarde o lote atual.';break;}
+    if(attempts%20===0)await totals();await new Promise(resolve=>setTimeout(resolve,120));
+   }
+   await totals();if(!closed)await load();
+   status.textContent=reason||(closed?'Classificação interrompida neste painel. Resultados já gravados foram preservados.':`Metadados TMDB: ${matched.toLocaleString('pt-BR')} títulos preenchidos em ${attempts.toLocaleString('pt-BR')} consultas. Títulos já classificados e edições manuais foram preservados.`);
+  }catch(error){status.textContent=error.message+(error.reference?' Referência: '+error.reference:'');}finally{busy(false);}
+ });
  sync.addEventListener('click',()=>void update());
  rebuild.addEventListener('click',()=>void update({reset:true}));
  scan.addEventListener('click',async()=>{if(running)return;busy(true);closed=false;try{const result=await prepareScan();status.textContent=`Scan concluído: ${result.filmes.length.toLocaleString('pt-BR')} filmes · ${result.series.length.toLocaleString('pt-BR')} séries únicas. Nenhuma gravação realizada. A estimativa de tempo aparece durante o envio.`;}catch(error){status.textContent=error.message;}finally{busy(false);progress.hidden=true;}});

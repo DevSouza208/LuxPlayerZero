@@ -136,3 +136,19 @@ test('classificação reaproveita cache consultado pelo front e persiste na tabe
  assert.equal(db.prepare('SELECT tmdb_id FROM filmes').get().tmdb_id,null);
  const result=await enrichVod(env,{now:201,fetcher:()=>{throw Error('Cache existente não deve consultar a rede')}});assert.equal(result.matched,1);assert.equal(db.prepare('SELECT tmdb_id FROM filmes').get().tmdb_id,438631);
 });
+
+test('reenvio do mesmo lote não regrava títulos ou vínculos e novas referências são unidas',async()=>{
+ const {env,db,login}=await accountSetup(),cookie=await login('admin'),rows=uniqueVod(parseM3u(sample)).filmes;
+ assert.equal((await vodAdminApi(apiRequest(cookie,{action:'seed',rows}),env)).status,200);
+ const before=db.prepare('SELECT total_changes() n').get().n;
+ assert.equal((await vodAdminApi(apiRequest(cookie,{action:'seed',rows}),env)).status,200);
+ assert.equal(db.prepare('SELECT total_changes() n').get().n,before);
+ rows[0].referencias.push({id_provedor:'999',fornecedor:'source.test'});
+ assert.equal((await vodAdminApi(apiRequest(cookie,{action:'seed',rows}),env)).status,200);
+ assert.equal(JSON.parse(db.prepare('SELECT ids_provedor FROM vod_catalog_items').get().ids_provedor).length,3);
+});
+test('API mostra cota D1 em vez de sugerir migração ou bucket inexistente',async()=>{
+ const {env,login}=await accountSetup(),cookie=await login('admin');await ensureVodSchema(env.DB);const prepare=env.DB.prepare;
+ env.DB.prepare=sql=>{if(sql.startsWith('INSERT INTO filmes'))throw new Error("Your account has exceeded D1's free tier daily row write limit.");return prepare(sql)};
+ const response=await vodAdminApi(apiRequest(cookie,{action:'seed',rows:uniqueVod(parseM3u(sample)).filmes}),env),data=await response.json();assert.equal(response.status,429);assert.equal(data.code,'D1_DAILY_WRITE_LIMIT');assert.equal(data.stage,'seed_titles');assert.ok(data.reference);assert.ok(!data.error.includes('SQL 0013'));
+});

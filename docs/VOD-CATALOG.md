@@ -56,3 +56,12 @@ Para catálogos muito grandes, os limites de CPU do plano Cloudflare também pre
 O front consulta tmdb_meta_cache. Isso não atualiza filmes/series diretamente. enrichVod cruza os títulos pendentes, reaproveita esse cache e persiste IDs/imagens/gêneros nas tabelas. Antes a manutenção só fazia isso quando toda a indexação ficava ociosa, atrasando o enriquecimento. A correção remove essa dependência. Ainda é necessário verificar os bindings e segredos do Worker em produção.
 
 Validação desta alteração: 243 testes locais, incluindo reconstrução com proteção de lease, preservação de contas, progresso e persistência a partir do cache do front. Scan local da lista de 263.582 entradas: 24.556 filmes e 6.668 séries, cerca de 9 segundos neste ambiente. O desempenho de rede/D1/TMDB e CPU do plano Cloudflare não é inferido desse tempo local.
+
+
+### Metadados independentes e diagnóstico do envio
+
+O botão **Preencher metadados TMDB** chama somente a classificação dos títulos já vinculados no D1. Não executa scan, seed, refresh, start ou step. Respeita correspondências existentes, edições manuais, quotas e leases, exibe consultas/preenchidos desta sessão e pode ser interrompido fechando o painel.
+
+Reenvios idênticos deixam de atualizar vod_catalog_items quando não há novas referências. A API retorna classes seguras para cota diária de leitura/gravação, armazenamento, esquema incompleto, limite de execução ou falha temporária, além da etapa e referência para correlação. Não devolve SQL, parâmetros, URLs ou mensagens brutas do banco. A mensagem genérica anterior não provava falta de migração ou R2.
+
+A lista privada completa foi enviada localmente pela API autenticada em lotes de 60: 24.556 filmes e 6.668 séries, maior corpo de requisição com 30.803 bytes. O erro de produção não foi reproduzido nesse teste. Cota/timeout na Cloudflare são hipóteses até observar o diagnóstico ou os logs reais. A cota diária do D1 Free, quando atingida, não pode ser ampliada por código e renova às 00h UTC (21h São Paulo).
