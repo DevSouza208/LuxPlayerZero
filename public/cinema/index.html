@@ -151,12 +151,15 @@
     </section>
     <div id="home-rails" class="home-rails" aria-label="Destaques e vitrines da sua biblioteca"></div>
     <section id="cinema-browse" class="browse-screen" aria-label="Catálogo completo" hidden>
-      <div class="browse-heading browse-heading--compact">
-        <div class="browse-heading-copy"><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1><p id="browse-filter-label" class="browse-filter-label" aria-live="polite">Explore sua biblioteca</p></div>
-        <details class="browse-filter-menu">
-          <summary aria-label="Filtros do catálogo" title="Filtros do catálogo" aria-controls="browse-filter-panel"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></summary>
-          <div id="browse-filter-panel" class="browse-filter-panel"><label>Organização da lista<select id="browse-sort" aria-label="Organização da lista"><option value="source" selected>Padrão</option><option value="title">A–Z</option><option value="title-desc">Z–A</option></select></label></div>
-        </details>
+      <div class="browse-heading browse-heading--restored">
+        <div class="browse-heading-copy"><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1></div>
+      </div>
+      <div class="browse-toolbar browse-toolbar--restored" aria-label="Filtros do catálogo">
+        <label class="browse-group-label" for="browse-group">GRUPO<select id="browse-group" aria-label="Filtrar por grupo"><option value="">Todos os grupos</option></select></label>
+        <label class="browse-group-label" for="browse-year">ANO<select id="browse-year" aria-label="Filtrar por ano"><option value="">Todos os anos</option></select></label>
+        <label class="browse-group-label" for="browse-genre">GÊNERO<select id="browse-genre" aria-label="Filtrar por gênero"><option value="">Todos os gêneros</option></select></label>
+        <label class="browse-group-label" for="browse-sort">ORDEM<select id="browse-sort" aria-label="Ordenar catálogo"><option value="source" selected>Ordem do fornecedor</option><option value="title">Título A–Z</option><option value="title-desc">Título Z–A</option><option value="year">Ano mais recente</option></select></label>
+        <p id="browse-filter-label" class="browse-filter-label" aria-live="polite">Explore sua biblioteca</p>
       </div>
       <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
       <div class="browse-load"><p id="browse-load-status" role="status"></p><button id="browse-more" type="button" hidden>Carregar mais títulos</button></div><div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg><span>Voltar ao início</span></button></div>
