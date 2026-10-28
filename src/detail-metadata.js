@@ -56,6 +56,15 @@ export function sanitizeSeason(data,id,season){
  }));
  return {tmdbId:id,type:'tv',seasonNumber:season,name:clean(data.name,120),episodes};
 }
+// Placeholder labels are not translated episode titles. Keep real PT-BR names.
+const missingEpisodeName=value=>!value?.trim()||/^(?:epis[oó]dio|episode)\s*\d+$/i.test(value.trim());
+const missingSeasonName=value=>!value?.trim()||/^(?:temporada|season)\s*\d+$/i.test(value.trim());
+export function mergeSeasonNames(primary,fallback){
+ if(primary.tmdbId!==fallback.tmdbId||primary.seasonNumber!==fallback.seasonNumber)return primary;
+ const byNumber=new Map(fallback.episodes.map(row=>[row.number,row]));
+ return {...primary,name:missingSeasonName(primary.name)&&!missingSeasonName(fallback.name)?fallback.name:primary.name,
+  episodes:primary.episodes.map(row=>{const other=byNumber.get(row.number);return missingEpisodeName(row.title)&&other?.season===row.season&&!missingEpisodeName(other.title)?{...row,title:other.title}:row})};
+}
 export async function detailMetadata(request,env,fetcher=fetch){
  try{
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
@@ -65,7 +74,7 @@ export async function detailMetadata(request,env,fetcher=fetch){
   if(isSeason&&(type!=='tv'||!Number.isInteger(season)||season<0||season>99))throw new HttpError(400,'Temporada inválida.');
   if(!env.TMDB_API_KEY?.trim()||!env.DB?.prepare)throw new HttpError(503,'TMDB indisponível.');
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_cache (id TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at INTEGER NOT NULL)').run();
-  const key=isSeason?'season:v1:'+id+':'+season:'v4:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
+  const key=isSeason?'season:v2:'+id+':'+season:'v4:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
   if(cached)return reply(JSON.parse(cached.payload));
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_daily (day TEXT PRIMARY KEY,used INTEGER NOT NULL DEFAULT 0)').run();
   const quota=await env.DB.prepare('INSERT INTO detail_metadata_daily(day,used) VALUES (?,1) ON CONFLICT(day) DO UPDATE SET used=used+1 WHERE used<5000').bind(new Date().toISOString().slice(0,10)).run();
@@ -77,7 +86,14 @@ export async function detailMetadata(request,env,fetcher=fetch){
   const signal=AbortSignal.timeout(7000);
   const response=await fetcher(url.href,{redirect:'manual',signal,headers:{accept:'application/json'}});
   if(!response.ok)throw new HttpError(503,'Detalhes indisponíveis no momento.');
-  const result=isSeason?sanitizeSeason(await response.json(),id,season):sanitizeDetails(await response.json(),type,id);
+  let result=isSeason?sanitizeSeason(await response.json(),id,season):sanitizeDetails(await response.json(),type,id);
+  if(isSeason&&(missingSeasonName(result.name)||result.episodes.some(row=>missingEpisodeName(row.title)))){
+   try{
+    const fallbackUrl=new URL(url);fallbackUrl.searchParams.set('language','en-US');
+    const fallback=await fetcher(fallbackUrl.href,{redirect:'manual',signal,headers:{accept:'application/json'}});
+    if(fallback.ok)result=mergeSeasonNames(result,sanitizeSeason(await fallback.json(),id,season));
+   }catch{/* Preserve usable Portuguese metadata when the alternate language fails. */}
+  }
   if(result.collection){
    result.collection.status='unavailable';result.collection.parts=[];
    try{
