@@ -1,2 +1,2 @@
-import { lookupTmdb } from '../../../src/tmdb-metadata.js';
-export const onRequestPost = ({ request, env }) => lookupTmdb(request, env);
+import {liveMetadata} from '../../../src/live-metadata.js';
+export const onRequestPost=({request,env})=>liveMetadata(request,env,'lookup');

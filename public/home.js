@@ -15,6 +15,7 @@ import {buildSeriesIndex,nextEpisode} from './cinema-series.js';
 import {groupTvEntries,TV_CATEGORY_LABELS} from './cinema-tv-groups.js';
 import {createFullDetails} from './cinema-detail-page.js';
 import {createSeasonMetadataClient} from './episode-metadata.js';
+import {createPresentationMetadataClient} from './presentation-metadata.js';
 import { genreLabel } from './media-taxonomy.js';
 import { browseRoleFromHash, browsePageData, browseGroups, browseFacets } from './cinema-browse.js';
 
@@ -99,15 +100,10 @@ export function createHome({ play } = {}) {
   const MAX_AUTO_ENRICH = 500;
   const MAX_SIMULTANEOUS_TMDB = 3;
 
-  const richCache=new Map(),richPending=new Map();
+  const detailMetadataClient=createPresentationMetadataClient();
   async function extendedMetadata(data,target){
     const type=queryFor(target)?.type;if(config.summaryEngine==='off'||data?.status!=='matched'||!data.tmdbId||!type)return null;
-    const key=type+':'+data.tmdbId;
-    if(richCache.has(key))return richCache.get(key);
-    if(richPending.has(key))return richPending.get(key);
-    const promise=fetch('/api/metadata/details',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({tmdbId:data.tmdbId,type}),signal:AbortSignal.timeout(15000)})
-      .then(async response=>response.ok?response.json():null).catch(()=>null).then(details=>{richCache.set(key,details);return details}).finally(()=>richPending.delete(key));
-    richPending.set(key,promise);return promise;
+    return detailMetadataClient({tmdbId:data.tmdbId,type});
   }
   const seasonMetadata=createSeasonMetadataClient();
   const fullDetails=createFullDetails({
@@ -164,8 +160,8 @@ export function createHome({ play } = {}) {
     const configured = await tmdbConfigured();
     if (status) {
       status.textContent = configured ?
-        'Chave do TMDB e banco D1 detectados na Cloudflare. Imagens são buscadas sob demanda, com cache e limite de consultas.' :
-        'TMDB ainda não configurado neste ambiente: cadastre TMDB_API_KEY como Secret e confirme o binding DB (D1) na Cloudflare Pages.';
+        'TMDB conectado. Capas, detalhes e episódios são consultados sob demanda, sem usar o banco do catálogo.' :
+        'TMDB ainda não configurado neste ambiente: cadastre TMDB_API_KEY como Secret na Cloudflare Pages.';
       status.dataset.ready = configured ? 'true' : 'false';
     }
     return configured;
@@ -364,7 +360,7 @@ export function createHome({ play } = {}) {
     if (tmdbPending.has(key)) return tmdbPending.get(key);
     const local = await artworkMetadataCache.get(key);
     if(local?.status==='matched'){tmdbResolved.set(key,local);return local;}
-    // Não consultar servidor sem chave/D1: evita uma sequência de erros 503.
+    // Não consultar servidor sem chave: evita uma sequência de erros 503.
     if (!tmdbReadiness) tmdbReadiness = tmdbConfigured();
     if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') {tmdbResolved.set(key,{status:'unavailable'});tmdbRetryAfter.set(key,Date.now()+30000);return null;}
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
@@ -1093,7 +1089,7 @@ export function createHome({ play } = {}) {
       void tmdbConfigured().then(ready => {
         flash(ready ?
           '✓ Personalização aplicada e salva. TMDB configurado; capas serão carregadas conforme houver correspondências.' :
-          '✓ Personalização aplicada e salva. TMDB precisa da chave TMDB_API_KEY e D1 na Cloudflare para carregar imagens.',
+          '✓ Personalização aplicada e salva. TMDB precisa da chave TMDB_API_KEY na Cloudflare para carregar imagens.',
           !ready);
       });
     }

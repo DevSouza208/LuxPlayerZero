@@ -67,11 +67,8 @@ test('Aplicar e salvar realmente grava e mostra estado do TMDB', () => {
   assert.ok(js.includes("fetch('/api/metadata/status'"));
   assert.ok(js.includes("tmdbCalls = 0"));
 });
-test('Status do TMDB não divulga chave e só considera pronto com D1', () => {
-  const status = readFileSync(new URL('../functions/api/metadata/status.js', import.meta.url), 'utf8');
-  assert.ok(status.includes('TMDB_API_KEY'));
-  assert.ok(status.includes('env?.DB?.prepare'));
-  assert.ok(!status.includes('JSON.stringify(env'));
+test('Status do TMDB usa configuração independente do D1', () => {
+ const status=readFileSync(new URL('../functions/api/metadata/status.js',import.meta.url),'utf8');assert.ok(status.includes('liveMetadataStatus'));assert.ok(!status.includes('env?.DB'));assert.ok(!status.includes('JSON.stringify(env'));
 });
 
 test('Após expirar o cookie, a interface permite reconectar com a chave sem reimportar URL', () => {

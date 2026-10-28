@@ -56,20 +56,24 @@ export function sanitizeSeason(data,id,season){
  }));
  return {tmdbId:id,type:'tv',seasonNumber:season,name:clean(data.name,120),episodes};
 }
-export async function detailMetadata(request,env,fetcher=fetch){
+export async function detailMetadata(request,env,fetcher=fetch,store=null){
  try{
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
   const body=await bodyJson(request,500),id=Number(body.tmdbId),type=body.type;
   if(!['movie','tv'].includes(type)||!Number.isSafeInteger(id)||id<1||id>999999999)throw new HttpError(400,'Identificador inválido.');
   const isSeason=body.seasonNumber!==undefined,season=body.seasonNumber;
   if(isSeason&&(type!=='tv'||!Number.isInteger(season)||season<0||season>99))throw new HttpError(400,'Temporada inválida.');
-  if(!env.TMDB_API_KEY?.trim()||!env.DB?.prepare)throw new HttpError(503,'TMDB indisponível.');
-  await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_cache (id TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at INTEGER NOT NULL)').run();
-  const key=isSeason?'season:v1:'+id+':'+season:'v4:'+type+':'+id,cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
-  if(cached)return reply(JSON.parse(cached.payload));
-  await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_daily (day TEXT PRIMARY KEY,used INTEGER NOT NULL DEFAULT 0)').run();
-  const quota=await env.DB.prepare('INSERT INTO detail_metadata_daily(day,used) VALUES (?,1) ON CONFLICT(day) DO UPDATE SET used=used+1 WHERE used<5000').bind(new Date().toISOString().slice(0,10)).run();
-  if(!quota.meta.changes)throw new HttpError(429,'Limite diário de detalhes atingido.');
+  if(!env.TMDB_API_KEY?.trim()||(!store&&!env.DB?.prepare))throw new HttpError(503,'TMDB indisponível.');
+  const key=isSeason?'season:v2:'+id+':'+season:'v4:'+type+':'+id;
+  if(store){const cached=await store.get(key);if(cached)return reply(cached);if(!store.take())throw new HttpError(429,'Muitas consultas ao TMDB. Tente novamente em alguns segundos.');}
+  else {
+   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_cache (id TEXT PRIMARY KEY,payload TEXT NOT NULL,expires_at INTEGER NOT NULL)').run();
+   const cached=await env.DB.prepare('SELECT payload FROM detail_metadata_cache WHERE id=? AND expires_at>?').bind(key,Date.now()).first();
+   if(cached)return reply(JSON.parse(cached.payload));
+   await env.DB.prepare('CREATE TABLE IF NOT EXISTS detail_metadata_daily (day TEXT PRIMARY KEY,used INTEGER NOT NULL DEFAULT 0)').run();
+   const quota=await env.DB.prepare('INSERT INTO detail_metadata_daily(day,used) VALUES (?,1) ON CONFLICT(day) DO UPDATE SET used=used+1 WHERE used<5000').bind(new Date().toISOString().slice(0,10)).run();
+   if(!quota.meta.changes)throw new HttpError(429,'Limite diário de detalhes atingido.');
+  }
   const url=new URL('https://api.themoviedb.org/3/'+type+'/'+id+(isSeason?'/season/'+season:''));
   url.searchParams.set('api_key',env.TMDB_API_KEY.trim());url.searchParams.set('language','pt-BR');
   if(!isSeason)url.searchParams.set('append_to_response','credits,videos,recommendations,images,keywords,reviews,'+(type==='movie'?'release_dates':'content_ratings'));
@@ -83,11 +87,14 @@ export async function detailMetadata(request,env,fetcher=fetch){
    try{
     const collectionUrl=new URL('https://api.themoviedb.org/3/collection/'+result.collection.id);
     collectionUrl.searchParams.set('api_key',env.TMDB_API_KEY.trim());collectionUrl.searchParams.set('language','pt-BR');
+    if(store&&!store.take())throw new HttpError(429,'Muitas consultas ao TMDB.');
     const response=await fetcher(collectionUrl.href,{redirect:'manual',signal,headers:{accept:'application/json'}});
     if(response.ok){result.collection.parts=sanitizeCollection(await response.json(),result.collection.id);result.collection.status='ready'}
    }catch{/* Partial metadata remains usable when collection lookup fails. */}
   }
-  await env.DB.prepare('INSERT INTO detail_metadata_cache(id,payload,expires_at) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,expires_at=excluded.expires_at').bind(key,JSON.stringify(result),Date.now()+(isSeason?86400000:result.collection?.status==='unavailable'?300000:604800000)).run();
+  const expires=Date.now()+(isSeason?86400000:result.collection?.status==='unavailable'?300000:604800000);
+  if(store){await store.put(key,result,expires);return reply(result);}
+  await env.DB.prepare('INSERT INTO detail_metadata_cache(id,payload,expires_at) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload,expires_at=excluded.expires_at').bind(key,JSON.stringify(result),expires).run();
   return reply(result);
  }catch(error){return reply({error:error instanceof HttpError?error.message:'Detalhes indisponíveis.'},error instanceof HttpError?error.status:503)}
 }

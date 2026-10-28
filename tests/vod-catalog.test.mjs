@@ -129,7 +129,7 @@ test('manutenção classifica enquanto outra parte do snapshot ainda está sendo
  const result=await runVodMaintenance(env,{now:101});assert.equal(result.index.status,'building');assert.equal(result.metadata.pending,true);assert.match(JSON.parse(db.prepare("SELECT value FROM vod_catalog_state WHERE id='metadata_status'").get().value).reason,/TMDB_API_KEY/);
 });
 
-test('classificação reaproveita cache consultado pelo front e persiste na tabela',async()=>{
+test('classificação administrativa reaproveita cache persistente e grava na tabela',async()=>{
  const {env,db}=setup('#EXTM3U\n#EXTINF:-1 group-title="FILMES",Duna (2021)\nhttps://source.test/movie/u/p/101.mp4\n');await startVodJobs(env,100);await advanceVodJob(env,{now:101});env.TMDB_API_KEY='test-only-key';
  const request=new Request('https://lux.test/api/metadata/tmdb',{method:'POST',headers:{origin:'https://lux.test','content-type':'application/json'},body:JSON.stringify({type:'movie',title:'Duna',year:2021})});
  const response=await lookupTmdb(request,env,async()=>Response.json({results:[{id:438631,title:'Duna',original_title:'Dune',release_date:'2021-09-15',adult:false,genre_ids:[28,878],poster_path:'/poster.jpg'}]}),()=>200);assert.equal(response.status,200);
