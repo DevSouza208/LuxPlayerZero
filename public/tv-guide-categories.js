@@ -12,10 +12,10 @@ const names={
  movies:['AMC','Canal Brasil','Cinemax','HBO','HBO 2','HBO Family','HBO Plus','HBO Signature','Megapix','Space','TCM','TCM Turner Classic','TCM - Turner Classic','TNT','Telecine Action','Telecine Cult','Telecine Fun','Telecine Pipoca','Telecine Premium','Telecine Touch'],
  series:['A&E','AXN','Animal Planet','Discovery HD Theater','Discovery Theater','Eurochannel','Film & Arts','Film Arts','Lifetime','Sony','Sony Channel','Studio Universal','TBS','TNT Séries','Universal Channel','Universal TV','Warner','Warner Channel'],
  sports:['Band Sports','BandSports','Combate','ESPN','ESPN 1','ESPN 2','ESPN 3','ESPN 4','ESPN 5','ESPN 6','OFF','OFF HD','Premiere','Premiere Clubes','SporTV','SporTV 1','SporTV 2','SporTV 3'],
- kids:['Baby TV','Cartoon Network','Discovery Kids','Gloob','Tooncast'],
+ kids:['Baby TV','Cartoon','Disney XD','Nick Jr','Cartoon Network','Discovery Kids','Gloob','Tooncast'],
  variety:['Arte 1','Arte1','Bis','Canal Rural','Canal do Boi','E!','E! Entertainment','E! Entertainment TV','E! Entertainment Television','Futura','GNT','Multishow','RAI International','Rede Boa Vontade','SIC International','TV Espanha','TV Escola','TV Justiça','TV Senado','TV5 Monde','Travel Box Brazil','Viva','Woohoo'],
- documentary:['Discovery','Discovery Channel','Discovery Home & Health','Discovery Home Health','Discovery Science','Discovery Turbo','Discovery World','History','History Channel','TLC'],
- news:['BBC World News','Band News','BandNews','Bloomberg','CNN International','Deutsche Welle','Globo News','GloboNews'],
+ documentary:['Nat Geo','National Geographic','Discovery','Discovery Channel','Discovery Home & Health','Discovery Home Health','Discovery Science','Discovery Turbo','Discovery World','History','History Channel','TLC'],
+ news:['CNN','CNN Brasil','Fox News','BBC','BBC World News','Band News','BandNews','Bloomberg','CNN International','Deutsche Welle','Globo News','GloboNews'],
  open:['Band','Canal 21','Globo','Record News','Record','Record TV','Rede Record','Rede TV','RedeTV!','Rede Vida','SBT','TV Aparecida','TV Aparecida (aberta)','TV Brasil','TV Cultura','TV Gazeta']
 };
 function channelKey(value){

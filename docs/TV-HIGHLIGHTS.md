@@ -33,3 +33,5 @@ O navegador confirmou o filtro de categorias, a ocultação de internacionais, a
 ## Alteração de categorias em 28/10/2026
 
 A referência do MeuGuia substitui as abas genéricas do fornecedor. A verificação anterior acima documenta a versão com grupos do fornecedor. A nova classificação é verificada por testes de nomes, categorias, canais desconhecidos e preservação das fontes.
+
+Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sintéticos confirmou as oito categorias e Outros, filtro Infantil com Cartoon Network, Notícias com GloboNews e seleção do canal. Nenhuma fonte de exemplo é gravada em produção. A fixture permanece em tests/browser/tv-guide-categories.html e a cópia pública temporária foi removida antes do merge.
