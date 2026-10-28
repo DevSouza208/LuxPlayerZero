@@ -173,6 +173,9 @@ export function createHome({ play } = {}) {
   const railsRoot = $('home-rails');
   const browseRoot = $('cinema-browse');
   const browseGrid = $('browse-grid');
+  const filterMenu=document.querySelector('.browse-filter-menu');
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&filterMenu?.open){event.preventDefault();filterMenu.open=false;filterMenu.querySelector('summary')?.focus();}});
+  document.addEventListener('click',event=>{if(filterMenu?.open&&!filterMenu.contains(event.target))filterMenu.open=false;});
   const browseGroupSelect = $('browse-group');
   const tvCategorySelect = $('browse-tv-category');
   const browseMore=$('browse-more'),browseStatus=$('browse-load-status');
@@ -612,7 +615,7 @@ export function createHome({ play } = {}) {
     loadedPages.set(page.page,page.entries);
     const visibleEntries=[...loadedPages.entries()].sort((a,b)=>a[0]-b[0]).flatMap(([,entries])=>entries);
     hasMore=page.page<page.pageCount;loadingMore=false;
-    $('browse-page-label').textContent=page.total.toLocaleString('pt-BR')+' títulos';
+    const legacyPageLabel=$('browse-page-label');if(legacyPageLabel)legacyPageLabel.textContent=page.total.toLocaleString('pt-BR')+' títulos';
     if(browseMore){browseMore.hidden=!hasMore;browseMore.disabled=false;}
     if(browseStatus)browseStatus.textContent=hasMore?'Role para carregar mais':page.total?'Você chegou ao fim do catálogo.':'';
     $('browse-filter-label').textContent = browseSearch || browseGroup || browseYear || browseGenre || browseLanguage
