@@ -1,3 +1,4 @@
+import {createTvExperience} from './tv-experience.js';
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
 import {detailFacts,renderFactBadges} from './tmdb-rich-view.js';
@@ -198,6 +199,7 @@ export function createHome({ play } = {}) {
   let browseYear='',browseGenre='',browseLanguage='',browseSort='source',facetSource=null;
   const yearSelect=$('browse-year'),genreSelect=$('browse-genre'),languageSelect=$('browse-language'),sortSelect=$('browse-sort');
   let tvCategory = '', tvCategorySource = null, tvCategoryCache = null;
+  const tvExperience=createTvExperience({host:browseRoot,guest,getProfileId:()=>personal?.profileId,onPlay:start,onDetails:showDetails,onFilterChange:()=>{browsePage=1;browseGroup='';renderBrowse()}});
   let browseLastGroupSource = null;
   let browseLastGroupRole = null;
   let searchCatalog = createCatalogSearch(), remotePage = null, remoteKey = '', requestedKey = '';
@@ -463,6 +465,7 @@ export function createHome({ play } = {}) {
     showcase = buildShowcase(items, config, savedKeys());
     seriesIndex=buildSeriesIndex(showcase.catalogs.series);
     tvIndex=groupTvEntries(showcase.catalogs.tv);
+    tvExperience.setGroups(tvIndex.groups);
     const rules=JSON.stringify([config.tvKeywords,config.moviesKeywords,config.seriesKeywords]);
     if(relationSource!==items||relationRules!==rules){
       movieRelations=null;seriesRelations=null;relationSource=items;relationRules=rules;
@@ -472,6 +475,7 @@ export function createHome({ play } = {}) {
     updateRecommendations();
     pinnedItem = config.heroMode === 'pinned' && config.pinnedName
       ? items.find(item => item.name === config.pinnedName || titleForDisplay(item) === config.pinnedName) || null : null;
+    if(pinnedItem&&classifyRole(pinnedItem)==='tv'&&!tvExperience.allChannels.some(item=>tvIndex.byItemId.get(item.id)===tvIndex.byItemId.get(pinnedItem.id)))pinnedItem=null;
   }
 
   // Catálogos completos em páginas: usa referências do mesmo índice do showcase
@@ -485,14 +489,7 @@ export function createHome({ play } = {}) {
   function browseSource(role) {
     if (role === 'favorites') return favorites.map(entry => itemFromKey(entry.key)).filter(Boolean);
     if(role==='series')return seriesIndex.representatives;
-    if(role==='tv'){
-      if(!tvCategory)return tvIndex.representatives;
-      if(tvCategoryCache?.groups===tvIndex.groups&&tvCategoryCache.category===tvCategory)
-        return tvCategoryCache.items;
-      const selected=tvIndex.groups.filter(row=>row.category===tvCategory).map(row=>row.primary);
-      tvCategoryCache={groups:tvIndex.groups,category:tvCategory,items:selected};
-      return selected;
-    }
+    if(role==='tv')return tvExperience.channels();
     return showcase.catalogs?.[role] || [];
   }
   let sectionTransitionTimer;
@@ -527,6 +524,7 @@ export function createHome({ play } = {}) {
       if (navSearch) navSearch.value = '';
     }
     browseRole = valid;
+    tvExperience.show(valid==='tv');
     const path = valid === 'tv' ? '#destaques-tv' : valid === 'movies' ? '#destaques-filmes'
       : valid === 'series' ? '#destaques-series' : valid === 'favorites' ? '#minha-lista' : '#inicio';
     if (options.push && window.location.hash !== path) {
@@ -603,7 +601,7 @@ export function createHome({ play } = {}) {
       browseGroupSelect.value = browseGroup;
       browseGroupSelect.parentElement.hidden = browseRole === 'favorites';
     }
-    const listKey=JSON.stringify([catalogueEpoch,browseRole,browseSearch,browseGroup,tvCategory,browseYear,browseGenre,browseLanguage,browseSort]);
+    const listKey=JSON.stringify([catalogueEpoch,browseRole,browseSearch,browseGroup,browseRole==='tv'?tvExperience.filterKey:tvCategory,browseYear,browseGenre,browseLanguage,browseSort]);
     if(listKey!==loadedKey||browsePage===1){loadedPages.clear();loadedKey=listKey;}
     const requestKey = [catalogueEpoch,browseRole,browseSearch,browsePage,browseGroup,browseYear,browseGenre,browseLanguage,browseSort].join('|');
     if(browseRole==='movies' && browseSearch && !browseGroup && !browseYear && !browseGenre && !browseLanguage && browseSort==='source' && requestedKey!==requestKey){
@@ -626,10 +624,11 @@ export function createHome({ play } = {}) {
     const legacyPageLabel=$('browse-page-label');if(legacyPageLabel)legacyPageLabel.textContent=page.total.toLocaleString('pt-BR')+' títulos';
     if(browseMore){browseMore.hidden=!hasMore;browseMore.disabled=false;}
     if(browseStatus)browseStatus.textContent=hasMore?'Role para carregar mais':page.total?'Você chegou ao fim do catálogo.':'';
+    const noun=browseRole==='tv'?'canais':'títulos';
     $('browse-filter-label').textContent = browseSearch || browseGroup || browseYear || browseGenre || browseLanguage
-      ? page.total.toLocaleString('pt-BR') + ' títulos encontrados'
-      : source.length.toLocaleString('pt-BR') + ' títulos disponíveis';
-    $('browse-foot-count').textContent=visibleEntries.length.toLocaleString('pt-BR')+' de '+page.total.toLocaleString('pt-BR')+' títulos';
+      ? page.total.toLocaleString('pt-BR') + ' '+noun+' encontrados'
+      : source.length.toLocaleString('pt-BR') + ' '+noun+' disponíveis';
+    $('browse-foot-count').textContent=visibleEntries.length.toLocaleString('pt-BR')+' de '+page.total.toLocaleString('pt-BR')+' '+noun;
     if (!page.entries.length) {
       const empty = document.createElement('div');
       empty.className = 'browse-empty';
@@ -813,7 +812,7 @@ export function createHome({ play } = {}) {
     const ordered = config.heroMode === 'tv' ? ['tv','movies','series'] :
       config.heroMode === 'series' ? ['series','movies','tv'] : ['movies','series','tv'];
     heroItem = pinnedItem || ordered.map(role =>
-      showcase.rails[role].find(item => safeImage(item.logo)) || showcase.rails[role][0]
+      (role==='tv'?tvExperience.allChannels:showcase.rails[role]).find(item => safeImage(item.logo)) || (role==='tv'?tvExperience.allChannels:showcase.rails[role])[0]
     ).find(Boolean) || null;
     const title = $('hero-title');
     title.textContent = heroItem ? titleForDisplay(heroItem) : config.heroTitle;
@@ -864,9 +863,9 @@ export function createHome({ play } = {}) {
         createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap) },
       favorites: { enabled: 'showFavorites', list: availableFav.map(([item]) => item), draw: () =>
         createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SUA SELEÇÃO') },
-      tv: { enabled: 'showTv', list: tvIndex.representatives.slice(0,16), draw: () =>
-        createRail('destaques-tv', settingsTitle('tv'), tvIndex.representatives.slice(0,16),
-          'AO VIVO · ' + tvIndex.representatives.length.toLocaleString('pt-BR') + ' CANAIS') },
+      tv: { enabled: 'showTv', list: tvExperience.allChannels.slice(0,16), draw: () =>
+        createRail('destaques-tv', settingsTitle('tv'), tvExperience.allChannels.slice(0,16),
+          'AO VIVO · ' + tvExperience.allChannels.length.toLocaleString('pt-BR') + ' CANAIS') },
       movies: { enabled: 'showMovies', list: showcase.rails.movies, draw: () =>
         createRail('destaques-filmes', settingsTitle('movies'), showcase.rails.movies, 'PARA DESCOBRIR · ' + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
       series: { enabled: 'showSeries', list: seriesIndex.representatives.slice(0,16), draw: () =>
