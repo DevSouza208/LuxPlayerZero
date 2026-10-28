@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {channelCountry,tvCountryIndex,emptyTvSchedule,cleanTvSchedule,channelsForDay,saoPauloDay} from '../public/tv-feature-model.js';
+import {channelCountry,tvCountryIndex,providerTvGroups,emptyTvSchedule,cleanTvSchedule,channelsForDay,saoPauloDay} from '../public/tv-feature-model.js';
 import {groupTvEntries} from '../public/cinema-tv-groups.js';
 import {tvHighlightsApi} from '../src/tv-highlights.js';
 import {editorialApi} from '../src/editorial-api.js';
@@ -56,4 +56,12 @@ test('rota editorial valida sessão real antes de acessar agenda compartilhada',
 });
 test('bucket ausente tem mensagem real e nenhuma agenda é fingida como salva',async()=>{
  const response=await tvHighlightsApi(request({schedule:emptyTvSchedule()}),{}, {role:'admin'});assert.equal(response.status,503);assert.match((await response.json()).error,/CATALOG_BUCKET/);
+});
+
+test('categorias vêm do fornecedor com nomes e ordem originais e internacionais ocultos',()=>{
+ const values=[entry('a','SporTV HD','sportv.br','CANAIS | ESPORTES'),entry('b','SporTV SD','sportv.br','Favoritos do fornecedor'),entry('c','Globo','globo.br','TV ABERTA / SP'),entry('d','US: ESPN','espn.us','CANAIS | ESPORTES'),entry('e','Canal sem sigla','other','CANAIS INTERNACIONAIS'),entry('f','Canal sem grupo','','')];
+ const before=structuredClone(values),original=groupTvEntries(values),index=providerTvGroups(original.groups);
+ assert.equal(index.channels.length,3);assert.deepEqual(index.categories.map(row=>row.label),['CANAIS | ESPORTES','Favoritos do fornecedor','TV ABERTA / SP','Outros']);
+ assert.deepEqual(index.categories[0].channels.map(item=>item.id),['a']);assert.deepEqual(index.categories[1].channels.map(item=>item.id),['a']);
+ assert.equal(original.byItemId.get('a').variants.length,2);assert.deepEqual(values,before);assert.equal(original.sourceCount,6);
 });

@@ -39,3 +39,15 @@ export function channelsForDay(groups,schedule,day){
  const byKey=new Map(groups.map(group=>[group.key,group])),byName=new Map();for(const group of groups){const key=normalizeSearchText(group.title);if(!byName.has(key))byName.set(key,group);else byName.set(key,null)}
  const seen=new Set();return (schedule.days[day]||[]).map(ref=>byKey.get(ref.key)||byName.get(normalizeSearchText(ref.title))).filter(group=>group&&!seen.has(group.key)&&seen.add(group.key));
 }
+// Preserve the provider's labels and order, including channels in multiple groups.
+export function providerTvGroups(sourceGroups){
+ const groups=tvCountryIndex(sourceGroups).other,categories=new Map();
+ for(const group of groups){
+  const names=[...new Set((group.categories?.length?group.categories:[group.primary?.group||'Outros']).filter(name=>typeof name==='string'&&name.trim()))];
+  for(const label of names.length?names:['Outros']){
+   if(/\b(?:internaciona[il]|international)/i.test(normalizeSearchText(label)))continue;
+   const key='provider:'+label;let category=categories.get(key);if(!category){category={key,label,groups:[],channels:[]};categories.set(key,category)}category.groups.push(group);category.channels.push(group.primary);
+  }
+ }
+ return {groups,channels:groups.map(group=>group.primary),categories:[...categories.values()]};
+}

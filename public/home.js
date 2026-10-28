@@ -475,6 +475,7 @@ export function createHome({ play } = {}) {
     updateRecommendations();
     pinnedItem = config.heroMode === 'pinned' && config.pinnedName
       ? items.find(item => item.name === config.pinnedName || titleForDisplay(item) === config.pinnedName) || null : null;
+    if(pinnedItem&&classifyRole(pinnedItem)==='tv'&&!tvExperience.allChannels.some(item=>tvIndex.byItemId.get(item.id)===tvIndex.byItemId.get(pinnedItem.id)))pinnedItem=null;
   }
 
   // Catálogos completos em páginas: usa referências do mesmo índice do showcase
@@ -811,7 +812,7 @@ export function createHome({ play } = {}) {
     const ordered = config.heroMode === 'tv' ? ['tv','movies','series'] :
       config.heroMode === 'series' ? ['series','movies','tv'] : ['movies','series','tv'];
     heroItem = pinnedItem || ordered.map(role =>
-      showcase.rails[role].find(item => safeImage(item.logo)) || showcase.rails[role][0]
+      (role==='tv'?tvExperience.allChannels:showcase.rails[role]).find(item => safeImage(item.logo)) || (role==='tv'?tvExperience.allChannels:showcase.rails[role])[0]
     ).find(Boolean) || null;
     const title = $('hero-title');
     title.textContent = heroItem ? titleForDisplay(heroItem) : config.heroTitle;
@@ -862,9 +863,9 @@ export function createHome({ play } = {}) {
         createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap) },
       favorites: { enabled: 'showFavorites', list: availableFav.map(([item]) => item), draw: () =>
         createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SUA SELEÇÃO') },
-      tv: { enabled: 'showTv', list: tvIndex.representatives.slice(0,16), draw: () =>
-        createRail('destaques-tv', settingsTitle('tv'), tvIndex.representatives.slice(0,16),
-          'AO VIVO · ' + tvIndex.representatives.length.toLocaleString('pt-BR') + ' CANAIS') },
+      tv: { enabled: 'showTv', list: tvExperience.allChannels.slice(0,16), draw: () =>
+        createRail('destaques-tv', settingsTitle('tv'), tvExperience.allChannels.slice(0,16),
+          'AO VIVO · ' + tvExperience.allChannels.length.toLocaleString('pt-BR') + ' CANAIS') },
       movies: { enabled: 'showMovies', list: showcase.rails.movies, draw: () =>
         createRail('destaques-filmes', settingsTitle('movies'), showcase.rails.movies, 'PARA DESCOBRIR · ' + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
       series: { enabled: 'showSeries', list: seriesIndex.representatives.slice(0,16), draw: () =>

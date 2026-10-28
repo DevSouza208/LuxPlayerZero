@@ -2,15 +2,15 @@ import {safeImage} from './home-model.js';
 import {setIconLabel} from './lux-icons.js';
 import {normalizeSearchText} from './media-taxonomy.js';
 import {createLocalData} from './local-data.js';
-import {TV_DAYS,tvCountryIndex,saoPauloDay,emptyTvSchedule,cleanTvSchedule,channelsForDay} from './tv-feature-model.js';
+import {TV_DAYS,providerTvGroups,saoPauloDay,emptyTvSchedule,cleanTvSchedule,channelsForDay} from './tv-feature-model.js';
 const el=(tag,cls='',text)=>{const node=document.createElement(tag);node.className=cls;if(text!==undefined)node.textContent=text;return node};
 const button=(text,action,cls='')=>{const node=el('button',cls,text);node.type='button';node.addEventListener('click',action);return node};
 export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},guest=false,getProfileId=()=>null,fetcher=fetch,storage=createLocalData(),now=()=>new Date()}={}){
- let channelCache=new Map();
- let groups=[],index=tvCountryIndex([]),section='all',country='',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
+ let sourceGroups=null;
+ let groups=[],index=providerTvGroups([]),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
  const root=el('div','lux-tv-experience');root.hidden=true;host.prepend(root);
  const hero=el('section','lux-tv-hero');hero.setAttribute('aria-label','Canais em destaque');
- const navigation=el('nav','lux-tv-navigation');navigation.setAttribute('aria-label','Tipos de canais');
+ const navigation=el('nav','lux-tv-navigation');navigation.setAttribute('aria-label','Categorias do fornecedor');
  const notices=el('p','lux-tv-notice');notices.setAttribute('role','status');notices.hidden=true;root.append(hero,navigation,notices);
  const dialog=el('dialog','lux-tv-editor');dialog.setAttribute('aria-labelledby','tv-editor-title');
  const form=el('form'),header=el('header'),heading=el('h2','','Destaques da semana');heading.id='tv-editor-title';
@@ -41,15 +41,9 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
  }
  function renderNavigation(){
   navigation.replaceChildren();const tabs=el('div','lux-tv-types');
-  for(const [key,label,count]of [['all','Todos',groups.length],['international','Internacionais',index.international.length],['other','Outros',index.other.length]]){
-   const node=button(label+' · '+count.toLocaleString('pt-BR'),()=>{section=key;country='';renderNavigation();onFilterChange();[...navigation.querySelectorAll('[data-section]')].find(value=>value.dataset.section===key)?.focus({preventScroll:true})});node.dataset.section=key;node.setAttribute('aria-pressed',String(section===key));tabs.append(node);
+  for(const category of [{key:'all',label:'Todos',channels:index.channels},...index.categories]){
+   const node=button(category.label+' · '+category.channels.length.toLocaleString('pt-BR'),()=>{section=category.key;renderNavigation();onFilterChange();[...navigation.querySelectorAll('[data-section]')].find(value=>value.dataset.section===section)?.focus({preventScroll:true})});node.dataset.section=category.key;node.setAttribute('aria-pressed',String(section===category.key));tabs.append(node);
   }navigation.append(tabs);
-  if(section==='international'){
-   const label=el('label','lux-tv-country','País'),select=el('select');select.setAttribute('aria-label','País dos canais internacionais');
-   const all=el('option','','Todos os países');all.value='';select.append(all);
-   for(const row of index.countries){const option=el('option','',row.label+' · '+row.count);option.value=row.code;select.append(option)}select.value=country;
-   select.addEventListener('change',()=>{country=select.value;onFilterChange()});label.append(select);navigation.append(label);
-  }
  }
  function renderEditor(){
   selected.replaceChildren();const rows=draft.days[editingDay];
@@ -81,10 +75,11 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&active){refreshDay();void load()}});
  const timer=setInterval(()=>{if(active&&!document.hidden)refreshDay()},60000);
  return {
-  setGroups(next){if(groups===next)return;groups=next;channelCache.clear();index=tvCountryIndex(groups);if(country&&!index.countries.some(row=>row.code===country))country='';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor()},
+  setGroups(next){if(sourceGroups===next)return;sourceGroups=next;index=providerTvGroups(next);groups=index.groups;if(section!=='all'&&!index.categories.some(row=>row.key===section))section='all';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor()},
   show(value){active=value;root.hidden=!value;if(value){refreshDay();if(!hero.children.length)renderHero();if(!navigation.children.length)renderNavigation();void load()}},
-  get filterKey(){return section+':'+country},
-  channels(){const key=section+':'+country;if(channelCache.has(key))return channelCache.get(key);const selected=section==='all'?groups:section==='other'?index.other:index.all.filter(row=>row.country.international&&(!country||row.country.code===country)).map(row=>row.group);const values=selected.map(group=>group.primary);channelCache.set(key,values);return values},
+  get filterKey(){return section},
+  get allChannels(){return index.channels},
+  channels(){return section==='all'?index.channels:index.categories.find(category=>category.key===section)?.channels||[]},
   dispose(){clearInterval(timer);root.remove();dialog.remove()},
  };
 }
