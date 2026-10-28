@@ -149,11 +149,13 @@
     </section>
     <div id="home-rails" class="home-rails" aria-label="Destaques e vitrines da sua biblioteca"></div>
     <section id="cinema-browse" class="browse-screen" aria-label="Catálogo completo" hidden>
-      <div class="browse-heading">
-        <div><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1></div>
-        <div class="browse-summary"><span id="browse-page-label" aria-live="polite">Catálogo</span></div>
+      <div class="browse-heading browse-heading--compact">
+        <div class="browse-heading-copy"><span class="browse-kicker">CATÁLOGO COMPLETO</span><h1 id="browse-title">Filmes</h1><p id="browse-filter-label" class="browse-filter-label" aria-live="polite">Explore sua biblioteca</p></div>
+        <details class="browse-filter-menu">
+          <summary aria-label="Filtros do catálogo" title="Filtros do catálogo" aria-controls="browse-filter-panel"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></summary>
+          <div id="browse-filter-panel" class="browse-filter-panel"><label>Organização da lista<select id="browse-sort" aria-label="Organização da lista"><option value="source" selected>Padrão</option><option value="title">A–Z</option><option value="title-desc">Z–A</option></select></label></div>
+        </details>
       </div>
-      <div class="browse-toolbar"><details class="browse-filter-menu"><summary>Filtros</summary><div class="browse-filter-panel"><label>Organização da lista<select id="browse-sort" aria-label="Organização da lista"><option value="source" selected>Padrão</option><option value="title">A–Z</option><option value="title-desc">Z–A</option></select></label></div></details><span id="browse-filter-label" class="browse-filter-label">Explore sua biblioteca</span></div>
       <div id="browse-grid" class="browse-grid" aria-live="polite"></div>
       <div class="browse-load"><p id="browse-load-status" role="status"></p><button id="browse-more" type="button" hidden>Carregar mais títulos</button></div><div class="browse-foot"><span id="browse-foot-count">0 títulos</span><button id="browse-top" type="button"><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg><span>Voltar ao início</span></button></div>
     </section>
