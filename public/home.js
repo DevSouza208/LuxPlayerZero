@@ -733,10 +733,7 @@ export function createHome({ play } = {}) {
       progress.append(bar);
       visual.append(progress);
     }
-    const cover = document.createElement('div');
-    cover.className = 'media-cover';
-    cover.append(visual);
-    card.append(cover);
+    card.append(visual);
     const info = document.createElement('div');
     info.className = 'media-info';
     const labels = document.createElement('div');
@@ -747,12 +744,11 @@ export function createHome({ play } = {}) {
     heart.className = 'media-favorite';
     heart.dataset.favorite = item.id;
     const isFavorite = favorites.some(x => x.key === itemKey(item));
-    setIcon(heart,'heart',isFavorite);
+    setIconLabel(heart,isFavorite?'check':'plus',isFavorite?'Na minha lista':'Minha lista');
     heart.title = isFavorite ? 'Remover da minha lista' : 'Adicionar à minha lista';
     heart.setAttribute('aria-label', heart.title);
     heart.setAttribute('aria-pressed',String(isFavorite));
-    cover.append(heart);
-    info.append(labels);
+    info.append(labels, heart);
     if (item.catalogYear) appendText(info, 'span', 'media-group', String(item.catalogYear));
     const tags=(item.catalogTags||[]).filter(tag=>tag!=='Dublado' && tag!=='Legendado').slice(0,3);
     if(tags.length){
