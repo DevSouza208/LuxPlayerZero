@@ -31,8 +31,6 @@
 .browse-grid .media-title{min-height:0;font:650 14px/1.35 'Outfit',sans-serif;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .browse-grid .media-group{margin:0;color:#8e819b;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .browse-grid .media-labels{display:block}
-.browse-grid .media-favorite{font:500 11px 'Outfit',sans-serif;color:#b5a5c4;display:block;text-align:left;margin-top:10px;width:100%;padding:0}
-.browse-grid .media-favorite:hover{color:#e4bbff}
 .browse-badges{position:absolute;top:11px;left:10px;right:10px;z-index:4;display:flex;flex-wrap:wrap;gap:5px;pointer-events:none}
 .browse-badge{padding:5px 10px;background:#09070cbf;color:#fff;border-radius:40px;font:650 10px 'Outfit',sans-serif;letter-spacing:.01em}
 .browse-empty{grid-column:1/-1;min-height:230px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:#130e1973;border:1px dashed #463552;border-radius:17px;color:#afa0bb;text-align:center;font-size:13px;line-height:1.7}
@@ -217,3 +215,14 @@
 .browse-heading--compact .browse-filter-menu{justify-self:end}
 
 .lux-library-loading{display:none;padding:42px var(--home-gutter,24px);min-height:55vh}.cinema-shell.is-library-loading main>:not(.lux-library-loading){display:none!important}.is-library-loading .lux-library-loading{display:block}.lux-library-loading h1{font-size:clamp(24px,3vw,36px);margin:0 0 12px}.lux-library-loading p{color:#b7abc5;line-height:1.6}.lux-library-skeletons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-top:28px}.lux-library-skeletons span{display:block;aspect-ratio:2/3;border-radius:14px;background:linear-gradient(110deg,#16111d 20%,#24192f 45%,#16111d 70%);background-size:220% 100%;animation:lux-art-shimmer 1.8s ease-in-out infinite}@media(max-width:740px){.lux-library-skeletons{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}@media(prefers-reduced-motion:reduce){.lux-library-skeletons span{animation:none}}
+
+/* Favoritar junto à capa, como ação independente de abrir os detalhes. */
+.media-cover{position:relative;flex-shrink:0}
+.media-cover .media-favorite{position:absolute;right:10px;bottom:12px;z-index:5;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:1px solid #ffffffd9;border-radius:50%;background:#050407b8;color:#fff;box-shadow:0 2px 10px #0005;cursor:pointer;transition:background .18s,box-shadow .18s}
+.media-cover .media-favorite:hover{background:#24182ee6;color:#fff;box-shadow:0 0 0 3px #ffffff20}
+.media-cover .media-favorite[aria-pressed=true]{background:#8b3dcc;color:#fff;border-color:#fff}
+.media-cover .media-favorite[aria-pressed=true]:hover{background:#9c4cdd}
+.media-cover .media-favorite:focus-visible{outline:3px solid #cbb9ff;outline-offset:3px}
+.media-cover .media-favorite .lux-icon{width:21px;height:21px}
+@media(prefers-reduced-motion:reduce){.media-cover .media-favorite{transition:none}}
+@media(forced-colors:active){.media-cover .media-favorite[aria-pressed=true]{border:2px solid Highlight}}
