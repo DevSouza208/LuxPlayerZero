@@ -1193,7 +1193,9 @@ export function createHome({ play } = {}) {
     },
     playbackEpisodes(){
       const group=seriesIndex.byItemId.get(active?.id);
-      return group?{title:group.title,current:active.id,entries:group.episodes.map(ep=>({id:ep.item.id,season:ep.season,number:ep.number}))}:null;
+      if(!group)return null;
+      const episodes=group.uniqueEpisodes||group.episodes,current=episodes.find(ep=>ep.item.id===active.id||ep.variants?.some(entry=>entry.id===active.id));
+      return {title:group.title,current:current?.item.id||active.id,entries:episodes.map(ep=>({id:ep.item.id,season:ep.season,number:ep.number}))};
     },
     playEpisode(id){const group=seriesIndex.byItemId.get(active?.id);const next=group?.episodes.find(ep=>ep.item.id===id);if(next)start(next.item);},
     onSelect(item) { quickGuide.select(classifyRole(item)==='tv'?item:null);continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },

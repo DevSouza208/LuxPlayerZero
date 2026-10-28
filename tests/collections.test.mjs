@@ -41,6 +41,26 @@ test('próximo episódio preserva fontes, ignora duplicatas e identifica lacunas
  assert.equal(nextEpisode(index,rows[2]).item,rows[3]);assert.equal(nextEpisode(index,rows[2]).contiguous,false);
  assert.equal(nextEpisode(index,rows[3]).item,rows[4]);assert.equal(nextEpisode(index,rows[4]),null);assert.equal(nextEpisode(index,{id:'unknown'}),null);
  assert.equal(index.groups[0].episodes.length,rows.length);
+ assert.equal(index.groups[0].uniqueEpisodes.length,4);
+ assert.equal(index.groups[0].seasons[0].episodes.length,3);
+ assert.deepEqual(index.groups[0].uniqueEpisodes[0].variants,[rows[0],rows[1]]);
+});
+
+test('seis fontes de Beyblade Burst viram um episódio sem misturar Beyblade X',()=>{
+ const names=['Beyblade Burst S1 E1','Beyblade Burst S1 E1','- Beyblade Burst S1 E1','+ Beyblade Burst S1 E1','+ Beyblade Burst S1 E1','+ Beyblade Burst S1 E1','Beyblade Burst S1 E2','Beyblade X S1 E1'];
+ const rows=names.map((name,i)=>{const entry=item(String(i),name,'','Séries');return {...entry,...presentationForEntry(entry)}}),before=structuredClone(rows),index=buildSeriesIndex(rows);
+ assert.equal(index.groups.length,2);
+ const burst=index.byItemId.get('0');assert.equal(burst.episodes.length,7);assert.equal(burst.uniqueEpisodes.length,2);assert.equal(burst.seasons[0].episodes.length,2);
+ assert.deepEqual(burst.uniqueEpisodes[0].variants,rows.slice(0,6));assert.equal(index.byItemId.get('7').uniqueEpisodes.length,1);
+ for(const entry of rows.slice(0,6)){assert.equal(index.byItemId.get(entry.id),burst);assert.equal(nextEpisode(index,entry).item,rows[6]);}
+ assert.deepEqual(rows,before);
+});
+
+test('URL repetida não duplica a escolha de fonte e IDs de séries distintos permanecem separados',()=>{
+ const a={...item('a','Mesmo título S01E01'),seriesId:'show-a'},duplicate={...a,id:'a-copy'},b={...item('b','Mesmo título S01E01'),seriesId:'show-b'};
+ const index=buildSeriesIndex([a,duplicate,b]);assert.equal(index.groups.length,2);
+ assert.equal(index.byItemId.get(a.id).episodes.length,2);assert.equal(index.byItemId.get(a.id).uniqueEpisodes[0].variants.length,1);
+ assert.equal(index.byItemId.get(b.id).uniqueEpisodes[0].item,b);
 });
 
 test('IDs e numeração explicitamente declarados separam séries homônimas sem alterar URLs',()=>{

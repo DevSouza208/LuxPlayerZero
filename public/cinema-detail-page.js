@@ -26,12 +26,41 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
  let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
  const selectedSeasons=new Map();
+ const selectedSources=new Map();
+ const sourceDialog=make('dialog','lux-episode-sources');
+ sourceDialog.innerHTML='<header><h2 id="lux-episode-source-title">Escolha a fonte</h2><button type="button" aria-label="Fechar fontes">×</button></header><p>Fontes disponíveis para este episódio na sua lista.</p><div class="lux-episode-source-list"></div>';
+ sourceDialog.setAttribute('aria-labelledby','lux-episode-source-title');
+ sourceDialog.querySelector('header button').addEventListener('click',()=>sourceDialog.close());
+ sourceDialog.addEventListener('cancel',event=>{event.preventDefault();sourceDialog.close();});
+ sourceDialog.addEventListener('keydown',event=>{if(event.key==='Escape')event.stopPropagation();});
+ document.body.append(sourceDialog);
+ const episodeRows=()=>series?.uniqueEpisodes||series?.episodes||[];
+ const sourcesFor=row=>row.variants||[row.item];
+ const episodeWatched=row=>sourcesFor(row).some(entry=>isWatched?.(entry));
+ const hasEpisodeProgress=row=>sourcesFor(row).some(entry=>getProgress?.(entry)?.position>15);
+ const sourceKey=row=>series.key+':'+row.season+':'+row.number;
+ const episodeEntry=row=>sourcesFor(row).find(entry=>entry.id===selectedSources.get(sourceKey(row)))||sourcesFor(row).find(entry=>!isWatched?.(entry)&&getProgress?.(entry)?.position>15)||row.item;
+ const resumeEpisode=()=>episodeRows().find(row=>!episodeWatched(row)&&hasEpisodeProgress(row))||episodeRows().find(row=>!episodeWatched(row))||episodeRows()[0];
+ function chooseEpisode(row){
+  if(!row)return;
+  const sources=sourcesFor(row);if(sources.length===1){play(row.item);return;}
+  const preferred=episodeEntry(row),key=sourceKey(row),fragment=document.createDocumentFragment();let focus;
+  sourceDialog.querySelector('h2').textContent='T'+row.season+':E'+row.number+' · Escolha a fonte';
+  sources.forEach((entry,index)=>{
+   const button=make('button','lux-episode-source', 'Fonte '+(index+1)+' · '+(entry.name||entry.displayName||'Episódio '+row.number));button.type='button';
+   if(getProgress?.(entry)?.position>15)button.append(make('small','','Tem progresso nesta fonte'));
+   if(entry===preferred){button.classList.add('is-preferred');focus=button;}
+   button.addEventListener('click',()=>{selectedSources.set(key,entry.id);sourceDialog.close();play(entry);});fragment.append(button);
+  });
+  sourceDialog.querySelector('.lux-episode-source-list').replaceChildren(fragment);
+  sourceDialog.showModal();focus?.focus();
+ }
  let seriesTmdbId=null,episodeViews=[];
  function updateEpisode(view,metadata){
   const data=episodePresentation(view.row,metadata);
   view.title.textContent=data.title;view.info.textContent=data.info;
   view.overview.textContent=data.overview;view.overview.hidden=!data.overview;
-  view.card.setAttribute('aria-label','Reproduzir '+data.title+' · temporada '+view.row.season+', episódio '+view.row.number);
+  view.card.setAttribute('aria-label','Reproduzir '+data.title+' · temporada '+view.row.season+', episódio '+view.row.number+(sourcesFor(view.row).length>1?' · '+sourcesFor(view.row).length+' fontes disponíveis':''));
   const src=photo(data.still)||view.fallback;
   if(src&&view.image.getAttribute('src')!==src){view.image.src=src;view.image.hidden=false;}
  }
@@ -67,27 +96,28 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
    visual.append(setIcon(make('span','lux-full-episode-play'),'play',true));
    const info=make('span','lux-full-episode-info'),title=make('b','lux-full-episode-title'),meta=make('small','lux-full-episode-meta'),overview=make('span','lux-full-episode-overview');info.append(title,meta,overview);
    const view={row,card,image,title,info:meta,overview,fallback:imgSrc};episodeViews.push(view);updateEpisode(view,null);
-   if(isWatched?.(row.item))info.append(make('small','','Assistido'));
-   const progress=getProgress?.(row.item);if(progress?.duration>0){const bar=make('progress');bar.max=progress.duration;bar.value=progress.position;bar.setAttribute('aria-label','Progresso do episódio');info.append(bar)}
+   if(sourcesFor(row).length>1)info.append(make('small','lux-full-episode-sources',sourcesFor(row).length+' fontes disponíveis'));
+   if(episodeWatched(row))info.append(make('small','','Assistido'));
+   const progress=getProgress?.(episodeEntry(row));if(progress?.duration>0){const bar=make('progress');bar.max=progress.duration;bar.value=progress.position;bar.setAttribute('aria-label','Progresso do episódio');info.append(bar)}
    card.append(visual,info);
-   card.addEventListener('click',()=>play(row.item));grid.append(card)}
+   card.addEventListener('click',()=>chooseEpisode(row));grid.append(card)}
   $('.lux-full-episode-grid').replaceChildren(grid);
   void loadSeason();
  }
  function open(next,opts={}){
-  if(!next)return;trailers.close();trailerData={};lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
+  if(!next)return;trailers.close();if(sourceDialog.open)sourceDialog.close();trailerData={};lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
   epoch++;const currentEpoch=epoch;seriesTmdbId=null;episodeViews=[];
   if(first){returnFocus=document.activeElement;oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden'}
   opened=true;suspended=false;shell.hidden=false;if(!shell.open)shell.showModal();shell.scrollTop=0;
   $('#lux-full-kind').textContent=series?'SÉRIE':'FILME';
   $('#lux-full-title').textContent=series?.title||next.displayName||next.name||'Título sem nome';
-  const count=series?.episodes?.length||0;
+  const count=episodeRows().length;
   const availability=series?[series.seasons.length+' temporada'+(series.seasons.length===1?'':'s'),count+' episódio'+(count===1?'':'s')]:[];
   renderFactBadges($('.lux-full-meta'),series?availability:[next.catalogYear,next.normalizedGroup||next.group].filter(Boolean));
   const desc=$('.lux-full-description');desc.hidden=true;desc.textContent='';
   const trailerLink=$('[data-full-trailer]');trailerLink.hidden=true;trailerLink.removeAttribute('href');
   const credits=$('.lux-full-credits');credits.hidden=true;credits.replaceChildren();
-  const resume=series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0];
+  const resume=resumeEpisode();
   const playLabel=$('[data-full-play] span');playLabel.textContent=resume?'Continuar T'+resume.season+':E'+resume.number:(getProgress?.(next)?.position>15?'Continuar':'Começar');
   setIconLabel($('[data-full-watched]'),'check-circle',isWatched?.(next)?'Marcar não assistido':'Marcar assistido');$('[data-full-watched]').setAttribute('aria-pressed',String(Boolean(isWatched?.(next))));
   setIconLabel($('[data-full-favorite]'),isFavorite?.(next)?'heart':'plus',isFavorite?.(next)?'Na minha lista':'Minha lista',Boolean(isFavorite?.(next)));
@@ -149,6 +179,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
  }
  function close(){
    trailers.close();
+   if(sourceDialog.open)sourceDialog.close();
    if(!opened&&!suspended)return;
    opened=false;suspended=false;epoch++;shell.close();shell.hidden=true;returnFocus?.focus?.();
    document.body.style.overflow=oldOverflow;series=null;item=null;
@@ -162,11 +193,11 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
  });
  shell.addEventListener('click',event=>{
   if(event.target.closest('[data-full-close]'))close();
-  else if(event.target.closest('[data-full-play]'))play((series?.episodes.find(row=>!isWatched?.(row.item)&&getProgress?.(row.item)?.position>15)||series?.episodes.find(row=>!isWatched?.(row.item))||series?.episodes[0])?.item||item);
+  else if(event.target.closest('[data-full-play]')){const row=resumeEpisode();if(row)chooseEpisode(row);else play(item);}
   else if(event.target.closest('[data-full-watched]')&&item){void Promise.resolve(onWatched?.(item)).then(()=>{setIconLabel($('[data-full-watched]'),'check-circle',isWatched?.(item)?'Marcar não assistido':'Marcar assistido');$('[data-full-watched]').setAttribute('aria-pressed',String(Boolean(isWatched?.(item))));if(series)renderSeason()})}
   else if(event.target.closest('[data-full-favorite]')&&item){onFavorite?.(item);setIconLabel($('[data-full-favorite]'),isFavorite?.(item)?'heart':'plus',isFavorite?.(item)?'Na minha lista':'Minha lista',Boolean(isFavorite?.(item)))}
  });
- document.addEventListener('keydown',e=>{if(opened&&e.key==='Escape'){e.stopPropagation();close()}});
+ document.addEventListener('keydown',e=>{if(opened&&!sourceDialog.open&&e.key==='Escape'){e.stopPropagation();close()}});
  shell.addEventListener('cancel',event=>{event.preventDefault();close()});
  document.body.append(shell);
  return {open,close,resume,canResume:()=>suspended,isOpen:()=>opened};
