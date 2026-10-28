@@ -1,9 +1,9 @@
 /* Lux Cinema: interface pública e capas visíveis. Catálogos, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-57';
+const VERSION = 'lux-cinema-shell-58';
 const ASSETS = [
   '/player-visibility.js',
   '/legal/links.css',
-  '/presentation-metadata.js', '/episode-metadata.js', '/vod-admin.js', '/vod-model.js', '/lux-icons.js', '/lux-icons.css',
+  '/catalog-prepare.js', '/catalog-prepare-worker.js', '/presentation-metadata.js', '/episode-metadata.js', '/vod-admin.js', '/vod-model.js', '/lux-icons.js', '/lux-icons.css',
   '/player-controls.js', '/player-modal.js', '/artwork-preload.js', '/artwork-metadata-cache.js', '/tmdb-rich-view.js', '/trailer-modal.js', '/guest-mode.js', '/catalog-relations.js', '/quick-guide.js', '/guide-model.js', '/catalog-navigation.js', '/connectivity.js', '/connectivity.css', '/style.css', '/home.css', '/cinema-premium.css', '/cinema-polish.css', '/cinema-browse.css',
   '/cinema-app.js', '/home.js', '/episode-continuation.js', '/home-model.js', '/cinema-browse.js', '/tmdb-client.js', '/cinema-tmdb-tags.js', '/cinema-title.js', '/media-taxonomy.js', '/tv-normalizer.js', '/profile-store.js', '/recommendations.js', '/catalog-search-client.js', '/cinema-series.js', '/cinema-tv-groups.js', '/cinema-detail-page.js', '/cinema-detail-page.css', '/lux-tag-palette.js', '/lux-tag-palette.css', '/saved-catalog.js', '/catalog-cache.js',
   '/playlist.js', '/gateway.js', '/direct-source.js',

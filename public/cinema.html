@@ -54,9 +54,9 @@
 <script>
   // Garantia: nunca deixar a tela presa se o bundle falhar ou a rede parar.
   window.__luxBootStarted = performance.now();
-  window.setTimeout(() => { const screen = document.getElementById('lux-boot'); if (screen) screen.remove(); }, 75000);
+  window.setTimeout(() => { const screen = document.getElementById('lux-boot'); if (screen) screen.remove(); document.querySelector('.cinema-shell')?.classList.remove('is-library-loading'); document.querySelector('main')?.removeAttribute('aria-busy'); }, 75000);
 </script>
-<div class="shell cinema-shell">
+<div class="shell cinema-shell is-library-loading">
   <header class="cinema-header" aria-label="Navegação Lux Player">
     <a class="cinema-brand" href="#inicio" aria-label="Lux Player — Início">
       <span class="cinema-brand-mark"><img src="/assets/lux-icon.png" alt=""></span><span class="cinema-brand-word">LUX <span>PLAYER</span></span>
@@ -117,7 +117,8 @@
     <p class="drawer-footnote">O Lux Player é um reprodutor independente e não fornece conteúdo.</p>
   </aside>
 
-  <main class="main" id="inicio">
+  <main class="main" id="inicio" aria-busy="true">
+    <section id="lux-library-loading" class="lux-library-loading" role="status" aria-live="polite"><h1>Preparando sua biblioteca</h1><p>Seus filmes, séries e canais vão aparecer assim que a lista estiver pronta.</p><div class="lux-library-skeletons" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div></section>
     <section class="feature-hero" aria-label="Destaque da sua biblioteca">
       <img id="hero-art" class="hero-art" src="/assets/login-scene.png" alt="" referrerpolicy="no-referrer">
       <div class="hero-overlay"></div>

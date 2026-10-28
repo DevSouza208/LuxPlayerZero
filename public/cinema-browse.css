@@ -215,3 +215,5 @@
 .browse-heading--compact .browse-heading-copy{min-width:0}
 .browse-heading--compact .browse-filter-label{display:block;margin:12px 0 0;color:#aa9ab8;font-size:13px;line-height:1.5;letter-spacing:normal}
 .browse-heading--compact .browse-filter-menu{justify-self:end}
+
+.lux-library-loading{display:none;padding:42px var(--home-gutter,24px);min-height:55vh}.cinema-shell.is-library-loading main>:not(.lux-library-loading){display:none!important}.is-library-loading .lux-library-loading{display:block}.lux-library-loading h1{font-size:clamp(24px,3vw,36px);margin:0 0 12px}.lux-library-loading p{color:#b7abc5;line-height:1.6}.lux-library-skeletons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-top:28px}.lux-library-skeletons span{display:block;aspect-ratio:2/3;border-radius:14px;background:linear-gradient(110deg,#16111d 20%,#24192f 45%,#16111d 70%);background-size:220% 100%;animation:lux-art-shimmer 1.8s ease-in-out infinite}@media(max-width:740px){.lux-library-skeletons{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}@media(prefers-reduced-motion:reduce){.lux-library-skeletons span{animation:none}}
