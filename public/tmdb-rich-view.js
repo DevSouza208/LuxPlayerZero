@@ -7,6 +7,17 @@ export function detailFacts(data){
   data.runtime?Math.floor(data.runtime/60)+'h '+data.runtime%60+'min':null,
   ...(data.genres||[]),data.rating!=null?'★ '+data.rating.toFixed(1)+(data.voteCount?' · '+data.voteCount.toLocaleString('pt-BR')+' votos':''):null].filter(Boolean);
 }
+export function renderFactBadges(root,values){
+ root.replaceChildren();
+ for(const value of values){
+  const badge=el('span',null,'hero-fact');let text=String(value);
+  const age=text.match(/^Classificação\s+(L|Livre|10|12|14|16|18)$/i);
+  const date=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(age){text=/^(L|Livre)$/i.test(age[1])?'L':age[1];badge.classList.add('hero-age','hero-age-'+text);badge.setAttribute('aria-label','Classificação indicativa: '+(text==='L'?'Livre':text+' anos'));}
+  else if(date){text=date[3]+'/'+date[2]+'/'+date[1];badge.setAttribute('aria-label','Lançamento: '+text);}
+  badge.textContent=text;root.append(badge);
+ }
+}
 export function renderRichMetadata(root,data,{onVideo}={}){
  root.replaceChildren();root.classList.add('tmdb-rich');
  const main=el('div',null,'tmdb-rich-main'),aside=el('aside',null,'tmdb-rich-aside');aside.setAttribute('aria-label','Ficha técnica');root.append(main,aside);

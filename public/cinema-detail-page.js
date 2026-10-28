@@ -1,6 +1,6 @@
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createTrailerModal,trailerVideos} from './trailer-modal.js';
-import {renderRichMetadata,detailFacts} from './tmdb-rich-view.js';
+import {renderRichMetadata,detailFacts,renderFactBadges} from './tmdb-rich-view.js';
 /* Full-viewport Lux 2.0-inspired film and series pages.
  * HTML strings below are static only; provider data is assigned via textContent.
  */
@@ -60,9 +60,8 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
   $('#lux-full-kind').textContent=series?'SÉRIE':'FILME';
   $('#lux-full-title').textContent=series?.title||next.displayName||next.name||'Título sem nome';
   const count=series?.episodes?.length||0;
-  $('.lux-full-meta').textContent=series?
-    series.seasons.length+' temporada'+(series.seasons.length===1?'':'s')+' · '+count+' episódio'+(count===1?'':'s'):
-    [next.catalogYear,next.normalizedGroup||next.group].filter(Boolean).join(' · ');
+  const availability=series?[series.seasons.length+' temporada'+(series.seasons.length===1?'':'s'),count+' episódio'+(count===1?'':'s')]:[];
+  renderFactBadges($('.lux-full-meta'),series?availability:[next.catalogYear,next.normalizedGroup||next.group].filter(Boolean));
   const desc=$('.lux-full-description');desc.hidden=true;desc.textContent='';
   const trailerLink=$('[data-full-trailer]');trailerLink.hidden=true;trailerLink.removeAttribute('href');
   const credits=$('.lux-full-credits');credits.hidden=true;credits.replaceChildren();
@@ -82,12 +81,12 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,isFa
     fallback.hidden=setPhoto(poster,info.poster||(opts.poster??next.logo));
     if(info.overview){desc.textContent=info.overview;desc.hidden=false}
     const values=[info.year,...(info.genres||[]).slice(0,3),info.rating?'★ '+info.rating:null].filter(Boolean);
-    if(values.length)$('.lux-full-meta').textContent=(series?series.seasons.length+' temporadas · '+count+' episódios · ':'')+values.join(' · ');
+    if(values.length)renderFactBadges($('.lux-full-meta'),[...availability,...values]);
     const extended=await extendedFor?.(info,target);
     if(!opened||currentEpoch!==epoch||!extended)return;
     if(extended.overview){desc.textContent=extended.overview;desc.hidden=false;}
     const rich=make('div');renderRichMetadata(rich,extended,{onVideo:url=>trailers.open(trailerData,url)});credits.append(rich);
-    const richFacts=detailFacts(extended);if(richFacts.length)$('.lux-full-meta').textContent=richFacts.join(' · ');
+    const richFacts=detailFacts(extended);if(richFacts.length)renderFactBadges($('.lux-full-meta'),richFacts);
     if(extended.collection?.name){
       credits.append(make('h2','','Coleção: '+extended.collection.name));
       if(!extended.collectionItems?.length)credits.append(make('p','',extended.collection.status==='unavailable'?'Não foi possível consultar os títulos desta coleção agora.':'Nenhum outro título desta coleção foi identificado com segurança no catálogo.'));

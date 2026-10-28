@@ -130,3 +130,9 @@
 .lux-trailer-hint{font:400 14px/1.5 'Outfit',sans-serif;color:#c1b9d1}
 .lux-video-card[aria-pressed=true]{border-color:#cbb9ff;box-shadow:0 0 0 1px #b38aff}
 @media(max-width:600px){.lux-trailer-modal{padding:16px;border-radius:14px}.lux-trailer-modal .lux-video-card{flex-basis:240px}}
+
+/* Match the Home metadata badges without changing provider/TMDB values. */
+.lux-full-meta{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.lux-full-meta .hero-fact{flex:0 1 auto;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.hero-tagline:not([hidden])::before,.tmdb-tagline::before{content:'“'}
+.hero-tagline:not([hidden])::after,.tmdb-tagline::after{content:'”'}

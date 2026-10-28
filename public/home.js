@@ -1,6 +1,6 @@
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
-import {detailFacts} from './tmdb-rich-view.js';
+import {detailFacts,renderFactBadges} from './tmdb-rich-view.js';
 import {isGuestMode,createGuestStore} from './guest-mode.js';
 import {relationIndex,resolveRelations} from './catalog-relations.js';
 import {createQuickGuide} from './quick-guide.js';
@@ -815,7 +815,7 @@ export function createHome({ play } = {}) {
     const description=rich?.overview||data?.overview;
     if(description){$('hero-subtitle').textContent=description;$('hero-subtitle').classList.add('hero-overview');}
     else $('hero-subtitle').classList.remove('hero-overview');
-    const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.replaceChildren();const plain=document.createElement('span');plain.className='hero-facts-desktop';plain.textContent=values.join(' · ');facts.append(plain);const mobile=document.createElement('span');mobile.className='hero-facts-mobile';for(const value of values){const badge=document.createElement('span');badge.className='hero-fact';let text=String(value);const age=text.match(/^Classificação\s+(L|Livre|10|12|14|16|18)$/i);const date=text.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(age){text=/^(L|Livre)$/i.test(age[1])?'L':age[1];badge.classList.add('hero-age','hero-age-'+text);badge.setAttribute('aria-label','Classificação indicativa: '+(text==='L'?'Livre':text+' anos'));}else if(date){text=date[3]+'/'+date[2]+'/'+date[1];badge.setAttribute('aria-label','Lançamento: '+text);}badge.textContent=text;mobile.append(badge);}facts.append(mobile);facts.hidden=!values.length;}
+    const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.replaceChildren();const plain=document.createElement('span');plain.className='hero-facts-desktop';plain.textContent=values.join(' · ');facts.append(plain);const mobile=document.createElement('span');mobile.className='hero-facts-mobile';renderFactBadges(mobile,values);facts.append(mobile);facts.hidden=!values.length;}
     const tagline=$('hero-tagline');if(tagline){tagline.textContent=rich?.tagline||'';tagline.hidden=!rich?.tagline;}
     if(data?.status==='matched'&&!richCache.has(richKey)&&!richPending.has(richKey)){
       const selected=heroItem;void extendedMetadata(data,selected).then(()=>{if(heroItem===selected)renderHero()});
