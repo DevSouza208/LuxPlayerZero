@@ -9,9 +9,9 @@ function valid(row){return row?.schemaVersion===schemaVersion&&Array.isArray(row
 /** One atomic record swap; old data is never deleted before a validated replacement. */
 export function createLibraryCache({storage=localData,fetcher=fetch,now=Date.now}={}){
  async function activate(profileId,key,catalogId){try{await storage.set('active-catalog:'+profileId,{key,catalogId})}catch{}}
- async function load({profileId,source,catalogId,cacheKey,download,prepare,onCached=()=>{},onWarning=()=>{},retried=false}){
+ async function load({profileId,source,catalogId,cacheKey,cachedRecord,download,prepare,onCached=()=>{},onWarning=()=>{},retried=false}){
   const key=cacheKey||await libraryCacheKey(profileId,source);let cached;
-  try{const value=await storage.get(key);if(valid(value)&&(!value.profileId||value.profileId===profileId))cached=value;}catch{}
+  try{const value=cachedRecord?.key===key?cachedRecord:await storage.get(key);if(valid(value)&&(!value.profileId||value.profileId===profileId))cached=value;}catch{}
   if(cached){onCached(cached.items);await activate(profileId,key,catalogId);}
   let manifest=null;
   try{
@@ -32,7 +32,7 @@ export function createLibraryCache({storage=localData,fetcher=fetch,now=Date.now
    return {items,changed:true,cached:false};
   }catch(error){
    if(error.auth)throw error;
-   if(error.status===409&&!retried)return load({profileId,source,catalogId,cacheKey,download,prepare,onCached,onWarning,retried:true});
+   if(error.status===409&&!retried)return load({profileId,source,catalogId,cacheKey,cachedRecord,download,prepare,onCached,onWarning,retried:true});
    if(cached){onWarning('Usando a cópia salva. A atualização será conferida na próxima abertura.');return {items:cached.items,changed:false,cached:true};}
    throw error;
   }

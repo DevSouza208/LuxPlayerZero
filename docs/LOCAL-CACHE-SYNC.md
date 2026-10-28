@@ -32,4 +32,4 @@ Testes cobrem persistência, recriação do store, coalescência, isolamento, co
 
 Baseline autorizada atualizada somente em cinema-app.js (cache e flush na saída) e catalog-snapshot.js (hash/manifesto/lease). Bridge, preferência HTTPS e motores permanecem protegidos pelos hashes anteriores.
 
-Resultado: 295 testes locais passaram. A prévia no Chrome confirmou oito verificações com IndexedDB real (progresso local sem POST, restauração da fila, envio consolidado, versão idêntica sem download/parser e isolamento). A página de teste temporária foi removida de public antes do merge; seu código fica somente em tests/browser. O teste não usou credenciais nem dados reais, nem executou um ciclo real de 05h.
+Resultado: 296 testes locais passaram. A prévia no Chrome confirmou oito verificações com IndexedDB real (progresso local sem POST, restauração da fila, envio consolidado, versão idêntica sem download/parser e isolamento). A página de teste temporária foi removida de public antes do merge; seu código fica somente em tests/browser. O teste não usou credenciais nem dados reais, nem executou um ciclo real de 05h.

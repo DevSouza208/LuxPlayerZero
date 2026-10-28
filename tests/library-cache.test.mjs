@@ -51,3 +51,9 @@ test('mudança de versão durante download faz uma única nova verificação',as
  await load({...options,download:async()=>{if(downloads++===0)throw Object.assign(Error('changed'),{status:409});return options.download()}});
  assert.equal(checks,2);assert.equal(downloads,2);
 });
+test('catálogo já restaurado não é clonado/lido inteiro duas vezes no mesmo boot',async()=>{
+ const storage=memoryStorage(),load=createLibraryCache({storage,fetcher:async()=>manifest()});await load(options);
+ const local=await load.restore('p1'),get=storage.get;let bigReads=0;
+ storage.get=async key=>{if(key.startsWith('catalog:'))bigReads++;return get(key)};
+ await load({...options,cacheKey:local.key,cachedRecord:local});assert.equal(bigReads,0);
+});

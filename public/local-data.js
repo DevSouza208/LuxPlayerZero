@@ -9,7 +9,7 @@ export function createLocalData(indexedDB=globalThis.indexedDB){
    const timer=setTimeout(()=>{expired=true;reject(Error('Armazenamento local ocupado.'));},2500);
    request.onupgradeneeded=()=>request.result.createObjectStore('data');
    request.onsuccess=()=>{clearTimeout(timer);const db=request.result;if(expired){db.close();return;}db.onversionchange=()=>{db.close();opening=null};resolve(db)};
-   request.onerror=request.onblocked=()=>{clearTimeout(timer);opening=null;reject(Error('Armazenamento local indisponível.'))};
+   request.onerror=request.onblocked=()=>{expired=true;clearTimeout(timer);opening=null;reject(Error('Armazenamento local indisponível.'))};
   }).catch(error=>{opening=null;throw error});
   return opening;
  }

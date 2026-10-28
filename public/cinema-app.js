@@ -601,7 +601,7 @@ async function restoreSavedLibrary() {
     if(!id)return;
     try{
       let shown=false;
-      const result=await loadLibraryCache({profileId,source:snapshotPath(id),catalogId:id,cacheKey:local?.key,
+      const result=await loadLibraryCache({profileId,source:snapshotPath(id),catalogId:id,cacheKey:local?.key,cachedRecord:local,
         onCached:items=>{shown=true;applyPreparedLibrary(items,'cache deste dispositivo',id,generation);finishLibraryLoading();},
         onWarning:message=>note(message,'info'),prepare:prepareCatalog,
         download:async version=>{const response=await fetch(snapshotPath(id)+(version?'&version='+version:''),{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(180000)});if(!response.ok)throw Object.assign(Error('Não foi possível atualizar a biblioteca.'),{status:response.status,auth:response.status===401||response.status===403});return response.text();}});
@@ -714,7 +714,7 @@ async function loadAccountSource(prefetchedResponse=null) {
     const url=new URL(sourceUrl),isSnapshot=url.origin===location.origin&&url.pathname==='/api/bridge/playlist';
     let id=isSnapshot?url.searchParams.get('id'):null,shown=false;
     const apply=(entries,caption)=>applyPreparedLibrary(entries,caption,id,generation);
-    const result=await loadLibraryCache({profileId:homeProfileId(),source:sourceUrl,catalogId:id,cacheKey:id&&local?.catalogId===id&&!local?.localOnly?local?.key:undefined,
+    const result=await loadLibraryCache({profileId:homeProfileId(),source:sourceUrl,catalogId:id,cacheKey:id&&local?.catalogId===id&&!local?.localOnly?local?.key:undefined,cachedRecord:local,
       onCached:entries=>{shown=true;apply(entries,'cache deste dispositivo');finishLibraryLoading();},
       onWarning:message=>note(message,'info'),
       download:async version=>{
