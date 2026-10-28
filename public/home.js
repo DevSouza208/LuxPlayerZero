@@ -100,10 +100,14 @@ export function createHome({ play } = {}) {
   const MAX_AUTO_ENRICH = 500;
   const MAX_SIMULTANEOUS_TMDB = 3;
 
+  const richCache=new Map(),richPending=new Map();
   const detailMetadataClient=createPresentationMetadataClient();
   async function extendedMetadata(data,target){
     const type=queryFor(target)?.type;if(config.summaryEngine==='off'||data?.status!=='matched'||!data.tmdbId||!type)return null;
-    return detailMetadataClient({tmdbId:data.tmdbId,type});
+    const key=type+':'+data.tmdbId;
+    if(richPending.has(key))return richPending.get(key);
+    const promise=detailMetadataClient({tmdbId:data.tmdbId,type}).then(details=>{richCache.delete(key);richCache.set(key,details);if(richCache.size>128)richCache.delete(richCache.keys().next().value);return details;}).finally(()=>richPending.delete(key));
+    richPending.set(key,promise);return promise;
   }
   const seasonMetadata=createSeasonMetadataClient();
   const fullDetails=createFullDetails({
