@@ -1,0 +1,9 @@
+# Nomes de temporadas e episódios
+
+A estrutura continua vindo da playlist: séries, temporadas, episódios e fontes existentes não são reorganizados pelo TMDB. O enriquecimento é apenas de apresentação e cruza o ID verificado da série, o número da temporada e o número do episódio. Temporadas adicionais do TMDB não criam abas nem conteúdo.
+
+O endpoint de temporadas passa a preservar o campo name. O detalhe usa esse nome tanto no título quanto nas abas, mantendo o número como legenda e rótulo acessível. A resposta estendida da série também fornece os nomes de todas as temporadas presentes, sem carregar cada temporada separadamente. Cache antigo sem nome continua válido e usa o rótulo numérico até receber o nome pelos detalhes estendidos ou próxima atualização normal.
+
+Nomes de episódios já eram suportados, mas só eram consultados depois de uma correspondência TMDB da série. Falhas de consulta ou cota D1 esgotada deixavam o título e os episódios nos dados do fornecedor. Falhas de pré-carregamento também ficavam na memória por toda a página: agora os detalhes podem tentar novamente após 30 segundos, sem repetir as consultas de capas nem ultrapassar o limite de chamadas da página. A temporada ativa permanece visível na faixa de abas e os estados de indisponibilidade são informados junto aos episódios.
+
+Validação local: 251 testes, incluindo nomes por número, episódio exato, preservação do fornecedor, cache e nova tentativa após falha. A lista privada contém Pokémon com 22 temporadas e 1385 episódios únicos e consulta por título Pokémon sem ano. A página fornecida pelo usuário apresenta nomes próprios das temporadas. A consulta direta dessa página foi bloqueada no ambiente de pesquisa. Não foi validada uma consulta autenticada nova do Pokémon em produção durante o esgotamento da cota D1. Nenhum preenchimento ou reconstrução do catálogo foi executado.

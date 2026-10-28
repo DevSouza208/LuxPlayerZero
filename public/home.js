@@ -83,6 +83,7 @@ export function createHome({ play } = {}) {
   // Enriquecer somente títulos visíveis: 10 automáticos por sessão, não os 262 mil.
   // Limite de 3 buscas simultâneas e 8 adicionais reservadas aos detalhes.
   const tmdbResolved = new Map();
+  const tmdbRetryAfter = new Map();
   const artworkMetadataCache = createArtworkMetadataCache();
   const tmdbPending = new Map();
   const tmdbQueued = new Set();
@@ -355,13 +356,17 @@ export function createHome({ play } = {}) {
     const query = queryFor(item);
     if (!query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
-    if (tmdbResolved.has(key)) return tmdbResolved.get(key);
+    if(tmdbResolved.has(key)){
+      const hit=tmdbResolved.get(key);
+      if(hit?.status==='matched'||preload||Date.now()<(tmdbRetryAfter.get(key)||0))return hit;
+      tmdbResolved.delete(key);tmdbRetryAfter.delete(key);tmdbReadiness=null;
+    }
     if (tmdbPending.has(key)) return tmdbPending.get(key);
     const local = await artworkMetadataCache.get(key);
     if(local?.status==='matched'){tmdbResolved.set(key,local);return local;}
     // Não consultar servidor sem chave/D1: evita uma sequência de erros 503.
     if (!tmdbReadiness) tmdbReadiness = tmdbConfigured();
-    if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') {tmdbResolved.set(key,{status:'unavailable'});return null;}
+    if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') {tmdbResolved.set(key,{status:'unavailable'});tmdbRetryAfter.set(key,Date.now()+30000);return null;}
     if (tmdbResolved.has(key)) return tmdbResolved.get(key);
     if (tmdbPending.has(key)) return tmdbPending.get(key);
     if (tmdbCalls >= MAX_TMDB_CALLS) return null;
@@ -372,6 +377,7 @@ export function createHome({ play } = {}) {
       .catch(() => null)
       .then(data => {
         tmdbResolved.set(key, data || {status:'unavailable'});
+        if(!data)tmdbRetryAfter.set(key,Date.now()+30000);else tmdbRetryAfter.delete(key);
         if(data?.status==='matched')void artworkMetadataCache.put(key,data);
         return data;
       }).finally(() => {
@@ -1076,7 +1082,7 @@ export function createHome({ play } = {}) {
       for(const task of tmdbQueue.splice(0))task.resolve?.(null);
       preparation.clear();changedArtwork.clear();
       tmdbReadiness = null;
-      tmdbResolved.clear();
+      tmdbResolved.clear();tmdbRetryAfter.clear();
     }
     rebuild();
     render();

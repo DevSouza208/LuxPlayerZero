@@ -1,7 +1,7 @@
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createTrailerModal,trailerVideos} from './trailer-modal.js';
 import {renderRichMetadata,detailFacts,renderFactBadges} from './tmdb-rich-view.js';
-import {episodePresentation} from './episode-metadata.js';
+import {episodePresentation,seasonPresentation} from './episode-metadata.js';
 /* Full-viewport Lux 2.0-inspired film and series pages.
  * HTML strings below are static only; provider data is assigned via textContent.
  */
@@ -20,8 +20,8 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
  '<div class="lux-full-actions"><button class="lux-full-play" type="button" data-full-play><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg> <span>Começar</span></button>'+
  '<button class="lux-full-trailer" type="button" data-full-trailer hidden><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polygon points="5 3 19 12 5 21 5 3"/></svg> Trailer</button><button class="lux-full-favorite" type="button" data-full-favorite><svg class="lux-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Minha lista</button><button class="lux-full-favorite" type="button" data-full-watched>Marcar assistido</button></div></div></section>'+
  '<section class="lux-full-seasons" hidden aria-label="Temporadas e episódios">'+
- '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2></div>'+
- '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><div class="lux-full-episode-grid"></div></section><section class="lux-full-credits" hidden aria-label="Informações do TMDB"></section></section>';
+ '<div class="lux-full-season-head"><div><span class="lux-full-eyebrow">EPISÓDIOS</span><h2 class="lux-full-season-title"></h2><p class="lux-full-season-caption" hidden></p></div>'+
+ '<div class="lux-full-season-choices" role="tablist" aria-label="Escolher temporada"></div></div><p class="lux-full-season-status" role="status" aria-live="polite" hidden></p><div class="lux-full-episode-grid"></div></section><section class="lux-full-credits" hidden aria-label="Informações do TMDB"></section></section>';
  const page=shell.firstElementChild, $=selector=>shell.querySelector(selector);
  const banner=$('.lux-full-backdrop'),poster=$('.lux-full-poster img'),fallback=$('.lux-full-poster span'),seasons=$('.lux-full-seasons');
  let item=null,series=null,season=0,opened=false,suspended=false,epoch=0,oldOverflow='',returnFocus=null,lastOptions={};
@@ -56,6 +56,22 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
   sourceDialog.showModal();focus?.focus();
  }
  let seriesTmdbId=null,episodeViews=[];
+ const seasonNames=new Map();
+ function seasonStatus(text=''){const status=$('.lux-full-season-status');status.textContent=text;status.hidden=!text;}
+ function applySeasonNames(){
+  const name=seasonPresentation(season,{seasonNumber:season,name:seasonNames.get(season)});
+  $('.lux-full-season-title').textContent=name.title;
+  const caption=$('.lux-full-season-caption');caption.textContent=name.caption;caption.hidden=!name.caption;
+  for(const tab of $('.lux-full-season-choices').querySelectorAll('[role=tab]')){
+   const number=Number(tab.dataset.season),label=seasonPresentation(number,{seasonNumber:number,name:seasonNames.get(number)});
+   tab.textContent=label.title;tab.title=label.label;tab.setAttribute('aria-label',label.label);
+  }
+ }
+ function revealSelectedSeason(){
+  const strip=$('.lux-full-season-choices'),active=strip.querySelector('[aria-selected=true]');if(!active)return;
+  const bounds=strip.getBoundingClientRect(),rect=active.getBoundingClientRect();
+  if(rect.left<bounds.left)strip.scrollLeft-=bounds.left-rect.left;else if(rect.right>bounds.right)strip.scrollLeft+=rect.right-bounds.right;
+ }
  function updateEpisode(view,metadata){
   const data=episodePresentation(view.row,metadata);
   view.title.textContent=data.title;view.info.textContent=data.info;
@@ -68,10 +84,13 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
   if(!series||!seriesTmdbId||typeof seasonFor!=='function')return;
   const currentEpoch=epoch,selectedSeason=season,id=seriesTmdbId;
   try{
+   seasonStatus('Carregando nomes dos episódios…');
    const metadata=await seasonFor(id,selectedSeason);
-   if(!opened||epoch!==currentEpoch||season!==selectedSeason||seriesTmdbId!==id||metadata?.tmdbId!==id||metadata.seasonNumber!==selectedSeason)return;
+   if(!opened||epoch!==currentEpoch||season!==selectedSeason||seriesTmdbId!==id)return;
+   if(metadata?.tmdbId!==id||metadata.seasonNumber!==selectedSeason){seasonStatus('Nomes dos episódios indisponíveis no momento. Tente novamente mais tarde.');return;}
+   if(metadata.name)seasonNames.set(selectedSeason,metadata.name);applySeasonNames();revealSelectedSeason();seasonStatus();
    for(const view of episodeViews)updateEpisode(view,metadata);
-  }catch{/* Episode selection remains usable without metadata. */}
+  }catch{if(opened&&epoch===currentEpoch&&season===selectedSeason)seasonStatus('Nomes dos episódios indisponíveis no momento. Tente novamente mais tarde.');}
  }
  $('[data-full-trailer]').addEventListener('click',()=>trailers.open(trailerData));
  const setPhoto=(target,value)=>{target.onerror=()=>{const reserve=target===poster?photo(lastOptions.fallbackPoster):'';if(reserve&&target.src!==reserve){target.src=reserve;return}target.hidden=true;if(target===poster)fallback.hidden=false};const src=photo(value);if(!src){target.hidden=true;target.removeAttribute('src');return false}target.src=src;target.hidden=false;return true};
@@ -79,12 +98,12 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
  function renderSeason(focusSelected=false){
   if(!series?.seasons?.length)return;
   const selected=series.seasons.find(s=>s.number===season)||series.seasons[0];season=selected.number;
-  $('.lux-full-season-title').textContent='Temporada '+season;
+  seasonStatus('Buscando nomes no TMDB…');
   const header=document.createDocumentFragment();
   for(const row of series.seasons){const btn=make('button','lux-full-season-tab'+(row.number===season?' is-active':''),'Temporada '+row.number);
-   btn.type='button';btn.tabIndex=row.number===season?0:-1;btn.setAttribute('role','tab');btn.setAttribute('aria-selected',String(row.number===season));
+   btn.dataset.season=String(row.number);btn.type='button';btn.tabIndex=row.number===season?0:-1;btn.setAttribute('role','tab');btn.setAttribute('aria-selected',String(row.number===season));
    btn.addEventListener('click',()=>{season=row.number;selectedSeasons.set(series.key,season);onSeason?.(series.key,season);renderSeason(true)});header.append(btn)}
-  $('.lux-full-season-choices').replaceChildren(header);
+  $('.lux-full-season-choices').replaceChildren(header);applySeasonNames();revealSelectedSeason();
   if(focusSelected)$('[role=tab][aria-selected=true]')?.focus();
   const grid=document.createDocumentFragment();
   episodeViews=[];
@@ -106,7 +125,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
  }
  function open(next,opts={}){
   if(!next)return;trailers.close();if(sourceDialog.open)sourceDialog.close();trailerData={};lastOptions=opts;const first=!opened;item=next;series=opts.series||null;season=getSeason?.(series?.key)??selectedSeasons.get(series?.key)??series?.seasons[0]?.number??0;
-  epoch++;const currentEpoch=epoch;seriesTmdbId=null;episodeViews=[];
+  epoch++;const currentEpoch=epoch;seriesTmdbId=null;episodeViews=[];seasonNames.clear();
   if(first){returnFocus=document.activeElement;oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden'}
   opened=true;suspended=false;shell.hidden=false;if(!shell.open)shell.showModal();shell.scrollTop=0;
   $('#lux-full-kind').textContent=series?'SÉRIE':'FILME';
@@ -128,7 +147,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
   page.focus({preventScroll:true});
   if(typeof metadataFor==='function')void (async()=>{
    try{const target=series?{...next,name:series.title,displayName:series.title}:next;
-    const info=await metadataFor(target);if(!opened||currentEpoch!==epoch||info?.status!=='matched')return;
+    const info=await metadataFor(target);if(!opened||currentEpoch!==epoch)return;if(info?.status!=='matched'){if(series)seasonStatus('Nomes e detalhes indisponíveis no momento. Tente novamente mais tarde.');return;}
     if(series){seriesTmdbId=Number(info.tmdbId);void loadSeason();}
     setPhoto(banner,info.backdrop||opts.backdrop);
     fallback.hidden=setPhoto(poster,info.poster||(opts.poster??next.logo));
@@ -137,6 +156,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
     if(values.length)renderFactBadges($('.lux-full-meta'),[...availability,...values]);
     const extended=await extendedFor?.(info,target);
     if(!opened||currentEpoch!==epoch||!extended)return;
+    if(series&&extended.tmdbId===seriesTmdbId){for(const row of extended.seasons||[])if(series.seasons.some(present=>present.number===row.number)&&row.name)seasonNames.set(row.number,row.name);applySeasonNames();revealSelectedSeason();}
     if(extended.overview){desc.textContent=extended.overview;desc.hidden=false;}
     const rich=make('div');renderRichMetadata(rich,extended,{onVideo:url=>trailers.open(trailerData,url)});credits.append(rich);
     const richFacts=detailFacts(extended);if(richFacts.length)renderFactBadges($('.lux-full-meta'),richFacts);
@@ -164,7 +184,7 @@ export function createFullDetails({onPlay,onRelated,metadataFor,extendedFor,seas
     appendRelations(extended.similarItems,'Títulos semelhantes no seu catálogo');
     trailerData=extended;trailerLink.hidden=!trailerVideos(extended).length;
     credits.hidden=!credits.childNodes.length;
-   }catch{/* Metadata never affects playback. */}
+   }catch{if(opened&&currentEpoch===epoch&&series&&!seriesTmdbId)seasonStatus('Nomes e detalhes indisponíveis no momento. Tente novamente mais tarde.');}
   })();
  }
  function suspend(){

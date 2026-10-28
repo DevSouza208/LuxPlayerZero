@@ -54,7 +54,7 @@ export function sanitizeSeason(data,id,season){
   airDate:/^\d{4}-\d{2}-\d{2}$/.test(row.air_date)?row.air_date:null,
   rating:number(row.vote_average)<=10?number(row.vote_average):null,voteCount:number(row.vote_count),still:image(row.still_path,'w780')
  }));
- return {tmdbId:id,type:'tv',seasonNumber:season,episodes};
+ return {tmdbId:id,type:'tv',seasonNumber:season,name:clean(data.name,120),episodes};
 }
 export async function detailMetadata(request,env,fetcher=fetch){
  try{

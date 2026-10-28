@@ -151,3 +151,5 @@
 .lux-episode-source-list{display:grid;gap:9px}.lux-episode-source{min-height:48px;padding:13px;text-align:left;border:1px solid #ffffff25;border-radius:9px;background:#ffffff08;color:inherit;font:500 14px/1.5 'Outfit',sans-serif;overflow-wrap:anywhere}
 .lux-episode-source.is-preferred{border-color:#b38aff88;background:#b38aff15}.lux-episode-source small{display:block;color:#cbb9ff}
 .lux-episode-sources button:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}.lux-full-episode-info .lux-full-episode-sources{color:#cbb9ff}
+
+.lux-full-season-head>div:first-child{min-width:0}.lux-full-season-title{overflow-wrap:anywhere}.lux-full-season-caption,.lux-full-season-status{color:#b6a7c4;font-size:13px;line-height:1.5;margin:8px 0 0}.lux-full-season-status{margin:0 0 18px}.lux-full-season-caption[hidden],.lux-full-season-status[hidden]{display:none}.lux-full-season-choices{position:relative;min-width:0;flex-shrink:0}.lux-full-season-tab{min-height:44px}
