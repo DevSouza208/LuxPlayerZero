@@ -1,5 +1,5 @@
 /* Lux Cinema: interface pública e capas visíveis. Catálogos, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-63';
+const VERSION = 'lux-cinema-shell-64';
 const ASSETS = [
   '/local-data.js', '/profile-sync-model.js', '/library-cache.js', '/player-visibility.js', '/playback-errors.js',
   '/legal/links.css',
