@@ -1,3 +1,4 @@
+import {database} from './helpers/d1.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { syncCatalog, serveCatalog, snapshotReady, refreshDailyCatalogs } from '../src/catalog-snapshot.js';
@@ -308,4 +309,13 @@ test('atualizações simultâneas da mesma fonte usam lease e a próxima tentati
  const first=syncCatalog(req('sync','POST',{url:original},c),env,async()=>{begin();await new Promise(r=>release=r);return new Response(m3u)});
  await started;assert.equal((await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).status,409);
  release();assert.equal((await first).status,200);assert.equal((await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).status,200);
+});
+
+test('lease e snapshot executam SQL real sem duplicar referência para conteúdo idêntico',async()=>{
+ const {env}=mockResources();env.DB=database();const c=await cookie(env);
+ const a=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ const b=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+ assert.equal(a.catalogId,b.catalogId);assert.equal(b.cached,true);
+ assert.equal(env.DB.db.prepare('SELECT COUNT(*) n FROM catalog_sources').get().n,1);
+ assert.equal(env.DB.db.prepare('SELECT COUNT(*) n FROM catalog_refresh_locks').get().n,0);
 });
