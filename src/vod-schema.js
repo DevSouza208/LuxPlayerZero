@@ -13,4 +13,9 @@ export const VOD_SCHEMA=[
   "CREATE INDEX IF NOT EXISTS series_pendentes ON series(consultar_apos,id) WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND generos='[]'",
   "CREATE INDEX IF NOT EXISTS vod_catalog_lookup ON vod_catalog_items(tipo,item_id)"
 ];
-export async function ensureVodSchema(db){for(const sql of VOD_SCHEMA)await db.prepare(sql).run();}
+const initialized=new WeakMap();
+export async function ensureVodSchema(db){
+ if(initialized.has(db))return initialized.get(db);
+ const work=(async()=>{if(typeof db.batch==='function')await db.batch(VOD_SCHEMA.map(sql=>db.prepare(sql)));else for(const sql of VOD_SCHEMA)await db.prepare(sql).run();})();
+ initialized.set(db,work);try{await work;}catch(error){initialized.delete(db);throw error;}
+}

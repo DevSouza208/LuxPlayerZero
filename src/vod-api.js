@@ -24,13 +24,29 @@ export async function vodAdminApi(request,env){
    const series=await env.DB.prepare('SELECT COUNT(*) AS total,SUM(CASE WHEN generos<>\'[]\' OR tags<>\'[]\' OR status_metadados=\'encontrado\' THEN 1 ELSE 0 END) AS classificados FROM series').first();
    const jobs=await env.DB.prepare('SELECT catalog_id,cursor,entry_count,status,updated_at FROM vod_catalog_jobs ORDER BY updated_at DESC LIMIT 50').all();
    const hasSources=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='catalog_sources'").first();
-   const sources=hasSources?await env.DB.prepare("SELECT catalog_id,item_count FROM catalog_sources ORDER BY catalog_id").all():{results:[]};
-   return reply({filmes,series,jobs:jobs.results,sources:sources.results});
+   const sources=hasSources?await env.DB.prepare("SELECT catalog_id,item_count,size_bytes FROM catalog_sources ORDER BY catalog_id").all():{results:[]};
+   const progress={read:0,total:0};for(const source of sources.results){progress.total+=source.item_count;const job=jobs.results.find(job=>job.catalog_id===source.catalog_id);progress.read+=Math.min(source.item_count,job?.entry_count||0);}
+   const metadata=await env.DB.prepare("SELECT value FROM vod_catalog_state WHERE id='metadata_status'").first();
+   return reply({filmes,series,jobs:jobs.results,sources:sources.results,progress,tmdb:{configured:Boolean(env.TMDB_API_KEY?.trim()),last:metadata?JSON.parse(metadata.value):null}});
   }
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
   const body=await bodyJson(request,131072);
-  if(!['start','step','edit','enrich','refresh','seed'].includes(body.action))throw new HttpError(400,'Ação inválida.');
+  if(!['start','step','edit','enrich','refresh','seed','rebuild'].includes(body.action))throw new HttpError(400,'Ação inválida.');
   await ensureVodSchema(env.DB);
+  if(body.action==='rebuild'){
+   if(body.confirmation!=='RECONSTRUIR CATALOGO')throw new HttpError(400,'Confirme a exclusão das edições manuais do catálogo.');
+   // A condição é repetida dentro da transação: uma leitura anterior não protege de outro Worker.
+   const available="NOT EXISTS(SELECT 1 FROM vod_catalog_jobs WHERE lease_until>?) AND NOT EXISTS(SELECT 1 FROM vod_catalog_state WHERE id='metadata_lease' AND CAST(value AS INTEGER)>?)";
+   const now=Date.now();
+   const result=await env.DB.batch([
+    env.DB.prepare(`INSERT INTO vod_catalog_state(id,value) SELECT 'rebuild_guard',? WHERE ${available} ON CONFLICT(id) DO UPDATE SET value=excluded.value`).bind(String(now),now,now),
+    ...['filmes','series','vod_catalog_items','vod_catalog_jobs'].map(table=>env.DB.prepare(`DELETE FROM ${table} WHERE EXISTS(SELECT 1 FROM vod_catalog_state WHERE id='rebuild_guard' AND value=?)`).bind(String(now))),
+    env.DB.prepare("DELETE FROM vod_catalog_state WHERE id IN ('metadata_status','metadata_lease') AND EXISTS(SELECT 1 FROM vod_catalog_state WHERE id='rebuild_guard' AND value=?)").bind(String(now)),
+    env.DB.prepare("DELETE FROM vod_catalog_state WHERE id='rebuild_guard' AND value=?").bind(String(now))
+   ]);
+   if(!result[0].meta.changes)throw new HttpError(409,'Existe um lote em andamento. Aguarde a conclusão antes de reconstruir.');
+   return reply({ok:true});
+  }
   if(body.action==='seed'){
    if(!Array.isArray(body.rows)||!body.rows.length||body.rows.length>60)throw new HttpError(400,'Lote inválido.');
    const now=Date.now(),rows=body.rows.map(row=>{
@@ -53,7 +69,7 @@ export async function vodAdminApi(request,env){
    return reply({...result,skipped:!result.updated&&!result.failed},result.failed?502:200);
   }
   if(body.action==='start')return reply({sources:await startVodJobs(env),status:'started'});
-  if(body.action==='step')return reply(await advanceVodJob(env));
+  if(body.action==='step')return reply(await advanceVodJob(env,{chunks:4}));
   if(body.action==='enrich')return reply(await enrichVod(env));
   const table=body.tipo;if(!TABLES.includes(table)||typeof body.id!=='string'||body.id.length>300)throw new HttpError(400,'Título inválido.');
   const titulo=String(body.titulo||'').trim();if(!titulo||titulo.length>240)throw new HttpError(400,'Título inválido.');

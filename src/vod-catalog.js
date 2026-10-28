@@ -73,13 +73,13 @@ export async function advanceVodJob(env,{chunks=1,now=Date.now()}={}){
  }
 }
 export async function enrichVod(env,{limit=2,now=Date.now(),fetcher=fetch}={}){
- if(!env.TMDB_API_KEY?.trim())return {matched:0,pending:true};
+ if(!env.TMDB_API_KEY?.trim())return {matched:0,pending:true,reason:'TMDB não configurado neste servidor: falta TMDB_API_KEY. O front e o Worker precisam da mesma configuração.'};
  const lease=now+120000;
  const locked=await env.DB.prepare("INSERT INTO vod_catalog_state(id,value) VALUES('metadata_lease',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(vod_catalog_state.value AS INTEGER)<=?").bind(String(lease),now).run();
  if(!locked.meta.changes)return {matched:0,attempts:0,busy:true};
  let matched=0,attempts=0;
  try{
- for(const table of TABLES){
+ for(const table of (Math.floor(now/60000)%2?[...TABLES].reverse():TABLES)){
   if(attempts>=limit)break;
   const rows=await env.DB.prepare(`SELECT id,titulo,ano FROM ${table} WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND generos='[]' AND consultar_apos<=?
    AND EXISTS(SELECT 1 FROM vod_catalog_items i WHERE i.tipo=? AND i.item_id=${table}.id)
@@ -89,7 +89,7 @@ export async function enrichVod(env,{limit=2,now=Date.now(),fetcher=fetch}={}){
    if(!query){await env.DB.prepare(`UPDATE ${table} SET status_metadados='sem_correspondencia',consultar_apos=? WHERE id=?`).bind(now+30*86400000,row.id).run();continue;}
    const origin='https://lux.internal';
    const response=await lookupTmdb(new Request(origin+'/api/metadata/tmdb',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({type:query.type,title:query.title,year:query.year})}),env,fetcher,()=>now);
-   if(!response.ok){await env.DB.prepare(`UPDATE ${table} SET consultar_apos=? WHERE id=?`).bind(now+(response.status===429?86400000:3600000),row.id).run();return {matched,attempts,paused:true};}
+   if(!response.ok){await env.DB.prepare(`UPDATE ${table} SET consultar_apos=? WHERE id=?`).bind(now+(response.status===429?86400000:3600000),row.id).run();return {matched,attempts,paused:true,reason:response.status===429?'Limite de consultas do TMDB atingido. A classificação será retomada automaticamente.':`Consulta TMDB indisponível (HTTP ${response.status}). Nova tentativa automática agendada.`};}
    const data=await response.json();
    if(data.status==='matched'){
     const updated=await env.DB.prepare(`UPDATE ${table} SET tmdb_id=?,capa=?,fundo=?,generos=?,status_metadados='encontrado',metadados_em=? WHERE id=? AND status_metadados<>'manual' AND tags='[]' AND generos='[]'`)
@@ -103,8 +103,9 @@ export async function enrichVod(env,{limit=2,now=Date.now(),fetcher=fetch}={}){
 export async function runVodMaintenance(env,{discover=false,now=Date.now()}={}){
  if(discover)await startVodJobs(env,now);
  else if(!await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='vod_catalog_jobs'").first())return {index:{status:'not_initialized'},metadata:null};
- const index=await advanceVodJob(env,{now});
- // Mantém a classificação fora do caminho de importação e da navegação.
- const metadata=index.status==='idle'?await enrichVod(env,{now}):null;
+ const index=await advanceVodJob(env,{chunks:4,now});
+ // Metadados dos títulos já gravados não precisam aguardar o catálogo inteiro.
+ const metadata=await enrichVod(env,{now});
+ await env.DB.prepare("INSERT INTO vod_catalog_state(id,value) VALUES('metadata_status',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value").bind(JSON.stringify({...metadata,updatedAt:now})).run();
  return {index,metadata};
 }

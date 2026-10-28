@@ -4,10 +4,11 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import {uniqueVod,providerReference,readVodChunk} from '../src/vod-model.js';
 import {parseM3u} from '../public/playlist.js';
-import {startVodJobs,advanceVodJob,enrichVod,writeVodRows} from '../src/vod-catalog.js';
+import {startVodJobs,advanceVodJob,enrichVod,writeVodRows,runVodMaintenance} from '../src/vod-catalog.js';
 import {ensureVodSchema} from '../src/vod-schema.js';
 import {vodAdminApi} from '../src/vod-api.js';
 import {accountApi} from '../src/account-api.js';
+import {lookupTmdb} from '../src/tmdb-metadata.js';
 const sample='#EXTM3U\n#EXTINF:-1 group-title="TV",Canal\nhttps://source.test/live/u/p/1.m3u8\n#EXTINF:-1 group-title="FILMES",Duna (2021) Dublado\nhttps://source.test/movie/u/p/101.mp4\n#EXTINF:-1 group-title="FILMES",Duna (2021) Legendado\nhttps://source.test/movie/u/p/102.mp4\n#EXTINF:-1 group-title="SÉRIES",Uma Série (2020) S01E01\nhttps://source.test/series/u/p/201.mp4\n#EXTINF:-1 group-title="SÉRIES",Uma Série (2020) S01E02\nhttps://source.test/series/u/p/202.mp4\n';
 function setup(text=sample){
  const db=new DatabaseSync(':memory:');db.exec(readFileSync(new URL('../migrations/0001_catalog_sources.sql',import.meta.url),'utf8'));
@@ -96,4 +97,42 @@ test('classificação usa índices de pendentes e vínculos sem varrer todos os 
  const {env,db}=setup();await ensureVodSchema(env.DB);
  const plan=db.prepare("EXPLAIN QUERY PLAN SELECT id,titulo,ano FROM filmes WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND generos='[]' AND consultar_apos<=? AND EXISTS(SELECT 1 FROM vod_catalog_items i WHERE i.tipo=? AND i.item_id=filmes.id) ORDER BY consultar_apos,id LIMIT ?").all(100,'filmes',2).map(x=>x.detail).join('\n');
  assert.match(plan,/filmes_pendentes/);assert.match(plan,/vod_catalog_lookup/);
+});
+
+test('reconstrução exige confirmação e limpa somente catálogo sem alterar contas ou fontes',async()=>{
+ const {env,db,login}=await accountSetup(),cookie=await login('admin');await startVodJobs(env,100);await advanceVodJob(env,{now:101});
+ db.prepare("UPDATE filmes SET tags='[\"Minha tag\"]',status_metadados='manual'").run();
+ assert.equal((await vodAdminApi(apiRequest(cookie,{action:'rebuild'}),env)).status,400);
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM filmes').get().n,1);
+ const response=await vodAdminApi(apiRequest(cookie,{action:'rebuild',confirmation:'RECONSTRUIR CATALOGO'}),env);assert.equal(response.status,200,await response.clone().text());
+ for(const table of ['filmes','series','vod_catalog_items','vod_catalog_jobs'])assert.equal(db.prepare('SELECT COUNT(*) n FROM '+table).get().n,0);
+ assert.equal(db.prepare('SELECT COUNT(*) n FROM usuarios').get().n,2);assert.equal(db.prepare('SELECT COUNT(*) n FROM catalog_sources').get().n,1);
+ await startVodJobs(env,200);assert.equal((await advanceVodJob(env,{now:201})).status,'ready');assert.equal(db.prepare('SELECT COUNT(*) n FROM series').get().n,1);
+});
+test('reconstrução não apaga dados durante lease de importação ou metadados',async()=>{
+ const {env,db,login}=await accountSetup(),cookie=await login('admin');await startVodJobs(env,100);await advanceVodJob(env,{now:101});
+ const body={action:'rebuild',confirmation:'RECONSTRUIR CATALOGO'};
+ db.prepare('UPDATE vod_catalog_jobs SET lease_until=?').run(Date.now()+120000);
+ assert.equal((await vodAdminApi(apiRequest(cookie,body),env)).status,409);
+ db.prepare('UPDATE vod_catalog_jobs SET lease_until=0').run();db.prepare("INSERT INTO vod_catalog_state VALUES('metadata_lease',?)").run(String(Date.now()+120000));
+ assert.equal((await vodAdminApi(apiRequest(cookie,body),env)).status,409);assert.equal(db.prepare('SELECT COUNT(*) n FROM filmes').get().n,1);
+});
+test('resumo informa progresso da fonte e falta de configuração TMDB',async()=>{
+ const {env,login}=await accountSetup(),cookie=await login('admin');await startVodJobs(env,100);await advanceVodJob(env,{now:101});
+ const response=await vodAdminApi(apiRequest(cookie),env),data=await response.json();assert.deepEqual(data.progress,{read:5,total:5});assert.equal(data.tmdb.configured,false);
+ const metadata=await enrichVod(env);assert.equal(metadata.pending,true);assert.match(metadata.reason,/TMDB_API_KEY/);
+});
+test('manutenção classifica enquanto outra parte do snapshot ainda está sendo importada',async()=>{
+ const text='#EXTM3U\n'+Array.from({length:10000},(_,i)=>`#EXTINF:-1 group-title="FILMES",Duna (2021)\nhttps://source.test/movie/u/p/${i}.mp4\n`).join('');
+ const {env,db}=setup(text);await startVodJobs(env,100);
+ // Sem chave, comprova a execução independente do estado building sem consumir rede.
+ const result=await runVodMaintenance(env,{now:101});assert.equal(result.index.status,'building');assert.equal(result.metadata.pending,true);assert.match(JSON.parse(db.prepare("SELECT value FROM vod_catalog_state WHERE id='metadata_status'").get().value).reason,/TMDB_API_KEY/);
+});
+
+test('classificação reaproveita cache consultado pelo front e persiste na tabela',async()=>{
+ const {env,db}=setup('#EXTM3U\n#EXTINF:-1 group-title="FILMES",Duna (2021)\nhttps://source.test/movie/u/p/101.mp4\n');await startVodJobs(env,100);await advanceVodJob(env,{now:101});env.TMDB_API_KEY='test-only-key';
+ const request=new Request('https://lux.test/api/metadata/tmdb',{method:'POST',headers:{origin:'https://lux.test','content-type':'application/json'},body:JSON.stringify({type:'movie',title:'Duna',year:2021})});
+ const response=await lookupTmdb(request,env,async()=>Response.json({results:[{id:438631,title:'Duna',original_title:'Dune',release_date:'2021-09-15',adult:false,genre_ids:[28,878],poster_path:'/poster.jpg'}]}),()=>200);assert.equal(response.status,200);
+ assert.equal(db.prepare('SELECT tmdb_id FROM filmes').get().tmdb_id,null);
+ const result=await enrichVod(env,{now:201,fetcher:()=>{throw Error('Cache existente não deve consultar a rede')}});assert.equal(result.matched,1);assert.equal(db.prepare('SELECT tmdb_id FROM filmes').get().tmdb_id,438631);
 });
