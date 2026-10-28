@@ -1,3 +1,4 @@
+import {playbackErrorMessage} from './playback-errors.js';
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {mountVodAdmin} from './vod-admin.js';
 import {createPlayerControls} from './player-controls.js';
@@ -156,7 +157,7 @@ function errorText(error) {
   if (/https?:\/\//i.test(text)) return 'O servidor recusou ou não conseguiu entregar esta fonte.';
   return text.slice(0, 190);
 }
-function fail(message) { note(message, 'error'); state('Erro'); log('Falha', message.slice(0, 110)); }
+function fail(message) { note(message, 'error'); state('Erro'); log('Falha', message.slice(0, 110)); playerControls?.reveal(); }
 function protocolBlocked(url) {
   return location.protocol === 'https:' && String(url).toLowerCase().startsWith('http:');
 }
@@ -355,6 +356,7 @@ async function playItem(item) {
   els.title.textContent = titleForDisplay(item);
   els.format.textContent = streamType(item.url);
   state('Conectando');
+  note('Conectando ao vídeo…');
   playerControls?.refresh();playerControls?.reveal();
   log('Abrindo mídia', item.kind + ' / ' + streamType(item.url));
   try {
@@ -383,7 +385,7 @@ async function playItem(item) {
         if (error?.name === 'NotAllowedError') {
           state('Clique para tocar');
           note('O navegador bloqueou a reprodução automática. Clique em Play no controle da mídia.', 'info');
-        } else fail(errorText(error));
+        } else fail(playbackErrorMessage());
       }
     };
     if (format === 'HLS' && !media.canPlayType('application/vnd.apple.mpegurl')) {
@@ -409,14 +411,14 @@ async function playItem(item) {
             }, attempt * 900);
             return;
           }
-          fail('Falha de rede HLS após 2 novas tentativas. Confira CORS e segmentos.');
+          fail(playbackErrorMessage('network'));
         } else if (data.type === window.Hls.ErrorTypes.MEDIA_ERROR) {
           if (mediaRetries++ < 2) {
             try { hls.recoverMediaError(); state('Recuperando'); return; } catch {}
           }
-          fail('Não foi possível decodificar a mídia HLS após 2 tentativas.');
+          fail(playbackErrorMessage('decode'));
         } else {
-          fail('Não foi possível reproduzir este stream HLS.');
+          fail(playbackErrorMessage());
         }
       });
       waitForManifest = true;
@@ -429,7 +431,7 @@ async function playItem(item) {
       });
       ts.attachMediaElement(media);
       ts.on(window.mpegts.Events.ERROR, () => {
-        if (generation === operation) fail('Falha MPEG-TS. Confira formato, CORS e disponibilidade do canal.');
+        if (generation === operation) fail(playbackErrorMessage());
       });
       ts.load();
     } else if (format === 'DASH') {
@@ -439,7 +441,7 @@ async function playItem(item) {
       media.load();
     }
     watchdog = setTimeout(() => {
-      if (generation === operation && media.readyState < 2) fail('Sem dados de mídia após 20 segundos. Verifique a origem, o formato e a rede.');
+      if (generation === operation && media.readyState < 2) fail(playbackErrorMessage('timeout'));
     }, 20000);
     if (!waitForManifest) await attemptPlay();
   } catch (error) {
@@ -468,7 +470,7 @@ for (const media of [els.video, els.audio]) {
   });
   media.addEventListener('waiting', () => { if (player === media) { state('Buffering'); log('Aguardando buffer'); } });
   media.addEventListener('error', () => {
-    if (player === media && media.error) fail('O dispositivo não conseguiu reproduzir esta mídia (erro ' + media.error.code + ').');
+    if (player === media && media.error) fail(playbackErrorMessage(media.error.code));
   });
   media.addEventListener('ended', () => { if (player === media) { state('Encerrado'); homeCall('onEnded', selected); } });
   media.addEventListener('pause', () => { if (player === media && !media.ended && media.readyState > 1) state('Pausado'); });

@@ -1,3 +1,4 @@
+import {checkRequestBudget} from './request-budget.js';
 import {usuariosApi} from './usuarios-auth.js';
 import { accountDiagnostics } from './account-diagnostics.js';
 import { verifyMfa, mfaAction } from './account-mfa.js';
@@ -98,6 +99,10 @@ export async function accountApi(request,env) {
       return await openSession(request,env,user);
     }
     const user=await requiredSession(request,env);
+    if(path!=='/api/account/logout'){
+      const blocked=await checkRequestBudget(env,user.user_id,path==='/api/account/state'&&request.method==='POST'?'sync':'account');
+      if(blocked)return blocked;
+    }
     if(request.method==='GET') {
       if(path==='/api/account/profiles')return reply({profiles:await results(env.DB.prepare(`SELECT p.id,p.name,p.avatar,(p.pin_hash IS NOT NULL) AS protected,
         COALESCE(a.default_profile_id=p.id,0) AS is_default FROM account_profiles p

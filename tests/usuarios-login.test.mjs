@@ -62,3 +62,14 @@ test('alterar senha pela conta atualiza usuarios e encerra todas as sessões',as
  assert.equal(await session(req('session',undefined,a.token),env),null);assert.equal(await session(req('session',undefined,b.token),env),null);
  await login(env,'teste','new-test-only-password');
 });
+test('limite autenticado barra gravação antes do UPDATE e mantém logout disponível',async()=>{
+ const {env,db}=setup(),{token}=await login(env);let key;
+ env.PROFILE_SYNC_LIMIT={async limit(input){key=input.key;return {success:false}}};
+ const response=await accountApi(req('state',{profileId:'usuario:1',version:0,value:{}},token),env);
+ assert.equal(response.status,429);assert.equal(response.headers.get('retry-after'),'60');
+ assert.equal(key,'sync:usuario:1');
+ assert.equal(db.prepare('SELECT COUNT(*) AS n FROM usuarios_estado').get().n,0);
+ env.ACCOUNT_REQUEST_LIMIT={async limit(){return {success:false}}};
+ assert.equal((await accountApi(req('profiles',undefined,token),env)).status,429);
+ assert.equal((await accountApi(req('logout',{},token),env)).status,200);
+});
