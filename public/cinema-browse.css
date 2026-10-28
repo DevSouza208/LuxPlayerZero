@@ -216,17 +216,9 @@
 
 .lux-library-loading{display:none;padding:42px var(--home-gutter,24px);min-height:55vh}.cinema-shell.is-library-loading main>:not(.lux-library-loading){display:none!important}.is-library-loading .lux-library-loading{display:block}.lux-library-loading h1{font-size:clamp(24px,3vw,36px);margin:0 0 12px}.lux-library-loading p{color:#b7abc5;line-height:1.6}.lux-library-skeletons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-top:28px}.lux-library-skeletons span{display:block;aspect-ratio:2/3;border-radius:14px;background:linear-gradient(110deg,#16111d 20%,#24192f 45%,#16111d 70%);background-size:220% 100%;animation:lux-art-shimmer 1.8s ease-in-out infinite}@media(max-width:740px){.lux-library-skeletons{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}@media(prefers-reduced-motion:reduce){.lux-library-skeletons span{animation:none}}
 
-/* Favoritar junto à capa, como ação independente de abrir os detalhes. */
-.media-cover{position:relative;flex-shrink:0}
-/* Círculo visível de 30px, com área transparente de toque de 44px. */
-.media-cover .media-favorite{position:absolute;right:4px;bottom:6px;z-index:5;display:grid;place-items:center;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:#fff;box-shadow:none;cursor:pointer}
-.media-cover .media-favorite::before{content:'';position:absolute;inset:7px;border:1px solid #ffffffb3;border-radius:50%;background:#050407a6;box-shadow:0 1px 5px #0004;pointer-events:none;transition:background .18s,border-color .18s}
-.media-cover .media-favorite:hover{background:transparent;color:#fff}
-.media-cover .media-favorite:hover::before{background:#24182ee6;border-color:#fff}
-.media-cover .media-favorite[aria-pressed=true]{background:transparent;color:#fff}
-.media-cover .media-favorite[aria-pressed=true]::before{background:#8b3dcc;border-color:#fff}
-.media-cover .media-favorite[aria-pressed=true]:hover::before{background:#9c4cdd}
-.media-cover .media-favorite:focus-visible{outline:2px solid #cbb9ff;outline-offset:0}
-.media-cover .media-favorite .lux-icon{position:relative;width:16px;height:16px}
-@media(prefers-reduced-motion:reduce){.media-cover .media-favorite::before{transition:none}}
-@media(forced-colors:active){.media-cover .media-favorite[aria-pressed=true]::before{border:2px solid Highlight}}
+/* Ação textual de Minha lista abaixo do título, sem sobrepor a capa. */
+.media-info .media-favorite{display:inline-flex;align-items:center;align-self:flex-start;justify-content:flex-start;gap:4px;min-height:44px;max-width:100%;padding:4px 0;margin:0;border:0;border-radius:4px;background:none;color:#b5a5c4;font:500 12px/1.3 'Outfit',sans-serif;text-align:left;cursor:pointer}
+.media-info .media-favorite:hover{color:#e4bbff}
+.media-info .media-favorite[aria-pressed=true]{color:#cbb9ff}
+.media-info .media-favorite:focus-visible{outline:2px solid #cbb9ff;outline-offset:2px}
+.media-info .media-favorite .lux-icon{width:17px;height:17px}
