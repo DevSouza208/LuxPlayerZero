@@ -1,0 +1,34 @@
+.lux-tv-experience[hidden]{display:none}
+.lux-tv-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,.4fr);gap:32px;align-items:center;margin:0 0 24px;padding:clamp(24px,4vw,56px);border:1px solid #ffffff15;border-radius:24px;background:radial-gradient(ellipse at 90% 20%,#4b267c55,transparent 65%),linear-gradient(120deg,#100e1b,#0a0910);overflow:hidden}
+.lux-tv-eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;color:#cbb9ff}
+.lux-tv-hero h2{margin:16px 0 12px;font-size:clamp(28px,3.7vw,56px);line-height:1.05;letter-spacing:-.035em;overflow-wrap:anywhere}
+.lux-tv-hero p{max-width:540px;color:#b8aec6;font-size:15px;line-height:1.65;margin:0 0 24px}
+.lux-tv-hero-actions{display:flex;flex-wrap:wrap;gap:10px}
+.lux-tv-hero button,.lux-tv-navigation button,.lux-tv-editor button,.lux-tv-editor select,.lux-tv-editor input{font-family:inherit;min-height:44px;cursor:pointer}
+.lux-tv-watch,.lux-tv-save{border:1px solid #cbb9ff;border-radius:10px;background:#cbb9ff;color:#150d20;font-weight:700;padding:11px 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.lux-tv-quiet{padding:10px 14px;border:1px solid #ffffff28;border-radius:10px;background:#ffffff05;color:#eee6f7;font-size:13px}
+.lux-tv-hero-logo{aspect-ratio:16/10;display:grid;place-items:center;max-width:300px;width:100%;justify-self:end;padding:26px;border:1px solid #ffffff15;border-radius:20px;background:#08070d66;color:#cbb9ff60;font-size:clamp(25px,3vw,42px);font-weight:800;letter-spacing:.08em}
+.lux-tv-hero-logo img{max-width:100%;max-height:150px;object-fit:contain}
+.lux-tv-featured-choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.lux-tv-featured-choices button{border:1px solid #ffffff20;border-radius:9px;background:#ffffff04;color:#bcb1ca;font-size:12px;padding:8px 12px;max-width:100%;overflow-wrap:anywhere}
+.lux-tv-featured-choices button[aria-pressed=true]{color:#f3eaff;border-color:#b38aff90;background:#b38aff14}
+.lux-tv-navigation{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:30px}
+.lux-tv-types{display:flex;gap:6px;flex-wrap:wrap}
+.lux-tv-types button{border:1px solid transparent;border-radius:30px;background:transparent;color:#a79bb4;padding:9px 16px;font-size:14px}
+.lux-tv-types button[aria-pressed=true]{color:#eee4ff;border-color:#a581da66;background:#a581da1a}
+.lux-tv-country{display:flex;align-items:center;gap:10px;color:#a79bb4;font-size:13px}
+.lux-tv-country select{background:#15101d;color:#eee7f5;border:1px solid #ffffff28;border-radius:8px;min-height:44px;padding:0 12px;max-width:100%}
+.lux-tv-notice{color:#b9adc8;font-size:13px;line-height:1.5}
+.lux-tv-editor{width:min(680px,calc(100vw - 28px));max-height:88dvh;overflow:auto;border:1px solid #6d5086;border-radius:18px;background:#110d18;color:#f7f4ff;padding:24px;font-family:'Outfit',sans-serif}
+.lux-tv-editor::backdrop{background:#000b}
+.lux-tv-editor header{display:flex;align-items:center;justify-content:space-between;gap:14px}.lux-tv-editor h2{font-size:25px;margin:0}.lux-tv-editor p{color:#b7abc5;line-height:1.6;font-size:13px}
+.lux-tv-editor label{display:flex;flex-direction:column;gap:7px;margin:18px 0 12px;color:#d7c9e8;font-size:13px}
+.lux-tv-editor input,.lux-tv-editor select{background:#1e1729;color:#f7f4ff;border:1px solid #ffffff25;border-radius:8px;padding:10px 12px;width:100%}
+.lux-tv-selected h3{font-size:13px;color:#ac9bbd;font-weight:500}
+.lux-tv-selected-row{display:flex;align-items:center;gap:5px;border-bottom:1px solid #ffffff0f;padding:5px 0}.lux-tv-selected-row>span{flex:1;min-width:0;overflow-wrap:anywhere;font-size:14px}
+.lux-tv-selected-row button,.lux-tv-results button{border:1px solid #ffffff16;background:#ffffff04;color:#d7cae7;border-radius:7px;padding:6px 10px;min-width:44px}
+.lux-tv-results{display:grid;grid-template-columns:1fr 1fr;gap:7px}.lux-tv-results button{text-align:left;font-size:12px}.lux-tv-editor button:disabled{opacity:.35;cursor:default}
+.lux-tv-save{width:100%;margin-top:12px}.lux-tv-editor-status{min-height:20px}
+.lux-tv-experience button:focus-visible,.lux-tv-experience select:focus-visible,.lux-tv-editor :is(button,input,select):focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+.browse-grid[data-role=tv]{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}.browse-grid[data-role=tv] .media-visual{aspect-ratio:16/9}.browse-grid[data-role=tv] .media-visual img{object-fit:contain;padding:24px 18px 14px}
+@media(max-width:650px){.lux-tv-hero{grid-template-columns:1fr;padding:24px 20px;gap:20px;border-radius:17px}.lux-tv-hero-logo{display:none}.lux-tv-hero h2{font-size:32px}.lux-tv-hero p{font-size:13px}.lux-tv-navigation{gap:12px}.lux-tv-types button{font-size:12px;padding:8px 11px}.lux-tv-country{width:100%}.lux-tv-country select{flex:1;min-width:0}.browse-grid[data-role=tv]{grid-template-columns:repeat(2,minmax(0,1fr))}.lux-tv-editor{padding:18px}.lux-tv-editor h2{font-size:20px}.lux-tv-results{grid-template-columns:1fr}.lux-tv-selected-row{flex-wrap:wrap}.lux-tv-selected-row>span{flex-basis:100%}}

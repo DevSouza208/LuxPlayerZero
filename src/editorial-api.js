@@ -1,8 +1,10 @@
+import {tvHighlightsApi} from './tv-highlights.js';
 import {requiredSession,bodyJson,HttpError,reply,digest,audit} from './account-security.js';
 const text=(value,max)=>typeof value==='string'?value.trim().slice(0,max):'';
 export async function editorialApi(request,env) {
  try{
   const user=await requiredSession(request,env),url=new URL(request.url),path=url.pathname;
+  if(path==='/api/editorial/tv-highlights')return tvHighlightsApi(request,env,user);
   if(request.method==='GET'){
    const start=Number(url.searchParams.get('from')||Date.now()),end=Number(url.searchParams.get('to')||start+86400000);
    if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||end<=start||end-start>7*86400000)throw new HttpError(400,'Intervalo inválido (máximo sete dias).');
