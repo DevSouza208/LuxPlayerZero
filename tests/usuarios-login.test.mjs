@@ -73,3 +73,10 @@ test('limite autenticado barra gravação antes do UPDATE e mantém logout dispo
  assert.equal((await accountApi(req('profiles',undefined,token),env)).status,429);
  assert.equal((await accountApi(req('logout',{},token),env)).status,200);
 });
+test('lote de estado com favoritos histórico e assistidos não esbarra no antigo limite de 32 KiB',async()=>{
+ const {env}=setup(),{token}=await login(env);const entry=i=>({key:'movie:'+i,name:'Á'.repeat(130),group:'G'.repeat(130),at:1,position:20,duration:600});
+ const value={favorites:Array.from({length:60},(_,i)=>entry(i)),recent:Array.from({length:30},(_,i)=>entry(i+60)),watched:Array.from({length:500},(_,i)=>'movie:'+i),seasons:{},settings:{}};
+ const body={profileId:'usuario:1',version:0,value};assert.ok(new TextEncoder().encode(JSON.stringify(body)).length>32768);
+ const response=await accountApi(req('state',body,token),env);assert.equal(response.status,200);
+ const saved=await(await accountApi(req('state',undefined,token),env)).json();assert.equal(saved.value.favorites.length,60);assert.equal(saved.value.watched.length,500);
+});

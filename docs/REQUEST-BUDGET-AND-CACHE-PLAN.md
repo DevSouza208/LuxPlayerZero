@@ -1,5 +1,7 @@
 # Request budgets and catalogue cache review
 
+Atualização: o cache privado de catálogo e a fila local de perfil foram implementados posteriormente; veja LOCAL-CACHE-SYNC.md para o comportamento atual. As seções de pendências abaixo registram o plano anterior, não o status atual.
+
 ## Implemented in this change
 
 Authenticated account actions: 120 requests/60 seconds per verified user ID. Profile-state POST: a separate 30/60 seconds per verified user ID, shared across that user's sessions. Logout remains available. Existing authentication/password brute-force limits stay in place. The account-session probe retains existing behavior and is not covered by the authenticated action budget.

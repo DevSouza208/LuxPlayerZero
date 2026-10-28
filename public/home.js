@@ -25,6 +25,7 @@ const guest=isGuestMode();
 let personal;
 const profileReady=(guest?Promise.resolve(createGuestStore()):createProfileStore()).then(store=>{personal=store;}).catch(()=>{location.replace('/account/');throw Error('Perfil indisponível');});
 export function prepareHomeProfile(){return profileReady;}
+export function homeProfileId(){return personal?.profileId||null;}
 if(guest){
  const link=document.querySelector('.cinema-account-link');if(link){link.setAttribute('href','/');link.setAttribute('aria-label','Entrar na conta');link.setAttribute('title','Entrar na conta');}
  const guide=document.querySelector('.guide-link');if(guide)guide.hidden=true;
@@ -72,6 +73,7 @@ export function createHome({ play } = {}) {
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
+  window.addEventListener('lux-sync-status',event=>{if(event.detail?.state==='warning'&&event.detail.message)flash(event.detail.message,true);});
 
   // O formulário de origem continua na sidebar, intacto e sempre acessível.
   const sourceDrawer = $('source-drawer');
@@ -1087,13 +1089,13 @@ export function createHome({ play } = {}) {
     rebuild();
     render();
     closeDialog(adminDialog);
-    flash(guest?'✓ Personalização aplicada nesta página.':'✓ Personalização aplicada e salva no seu perfil.');
+    flash(guest?'✓ Personalização aplicada nesta página.':'✓ Personalização salva neste dispositivo. Sincronização em segundo plano.');
     const wantsTmdb = config.imageEngine !== 'playlist' || config.summaryEngine === 'tmdb';
     if (wantsTmdb) {
       void tmdbConfigured().then(ready => {
         flash(ready ?
-          '✓ Personalização aplicada e salva. TMDB configurado; capas serão carregadas conforme houver correspondências.' :
-          '✓ Personalização aplicada e salva. TMDB precisa da chave TMDB_API_KEY e D1 na Cloudflare para carregar imagens.',
+          '✓ Personalização salva neste dispositivo. Capas serão carregadas conforme houver correspondências.' :
+          '✓ Personalização salva neste dispositivo. Metadados estão indisponíveis no momento.',
           !ready);
       });
     }
@@ -1216,9 +1218,13 @@ export function createHome({ play } = {}) {
     },
     onProgress(item, position, duration) {
       if (!item || active !== item || !shouldResume(position, duration)) return;
-      if (Date.now() - lastProgress < 9000) return;
+      if (Date.now() - lastProgress < 10000) return;
       lastProgress = Date.now();
       remember(item, position, duration);
+    },
+    async onPlaybackExit(item,position,duration){
+      if(item&&active===item&&shouldResume(position,duration))remember(item,position,duration);
+      try{await personal.flush?.();}catch{/* Durable outbox keeps pending changes. */}
     },
     onEnded(item) {
       if (!item) return;

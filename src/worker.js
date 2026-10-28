@@ -1,3 +1,4 @@
+import {serveCatalogVersion} from './catalog-version.js';
 import {metadataRequestBudget} from './request-budget.js';
 import {vodAdminApi} from './vod-api.js';
 import {runVodMaintenance} from './vod-catalog.js';
@@ -22,13 +23,15 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 });
 export default {
   async scheduled(event, env, ctx) {
-    if(event.cron==='0 7 * * *'||event.cron==='* * * * *'){
+    if(event.cron==='* * * * *'){
       if(!env.DB?.prepare)throw new Error('Configure o binding DB no Worker de manutenção do catálogo.');
-      // 04h de São Paulo descobre snapshots. Demais execuções retomam lotes pendentes.
-      const work=runVodMaintenance(env,{discover:event.cron==='0 7 * * *'});ctx.waitUntil(work);return work;
+      // Retoma apenas o trabalho pendente em lotes.
+      const work=runVodMaintenance(env,{discover:false});ctx.waitUntil(work);return work;
     }
-    const work=refreshDailyCatalogs(env).then(result=>{
+    const work=refreshDailyCatalogs(env).then(async result=>{
       if(result.failed)throw new Error(result.failed+' catálogo(s) não puderam ser atualizados. As cópias anteriores foram preservadas.');
+      // 05h de São Paulo: snapshot primeiro, índice depois.
+      if(event.cron==='0 8 * * *')await runVodMaintenance(env,{discover:true});
       return result;
     });
     ctx.waitUntil(work);
@@ -43,6 +46,7 @@ export default {
     if (url.pathname === '/api/bridge/status' && request.method === 'GET') return status(request,env);
     if (url.pathname === '/api/bridge/connect' && request.method === 'POST') return connect(request,env);
     if (url.pathname === '/api/bridge/sync' && request.method === 'POST') return syncCatalog(request,env);
+    if (url.pathname === '/api/bridge/catalog-version')return serveCatalogVersion(request,env);
     if (url.pathname === '/api/bridge/playlist' && request.method === 'GET') return serveCatalog(request,env);
     if (url.pathname === '/api/bridge/catalog' && request.method === 'POST') return catalog(request,env);
     if (url.pathname === '/api/bridge/sign' && request.method === 'POST') return sign(request,env);
