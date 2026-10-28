@@ -1,4 +1,4 @@
-# TV: destaques da semana e países
+# TV: destaques da semana e categorias do fornecedor
 
 Em Ao vivo, o hero mostra os canais escolhidos pelo administrador para o dia atual em America/Sao_Paulo. O primeiro canal da lista é o destaque principal. Os demais ficam em botões de seleção, sem rotação ou reprodução automática.
 
@@ -24,6 +24,6 @@ Se o bucket ou a rede falharem, a TV mostra uma mensagem e continua permitindo n
 
 ## Verificação
 
-306 testes locais passaram antes da revisão visual e a suíte foi ampliada para cobrir as categorias originais do fornecedor. A suíte específica também passou após reforçar a detecção de prefixos. Cobertura: autorização e CSRF, validação de agenda, persistência R2 simulada, fuso, correspondência por chave/nome, ausência de canais e preservação de variantes e URLs. Teste da playlist enviada contou 2.235 entradas originais, 1.618 canais lógicos, 581 internacionais e 1.037 outros; essa é uma amostra antiga e não uma contagem da produção atual.
+307 testes locais passaram na versão final. A suíte específica também passou após reforçar a detecção de prefixos. Cobertura: autorização e CSRF, validação de agenda, persistência R2 simulada, fuso, correspondência por chave/nome, ausência de canais e preservação de variantes e URLs. Teste da playlist enviada contou 2.235 entradas originais, 1.618 canais lógicos, 581 internacionais e 1.037 outros; essa é uma amostra antiga e não uma contagem da produção atual.
 
-A fixture tests/browser/tv-features.html usa dados sintéticos e transporte simulado para validar os controles sem alterar a agenda real. A cópia pública usada no deploy de prévia é removida antes da publicação. A inspeção em iframe de 360px foi bloqueada pelo X-Frame-Options do site e não foi contornada. A primeira configuração real do administrador no R2 ainda precisa ser observada; nenhum canal de exemplo é salvo em produção.
+O navegador confirmou o filtro de categorias, a ocultação de internacionais, a reordenação dos destaques e o foco após salvar. O app em modo visitante abriu a TV sem erro e sem agenda fictícia. A fixture tests/browser/tv-features.html usa dados sintéticos e transporte simulado para validar os controles sem alterar a agenda real. A cópia pública usada no deploy de prévia é removida antes da publicação. A inspeção em iframe de 360px foi bloqueada pelo X-Frame-Options do site e não foi contornada. A primeira configuração real do administrador no R2 ainda precisa ser observada; nenhum canal de exemplo é salvo em produção.
