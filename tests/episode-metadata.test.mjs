@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {sanitizeSeason,detailMetadata} from '../src/detail-metadata.js';
+import {sanitizeSeason,detailMetadata,mergeSeasonNames} from '../src/detail-metadata.js';
 import {database} from './helpers/d1.mjs';
 import {createSeasonMetadataClient,episodePresentation,seasonPresentation} from '../public/episode-metadata.js';
-const seasonData={id:900,season_number:1,episodes:[{id:100,show_id:42,season_number:1,episode_number:1,name:'Primeiro período',runtime:56,air_date:'2026-10-07',overview:'Começa um novo dia.',vote_average:7.3,vote_count:20,still_path:'/still.jpg'}]};
+const seasonData={id:900,name:'Temporada de exemplo',season_number:1,episodes:[{id:100,show_id:42,season_number:1,episode_number:1,name:'Primeiro período',runtime:56,air_date:'2026-10-07',overview:'Começa um novo dia.',vote_average:7.3,vote_count:20,still_path:'/still.jpg'}]};
 test('sanitiza a temporada e rejeita episódios de outra série ou temporada',()=>{
  const data=sanitizeSeason({...seasonData,episodes:[...seasonData.episodes,...seasonData.episodes,{...seasonData.episodes[0],episode_number:2,show_id:99},{...seasonData.episodes[0],episode_number:3,season_number:2}]},42,1);
  assert.equal(data.episodes.length,1);assert.equal(data.episodes[0].title,'Primeiro período');assert.equal(data.episodes[0].runtime,56);assert.equal(data.episodes[0].still,'https://image.tmdb.org/t/p/w780/still.jpg');
@@ -47,4 +47,34 @@ test('nomes de temporada usam apenas o número correspondente e mantêm rótulo 
 test('nome da temporada e nome do episódio são preservados pelo endpoint de apresentação',()=>{
  const data=sanitizeSeason({id:900,name:'Liga Índigo',season_number:1,episodes:[{show_id:60572,season_number:1,episode_number:1,name:'Pokémon, Eu Escolho Você!'}]},60572,1);
  assert.equal(data.name,'Liga Índigo');assert.equal(episodePresentation({season:1,number:1,title:''},data).title,'Pokémon, Eu Escolho Você!');assert.equal(episodePresentation({season:1,number:2,title:''},data).title,'Episódio 2');
+});
+
+test('completa nomes vazios ou genéricos sem sobrescrever português ou criar episódios',()=>{
+ const primary=sanitizeSeason({id:900,name:'Temporada 1',season_number:1,episodes:[
+  {season_number:1,episode_number:1,name:'Episódio 1',runtime:12},
+  {season_number:1,episode_number:2,name:'Nome em português'},
+  {season_number:1,episode_number:3,name:''}]},67667,1);
+ const fallback=sanitizeSeason({id:900,name:'Beyblade Burst',season_number:1,episodes:[
+  {season_number:1,episode_number:1,name:"Let's Go! Valtryek!",runtime:24},
+  {season_number:1,episode_number:2,name:'English name'},
+  {season_number:1,episode_number:3,name:'Episode 3'},
+  {season_number:1,episode_number:4,name:'Not in provider selection'}]},67667,1);
+ const result=mergeSeasonNames(primary,fallback);
+ assert.equal(result.name,'Beyblade Burst');assert.equal(result.episodes[0].title,"Let's Go! Valtryek!");
+ assert.equal(result.episodes[0].runtime,12);assert.equal(result.episodes[1].title,'Nome em português');
+ assert.equal(result.episodes[2].title,'');assert.equal(result.episodes.length,3);
+ assert.equal(primary.episodes[0].title,'Episódio 1');assert.equal(mergeSeasonNames(primary,{...fallback,tmdbId:99}),primary);
+});
+test('endpoint consulta inglês uma vez para completar nomes ausentes e reutiliza o cache',async()=>{
+ const env={DB:database(),TMDB_API_KEY:'test-season-key'};const languages=[];
+ const fetcher=async url=>{const language=new URL(url).searchParams.get('language');languages.push(language);return Response.json({...seasonData,name:language==='pt-BR'?'Temporada 1':'Beyblade Burst',episodes:[{...seasonData.episodes[0],name:language==='pt-BR'?'Episódio 1':"Let's Go! Valtryek!"}]});};
+ const call=()=>detailMetadata(new Request('https://lux.example/api/metadata/details',{method:'POST',headers:{origin:'https://lux.example','content-type':'application/json'},body:JSON.stringify({tmdbId:42,type:'tv',seasonNumber:1})}),env,fetcher);
+ assert.equal((await (await call()).json()).episodes[0].title,"Let's Go! Valtryek!");
+ await call();assert.deepEqual(languages,['pt-BR','en-US']);
+});
+test('falha do idioma alternativo mantém duração data e demais dados portugueses',async()=>{
+ const env={DB:database(),TMDB_API_KEY:'test-season-key'};
+ const fetcher=async url=>new URL(url).searchParams.get('language')==='en-US'?new Response('',{status:503}):Response.json({...seasonData,episodes:[{...seasonData.episodes[0],name:'Episódio 1'}]});
+ const response=await detailMetadata(new Request('https://lux.example/api/metadata/details',{method:'POST',headers:{origin:'https://lux.example','content-type':'application/json'},body:JSON.stringify({tmdbId:42,type:'tv',seasonNumber:1})}),env,fetcher);
+ assert.equal(response.status,200);const data=await response.json();assert.equal(data.episodes[0].runtime,56);assert.equal(data.episodes[0].airDate,'2026-10-07');
 });

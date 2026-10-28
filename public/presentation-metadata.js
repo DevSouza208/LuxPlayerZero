@@ -7,7 +7,7 @@ export function createPresentationMetadataClient({fetcher=fetch,now=Date.now,loc
   if(!Number.isSafeInteger(body?.tmdbId)||body.tmdbId<1||body.tmdbId>999999999||!['movie','tv'].includes(body.type))return null;
   const isSeason=body.seasonNumber!==undefined;if(isSeason&&(body.type!=='tv'||!Number.isInteger(body.seasonNumber)||body.seasonNumber<0||body.seasonNumber>99))return null;
   const query={tmdbId:body.tmdbId,type:body.type,...(isSeason?{seasonNumber:body.seasonNumber}:{})};
-  const key='presentation:v1:'+query.type+':'+query.tmdbId+':'+(isSeason?query.seasonNumber:'details'),hit=memory.get(key);
+  const key=(isSeason?'presentation:season-v2:':'presentation:v1:')+query.type+':'+query.tmdbId+':'+(isSeason?query.seasonNumber:'details'),hit=memory.get(key);
   if(hit?.expires>now())return hit.value;
   if(pending.has(key))return pending.get(key);
   const promise=(async()=>{
