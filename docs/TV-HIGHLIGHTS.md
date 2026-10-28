@@ -8,11 +8,21 @@ Com uma conta administradora, abra Ao vivo e clique em Programar destaques. Esco
 
 ## Navegação
 
-Todos mostra somente os canais nacionais visíveis. As demais opções são as categorias originais da playlist, com os rótulos e a ordem do fornecedor. Quando variantes de um mesmo canal pertencem a grupos diferentes, o canal pode aparecer em cada um desses grupos, sem duplicar a contagem de Todos. Canais sem grupo ficam em Outros.
+Todos mostra somente os canais nacionais visíveis. As demais opções usam os nomes detalhados da API do fornecedor quando há correspondência segura; na ausência desses metadados, mantêm os grupos da M3U. Quando variantes de um mesmo canal pertencem a grupos diferentes, o canal pode aparecer em cada um desses grupos, sem duplicar a contagem de Todos. Canais sem grupo ficam em Outros.
 
 Internacionais ficam ocultos da página da TV, do editor de destaques e da vitrine de TV da Home, mas não são removidos da playlist. A detecção usa siglas explícitas reconhecidas e o grupo internacional do fornecedor. Prefixos de qualidade ou locais, como HD, TV e SP, não são países. LT/LA e grupos internacionais sem país reconhecível também ficam ocultos. A pesquisa do player e referências pessoais já salvas não são apagadas.
 
 Não há classificação pelo MeuGuia, consulta externa de categorias ou classificação inventada pelo app. Os agrupamentos por EPG, variantes e URLs originais continuam intactos. Os cards de TV usam capas horizontais, com logos contidos em vez de esticados.
+
+## Categorias detalhadas do fornecedor
+
+A M3U enviada possui grupos amplos, por exemplo CANAIS COMPLETO(SD,HD,FHD,4K). O app consulta get_live_categories e get_live_streams pela ponte privada existente, sem reconstruir URLs de vídeo. A identificação vem da fonte Xtream da própria playlist; o get.php preenchido no formulário pode fornecer a origem da API quando pertence à mesma conta.
+
+A correspondência usa primeiro stream_id; caso a M3U utilize UUIDs diferentes, usa EPG ou nome normalizado somente quando a categoria é inequívoca. Não cruza credenciais ou hosts de outra fonte. Categorias sem correspondência não são inventadas. Se duas variantes agrupadas pelo mesmo EPG tiverem categorias regionais diferentes, cada categoria aponta para a variante correspondente e o seletor de fontes começa no item escolhido.
+
+O cache IndexedDB é separado por perfil e pela identidade da fonte usando chave SHA-256. Guarda somente IDs, nomes e categorias de metadados, sem URLs, usuário ou senha. Expira em 24 horas. Falhas temporárias mantêm os grupos da M3U e limitam novas tentativas por cinco minutos na página. Não há gravação adicional nas tabelas do catálogo. A ponte existente continua validando autenticação e allowlist de hosts.
+
+A consulta direta ao fornecedor no ambiente de execução respondeu HTTP 403; o conteúdo real da API não foi confirmado por esse teste. O fluxo do app usa a ponte na Cloudflare. Os testes locais e a prévia sintética cobrem o carregamento e a associação das categorias, mas não substituem observar a resposta da fonte na sessão real do usuário.
 
 ## Persistência e acesso
 

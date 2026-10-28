@@ -1,3 +1,4 @@
+import {createTvProviderCategoryClient,attachProviderCategories} from './tv-provider-categories.js';
 import {safeImage} from './home-model.js';
 import {setIconLabel} from './lux-icons.js';
 import {normalizeSearchText} from './media-taxonomy.js';
@@ -5,13 +6,15 @@ import {createLocalData} from './local-data.js';
 import {TV_DAYS,providerTvGroups,saoPauloDay,emptyTvSchedule,cleanTvSchedule,channelsForDay} from './tv-feature-model.js';
 const el=(tag,cls='',text)=>{const node=document.createElement(tag);node.className=cls;if(text!==undefined)node.textContent=text;return node};
 const button=(text,action,cls='')=>{const node=el('button',cls,text);node.type='button';node.addEventListener('click',action);return node};
-export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},guest=false,getProfileId=()=>null,fetcher=fetch,storage=createLocalData(),now=()=>new Date()}={}){
- let sourceGroups=null;
+export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},guest=false,getProfileId=()=>null,fetcher=fetch,storage=createLocalData(),now=()=>new Date(),providerClient=null,getProviderSource=()=>document.getElementById('source-url')?.value||''}={}){
+ let sourceGroups=null,categoryPending=false,categoryGeneration=0;
+ const provider=providerClient||createTvProviderCategoryClient({storage,profileId:getProfileId});
  let groups=[],index=providerTvGroups([]),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
  const root=el('div','lux-tv-experience');root.hidden=true;host.prepend(root);
  const hero=el('section','lux-tv-hero');hero.setAttribute('aria-label','Canais em destaque');
  const navigation=el('nav','lux-tv-navigation');navigation.setAttribute('aria-label','Categorias do fornecedor');
- const notices=el('p','lux-tv-notice');notices.setAttribute('role','status');notices.hidden=true;root.append(hero,navigation,notices);
+ const categoryStatus=el('p','lux-tv-notice');categoryStatus.setAttribute('role','status');categoryStatus.hidden=true;
+ const notices=el('p','lux-tv-notice');notices.setAttribute('role','status');notices.hidden=true;root.append(hero,navigation,categoryStatus,notices);
  const dialog=el('dialog','lux-tv-editor');dialog.setAttribute('aria-labelledby','tv-editor-title');
  const form=el('form'),header=el('header'),heading=el('h2','','Destaques da semana');heading.id='tv-editor-title';
  const close=button('Fechar',()=>dialog.close(),'lux-tv-quiet');close.setAttribute('aria-label','Fechar agenda de destaques');header.append(heading,close);
@@ -71,12 +74,27 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
  form.addEventListener('submit',async event=>{event.preventDefault();if(!canEdit)return;save.disabled=true;editorStatus.textContent='Salvando agenda…';try{
   const data=await request({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({schedule:cleanTvSchedule(draft)})});schedule=data.schedule;selectedKey='';lastRead=Date.now();await storeSchedule();renderHero();dialog.close();message('Destaques da semana salvos.');
  }catch(error){editorStatus.textContent=error.message}finally{save.disabled=false}});
+ async function loadCategories(){
+  if(guest&&!providerClient||!active||!sourceGroups?.length||categoryPending)return;
+  categoryPending=true;const generation=categoryGeneration,original=sourceGroups;
+  categoryStatus.textContent='Buscando categorias detalhadas do fornecedor…';categoryStatus.hidden=false;
+  try{
+   const result=await provider.load(original,getProviderSource());if(generation!==categoryGeneration)return;
+   if(!result.available){categoryStatus.textContent=result.reason;return}
+   if(!result.byItem.size){categoryStatus.textContent='O fornecedor respondeu, mas não foi possível vincular os grupos aos canais desta playlist. Os grupos da M3U foram mantidos.';return}
+   index=providerTvGroups(attachProviderCategories(original,result.byItem));groups=index.groups;
+   if(section!=='all'&&!index.categories.some(row=>row.key===section))section='all';
+   const total=new Set(original.flatMap(group=>(group.variants||[{item:group.primary}]).map(row=>row.item.id))).size;
+   categoryStatus.hidden=result.byItem.size>=total;categoryStatus.textContent='Categorias do fornecedor carregadas. Alguns canais sem vínculo seguro mantêm o grupo da M3U.';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor();onFilterChange();
+  }catch{if(generation===categoryGeneration)categoryStatus.textContent='Categorias detalhadas indisponíveis. Os grupos da M3U foram mantidos.'}
+  finally{if(generation===categoryGeneration)categoryPending=false}
+ }
  function refreshDay(){const current=saoPauloDay(now());if(current!==day){day=current;selectedKey='';renderHero()}}
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&active){refreshDay();void load()}});
  const timer=setInterval(()=>{if(active&&!document.hidden)refreshDay()},60000);
  return {
-  setGroups(next){if(sourceGroups===next)return;sourceGroups=next;index=providerTvGroups(next);groups=index.groups;if(section!=='all'&&!index.categories.some(row=>row.key===section))section='all';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor()},
-  show(value){active=value;root.hidden=!value;if(value){refreshDay();if(!hero.children.length)renderHero();if(!navigation.children.length)renderNavigation();void load()}},
+  setGroups(next){if(sourceGroups===next)return;sourceGroups=next;categoryGeneration++;categoryPending=false;index=providerTvGroups(next);groups=index.groups;if(section!=='all'&&!index.categories.some(row=>row.key===section))section='all';renderHero();renderNavigation();if(dialog.open&&draft)renderEditor();void loadCategories()},
+  show(value){active=value;root.hidden=!value;if(value){refreshDay();if(!hero.children.length)renderHero();if(!navigation.children.length)renderNavigation();void load();void loadCategories()}},
   get filterKey(){return section},
   get allChannels(){return index.channels},
   channels(){return section==='all'?index.channels:index.categories.find(category=>category.key===section)?.channels||[]},

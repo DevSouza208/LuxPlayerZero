@@ -942,7 +942,7 @@ export function createHome({ play } = {}) {
         const option=document.createElement('option');option.value=variant.item.id;
         option.textContent=variant.label+' · '+variant.item.name;select.append(option);
       }
-      select.value=tvIndex.byItemId.get(item.id)?.primary?.id||item.id;
+      select.value=item.id;
     }
     $('details-title').textContent = titleForDisplay(item);
     $('details-group').textContent = [item.normalizedGroup || item.group || 'Disponível na sua biblioteca',

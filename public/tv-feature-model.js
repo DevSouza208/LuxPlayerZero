@@ -41,12 +41,13 @@ export function channelsForDay(groups,schedule,day){
 }
 // Preserve the provider's labels and order, including channels in multiple groups.
 export function providerTvGroups(sourceGroups){
- const groups=tvCountryIndex(sourceGroups).other,categories=new Map();
+ const groups=tvCountryIndex(sourceGroups).other.filter(group=>!group.providerCategoryEntries?.length||!group.providerCategoryEntries.every(row=>/\b(?:internaciona[il]|international)/i.test(normalizeSearchText(row.name)))),categories=new Map();
  for(const group of groups){
-  const names=[...new Set((group.categories?.length?group.categories:[group.primary?.group||'Outros']).filter(name=>typeof name==='string'&&name.trim()))];
+  const detailed=group.providerCategoryEntries||[];
+  const names=[...new Set((detailed.length?detailed.map(row=>row.name):group.categories?.length?group.categories:[group.primary?.group||'Outros']).filter(name=>typeof name==='string'&&name.trim()))];
   for(const label of names.length?names:['Outros']){
    if(/\b(?:internaciona[il]|international)/i.test(normalizeSearchText(label)))continue;
-   const key='provider:'+label;let category=categories.get(key);if(!category){category={key,label,groups:[],channels:[]};categories.set(key,category)}category.groups.push(group);category.channels.push(group.primary);
+   const key='provider:'+label;let category=categories.get(key);if(!category){category={key,label,groups:[],channels:[]};categories.set(key,category)}category.groups.push(group);category.channels.push(detailed.find(row=>row.name===label)?.item||group.primary);
   }
  }
  return {groups,channels:groups.map(group=>group.primary),categories:[...categories.values()]};
