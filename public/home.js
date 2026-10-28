@@ -1032,6 +1032,8 @@ export function createHome({ play } = {}) {
     catch(error){watched=before;flash(error.message,true);}
   }
   async function toggleFavorite(item) {
+    const restoreFocus = document.activeElement?.matches('.media-favorite')
+      && document.activeElement.dataset.favorite === item.id;
     const before = favorites;
     const key = itemKey(item);
     if (favorites.some(x => x.key === key)) {
@@ -1047,6 +1049,10 @@ export function createHome({ play } = {}) {
     catch (error) { favorites = before; rebuild(); flash(error.message, true); }
     updateRecommendations();
     render();
+    if (restoreFocus) {
+      const buttons = (browseRoot && !browseRoot.hidden ? browseRoot : railsRoot).querySelectorAll('.media-favorite');
+      [...buttons].find(button => button.dataset.favorite === item.id)?.focus({preventScroll:true});
+    }
   }
   function remember(item, position = 0, duration = 0) {
     if (!item) return;
