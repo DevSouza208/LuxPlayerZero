@@ -30,3 +30,5 @@ Player changes are messages/control visibility only. Network errors and startup 
 ## Validation
 
 Unit/integration suite covers independent users/categories, window expiry, native-binding/fallback behavior without D1, hashed metadata identity, route exclusions, safe playback errors, 429 cooldown recovery and existing conflict protection. Full suite result recorded in TAREFAS.csv. Production bindings, authentic playback, multi-device synchronization and CDN publication require separate validation; do not infer them from unit tests or a successful static deployment.
+
+Scope: private group of up to 20 accounts / 40 devices. Keep this rollout to rate budgets and failure messages. Snapshot generation and outbox sync are separate future steps. Browser preview confirmed an unavailable test video shows the error; reset inherited bottom/right toast offsets so the modal notice fits its content. Valid supplier playback was not exercised.
