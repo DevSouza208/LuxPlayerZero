@@ -658,8 +658,6 @@ export function createHome({ play } = {}) {
           appendText(badges, 'span', 'browse-badge browse-audio-badge', tag);
         }
       }
-      const favorite = card.querySelector('.media-favorite');
-      if (favorite) setIconLabel(favorite,favorites.some(entry => entry.key === itemKey(item))?'heart':'plus','Minha lista',favorites.some(entry => entry.key === itemKey(item)));
       fragment.append(card);
     }
     if(appendBatch)browseGrid.append(fragment);else browseGrid.replaceChildren(fragment);
@@ -735,7 +733,10 @@ export function createHome({ play } = {}) {
       progress.append(bar);
       visual.append(progress);
     }
-    card.append(visual);
+    const cover = document.createElement('div');
+    cover.className = 'media-cover';
+    cover.append(visual);
+    card.append(cover);
     const info = document.createElement('div');
     info.className = 'media-info';
     const labels = document.createElement('div');
@@ -750,7 +751,7 @@ export function createHome({ play } = {}) {
     heart.title = isFavorite ? 'Remover da minha lista' : 'Adicionar à minha lista';
     heart.setAttribute('aria-label', heart.title);
     heart.setAttribute('aria-pressed',String(isFavorite));
-    labels.append(heart);
+    cover.append(heart);
     info.append(labels);
     if (item.catalogYear) appendText(info, 'span', 'media-group', String(item.catalogYear));
     const tags=(item.catalogTags||[]).filter(tag=>tag!=='Dublado' && tag!=='Legendado').slice(0,3);
@@ -1031,6 +1032,8 @@ export function createHome({ play } = {}) {
     catch(error){watched=before;flash(error.message,true);}
   }
   async function toggleFavorite(item) {
+    const restoreFocus = document.activeElement?.matches('.media-favorite')
+      && document.activeElement.dataset.favorite === item.id;
     const before = favorites;
     const key = itemKey(item);
     if (favorites.some(x => x.key === key)) {
@@ -1046,6 +1049,10 @@ export function createHome({ play } = {}) {
     catch (error) { favorites = before; rebuild(); flash(error.message, true); }
     updateRecommendations();
     render();
+    if (restoreFocus) {
+      const buttons = (browseRoot && !browseRoot.hidden ? browseRoot : railsRoot).querySelectorAll('.media-favorite');
+      [...buttons].find(button => button.dataset.favorite === item.id)?.focus({preventScroll:true});
+    }
   }
   function remember(item, position = 0, duration = 0) {
     if (!item) return;
