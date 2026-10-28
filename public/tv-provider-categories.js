@@ -15,8 +15,12 @@ export function liveStreamIdentity(entry){
 }
 export function providerIdentity(groups,sourceHint=''){
  let identity=null;for(const group of groups){for(const variant of group.variants||[{item:group.primary}]){identity=liveStreamIdentity(variant.item);if(identity)break}if(identity)break}if(!identity)return null;
- const result={...identity,mediaHost:identity.host};
- try{const hint=new URL(sourceHint);if(['http:','https:'].includes(hint.protocol)&&!hint.username&&!hint.password&&!hint.hash&&/^\/(?:get|player_api)\.php$/.test(hint.pathname)&&hint.searchParams.get('username')===identity.username&&hint.searchParams.get('password')===identity.password)result.origin=hint.origin}catch{/* The stream identity remains usable without a playlist URL. */}
+ const result={...identity,mediaHost:identity.host,mediaUsername:identity.username,mediaPassword:identity.password};
+ try{
+  const hint=new URL(sourceHint),username=hint.searchParams.get('username'),password=hint.searchParams.get('password');
+  const sameAccount=username===identity.username&&password===identity.password,sameHost=hint.host.toLowerCase()===identity.host;
+  if(['http:','https:'].includes(hint.protocol)&&!hint.username&&!hint.password&&!hint.hash&&/^\/(?:get|player_api)\.php$/.test(hint.pathname)&&username&&password&&username.length<=256&&password.length<=256&&!/[\x00-\x1f]/.test(username+password)&&(sameAccount||sameHost)){result.origin=hint.origin;result.username=username;result.password=password}
+ }catch{/* The stream identity remains usable without a playlist URL. */}
  return result;
 }
 export function sanitizeProviderCategories(categories,streams){
@@ -31,7 +35,7 @@ export function categoriesForEntries(groups,metadata,identity){
  const add=(map,key,names)=>{if(!key)return;const values=map.get(key)||new Set();for(const name of names)values.add(name);map.set(key,values)};
  for(const row of metadata.streams){const names=row.category_ids.map(id=>categories.get(id)).filter(Boolean);add(byId,row.stream_id,names);add(byEpg,epgKey(row.epg_channel_id),names);add(byName,channelName(row.name),names)}
  const result=new Map();for(const group of groups)for(const variant of group.variants||[{item:group.primary}]){
-  const item=variant.item,source=liveStreamIdentity(item);if(!source||source.host!==identity.mediaHost||source.username!==identity.username||source.password!==identity.password)continue;
+  const item=variant.item,source=liveStreamIdentity(item);if(!source||source.host!==identity.mediaHost||source.username!==(identity.mediaUsername||identity.username)||source.password!==(identity.mediaPassword||identity.password))continue;
   const epg=epgKey(item.epgId||item.tvgId);let names=byId.get(source.id);
   if(!names){const candidate=byEpg.get(epg);if(candidate?.size===1)names=candidate}
   if(!names){const candidate=byName.get(channelName(item.name));if(candidate?.size===1)names=candidate}
@@ -46,7 +50,7 @@ export function createTvProviderCategoryClient({read,storage=createLocalData(),p
  async function readJson(url){const value=await request(url);if(typeof value==='string'){if(value.length>20*1024*1024)throw Error('Resposta de categorias muito grande.');return JSON.parse(value)}return value}
  return {async load(groups,sourceHint=''){
   const identity=providerIdentity(groups,sourceHint);if(!identity)return {available:false,reason:'A fonte não informa identificação Xtream para buscar os grupos detalhados.'};
-  const key='tv-provider-categories:'+await hash(JSON.stringify([profileId(),identity.origin,identity.mediaHost,identity.username,identity.password]));
+  const key='tv-provider-categories:'+await hash(JSON.stringify([profileId(),identity.origin,identity.mediaHost,identity.username,identity.password,identity.mediaUsername,identity.mediaPassword]));
   const apply=data=>({available:true,byItem:categoriesForEntries(groups,data,identity)});
   const hit=memory.get(key);if(hit?.expires>now())return hit.data?apply(hit.data):{available:false,reason:hit.reason};
   if(pending.has(key)){const result=await pending.get(key);return result.data?apply(result.data):{available:false,reason:result.reason}}

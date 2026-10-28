@@ -51,3 +51,10 @@ test('falha temporária preserva a M3U e evita uma tempestade de novas consultas
  const ctx=clientSetup();let calls=0;const client=createTvProviderCategoryClient({...ctx.options,read:async()=>{calls++;throw Error('private-url-must-not-leak')}}),groups=makeGroups(),before=structuredClone(groups);
  const first=await client.load(groups);assert.equal(first.available,false);assert.ok(!first.reason.includes('private-url'));const count=calls;await client.load(groups);assert.equal(calls,count);assert.deepEqual(groups,before);
 });
+
+test('usa credenciais originais do get.php no mesmo fornecedor sem trocar as credenciais da mídia',async()=>{
+ const groups=makeGroups(),hint='http://provider.example/get.php?username=original-user&password=original-secret';const identity=providerIdentity(groups,hint);
+ assert.equal(identity.username,'original-user');assert.equal(identity.mediaUsername,'demo');assert.equal(categoriesForEntries(groups,data,identity).size,3);
+ const saved=new Map(),client=createTvProviderCategoryClient({profileId:()=> 'p1',hash:async()=> 'opaque',storage:{get:async key=>saved.get(key),set:async(key,value)=>saved.set(key,value)},read:async url=>{const parsed=new URL(url);assert.equal(parsed.searchParams.get('username'),'original-user');assert.equal(parsed.searchParams.get('password'),'original-secret');return parsed.searchParams.get('action')==='get_live_categories'?categories:streams}});
+ assert.equal((await client.load(groups,hint)).byItem.size,3);assert.ok(!JSON.stringify([...saved.values()]).includes('original-secret'));
+});
