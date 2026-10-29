@@ -322,3 +322,6 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
 .cinema-shell .feature-hero #hero-tagline:not([hidden]){display:block;margin:0 0 18px;max-width:640px;font-size:clamp(14px,1.35vw,18px);font-style:italic;line-height:1.55;color:#e4ddec;overflow:visible;-webkit-line-clamp:unset}
 .cinema-shell .feature-hero .hero-slides:not(:focus-within){position:absolute;width:1px;height:1px;min-width:0;margin:0;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .cinema-shell .feature-hero #hero-tagline::before,.cinema-shell .feature-hero #hero-tagline::after{content:none}
+
+/* Mais imagem livre acima: conteúdo do hero junto à base no desktop. */
+@media(min-width:781px){.cinema-shell .feature-hero .hero-content{align-self:end}}
