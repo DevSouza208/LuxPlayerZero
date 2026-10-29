@@ -102,3 +102,18 @@ test('API retorna a causa e Retry-After durante uma pausa real',async()=>{
  const {env,saved}=await setup();saved.set(ROOT+'retry.json',{version:2,after:Date.now()+120000,code:'TMDB_RATE_LIMIT',status:429,stage:'tmdb',upstreamStatus:429});
  const response=await dailyHighlightsApi(req({action:'prepare'}),env,{role:'admin'}),data=await response.json();assert.equal(response.status,429);assert.equal(data.code,'TMDB_RATE_LIMIT');assert.equal(data.upstreamStatus,429);assert.match(data.error,/TMDB.*HTTP 429/);assert.ok(Number(response.headers.get('retry-after'))>0);
 });
+
+test('transporte das tendências é compatível com Workers, que rejeita redirect:error',async()=>{
+ const {env,title}=await setup();title('filmes',1);title('series',1);let calls=0;
+ const fetcher=async(url,init)=>{
+  // Contrato de Request no runtime Workers, antes de enviar qualquer requisição.
+  if(!['follow','manual'].includes(init.redirect))throw new TypeError('Unsupported redirect mode');
+  const request=new Request(url,init);assert.equal(request.redirect,'manual');assert.equal(request.method,'GET');assert.equal(request.headers.get('accept'),'application/json');assert.equal(new URL(request.url).hostname,'api.themoviedb.org');calls++;
+  return Response.json({results:[candidate(1)]});
+ };
+ const draft=await prepareHighlights(env,{now:NOW,fetcher});assert.equal(calls,2);assert.equal(draft.movies.length,1);assert.equal(draft.series.length,1);
+});
+test('redirecionamento do TMDB é recusado sem seguir outra origem com a chave',async()=>{
+ const {env}=await setup();let calls=0;
+ await assert.rejects(prepareHighlights(env,{now:NOW,fetcher:async(url,init)=>{calls++;assert.equal(init.redirect,'manual');return new Response('',{status:302,headers:{location:'https://other.test'}});}}),error=>error.code==='TMDB_HTTP'&&error.upstreamStatus===302);assert.equal(calls,1);
+});
