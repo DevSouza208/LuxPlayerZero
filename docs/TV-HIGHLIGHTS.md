@@ -14,7 +14,7 @@ A TV funciona como um gerenciador de pastas. A tela inicial mostra cards de grup
 
 Somente um nível fica visível por vez. Grupos e subgrupos vazios ficam ocultos. A busca do cabeçalho, quando iniciada sobre uma tela de pastas, abre a grade de todos os canais. Navegar para outra pasta limpa a busca anterior. Contagens e cards continuam usando canais lógicos, com todas as variantes e links originais. O nível da pasta entra na chave da paginação contínua.
 
-A correspondência usa primeiro o ID da fonte e depois somente nomes normalizados com classificação inequívoca no JSON. Canais novos sem correspondência vão para Outros / Não mapeados. A curadoria de plataformas genéricas permanece em Eventos e PPV, sem afirmar que toda transmissão é esportiva. Entradas com visivel=false e países internacionais identificados ficam ocultos da TV, Home e agenda; a playlist e as referências pessoais continuam intactas.
+A correspondência usa primeiro o ID da fonte e depois somente nomes normalizados com classificação inequívoca no JSON. Canais novos sem correspondência são classificados internamente como Outros / Não mapeados e ficam ocultos da navegação. A curadoria de plataformas genéricas permanece em Eventos e PPV, sem afirmar que toda transmissão é esportiva. Entradas com visivel=false e países internacionais identificados ficam ocultos da TV, Home e agenda; a playlist e as referências pessoais continuam intactas.
 
 O mapa é um arquivo estático baixado uma vez por instância da interface e incluído no cache do service worker. Não há consulta ao MeuGuia ou ao banco para classificar canais. Atualizações do JSON devem acompanhar uma nova versão do shell do service worker. Se o mapa falhar, a interface mantém as categorias básicas anteriores e informa a indisponibilidade; nova tentativa aguarda pelo menos 30 segundos.
 
@@ -45,3 +45,7 @@ Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sin
 ## Navegação em pastas
 
 14 testes locais de catálogo, curadoria e regressão do hero aprovados. Navegador com JSON real e fontes sintéticas confirmou: grupos em cards sem grade de canais, Esportes somente com subpastas, Premiere somente com canais, Voltar retornando o foco à pasta Premiere e cards com altura controlada. A fixture atualizada permanece em tests/browser/tv-curated-catalog.html. A cópia pública temporária foi removida antes do merge. Reprodução real não exercitada.
+
+## Grupos ocultos
+
+Informações da lista, Outros e Rádios ficam ocultos da TV, Todos os canais, Home e editor de destaques. O filtro se aplica também às categorias básicas de contingência. Os registros do JSON e as fontes da playlist são preservados. 7 testes locais da curadoria aprovados.

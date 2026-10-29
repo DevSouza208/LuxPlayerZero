@@ -2,6 +2,11 @@ import {canonicalTvName} from './tv-normalizer.js';
 import {normalizeSearchText} from './media-taxonomy.js';
 import {channelCountry} from './tv-feature-model.js';
 
+const HIDDEN_GROUPS=new Set(['Informações da lista','Outros','Rádios']);
+export function visibleTvCategoryGroups(index){
+ const categories=index.categories.filter(row=>!HIDDEN_GROUPS.has(row.label)),visible=new Set(categories.flatMap(row=>row.channels));
+ return {...index,categories,groups:index.groups.filter(group=>visible.has(group.primary)),channels:index.channels.filter(item=>visible.has(item))};
+}
 const ID=/^[a-z0-9_.:-]{1,160}$/i;
 const label=value=>typeof value==='string'&&value.trim()&&value.length<=240&&!/[\x00-\x1f]|https?:\/\//i.test(value);
 function nameKey(value){
@@ -38,7 +43,7 @@ export function curatedTvGroups(sourceGroups,catalog){
   for(const item of entries){
    if(channelCountry(item.name,item.group).international)continue;
    const row=catalog.byId.get(providerChannelId(item))||catalog.byName.get(nameKey(item.name));
-   if(row?.visible===false)continue;
+   if(row?.visible===false||HIDDEN_GROUPS.has(row?.group))continue;
    // Prefer a mapped visible source; never invent a playable channel from the JSON.
    if(!chosen){chosen=item;metadata=row||null}
    if(row){chosen=item;metadata=row;break}
@@ -54,7 +59,7 @@ export function curatedTvGroups(sourceGroups,catalog){
  for(const category of categories.values()){
   const order=catalog.order.get(category.label)||[];category.subgroups.sort((a,b)=>(order.includes(a.label)?order.indexOf(a.label):999)-(order.includes(b.label)?order.indexOf(b.label):999));
  }
- return {groups,channels,categories:[...categories.values()].filter(row=>row.channels.length)};
+ return visibleTvCategoryGroups({groups,channels,categories:[...categories.values()].filter(row=>row.channels.length)});
 }
 export function createTvCuratedLoader({fetcher=fetch,now=()=>Date.now()}={}){
  let pending=null,nextTry=0;

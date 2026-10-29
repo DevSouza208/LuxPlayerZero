@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {parseTvCuratedCatalog,curatedTvGroups,providerChannelId,createTvCuratedLoader} from '../public/tv-curated-catalog.js';
+import {parseTvCuratedCatalog,curatedTvGroups,providerChannelId,createTvCuratedLoader,visibleTvCategoryGroups} from '../public/tv-curated-catalog.js';
 import {groupTvEntries} from '../public/cinema-tv-groups.js';
 const row=(id,nome,grupo='Esportes',subgrupo='Premiere',visivel=true)=>({id,nome,grupo,subgrupo,visivel});
 const document=rows=>({versao:1,grupos:[...new Set(rows.map(x=>x.grupo))].map(nome=>({nome,subgrupos:[...new Set(rows.filter(x=>x.grupo===nome).map(x=>x.subgrupo))].map(nome=>({nome}))})),canais:rows});
@@ -16,9 +16,9 @@ test('JSON embarcado cobre 2289 IDs sem credenciais ou links de mídia',()=>{
 test('IDs e famílias preservam canais lógicos e todas as variantes sem duplicar contagens',()=>{
  const values=[source('p1','Premiere 1 HD','premiere'),source('p2','Premiere 1 SD','premiere'),source('s1','SporTV','sportv'),source('24','24H-POKEMON','pokemon'),source('foreign','US: NBC','nbc'),source('unknown','Canal novo','new')];
  const before=structuredClone(values),catalog=parseTvCuratedCatalog(document([row('p1','Premiere 1 HD'),row('p2','Premiere 1 SD'),row('s1','SporTV','Esportes','SporTV'),row('24','24H-POKEMON','24h','Animes'),row('foreign','US: NBC','Internacionais','Estados Unidos',false),row('absent','Ausente')]));
- const index=curatedTvGroups(groupTvEntries(values).groups,catalog);assert.equal(index.channels.length,4);assert.equal(index.groups[0].variants.length,2);
+ const index=curatedTvGroups(groupTvEntries(values).groups,catalog);assert.equal(index.channels.length,3);assert.equal(index.groups[0].variants.length,2);
  const sports=index.categories.find(x=>x.label==='Esportes');assert.deepEqual(sports.subgroups.map(x=>[x.label,x.channels.length]),[['Premiere',1],['SporTV',1]]);
- assert.equal(sports.channels.length,2);assert.equal(index.categories.find(x=>x.label==='Outros').subgroups[0].label,'Não mapeados');
+ assert.equal(sports.channels.length,2);assert.equal(index.categories.find(x=>x.label==='Outros'),undefined);
  assert.deepEqual(values,before);assert.equal(index.channels[0],values[0]);assert.equal(index.groups[0].variants[1].item.url,values[1].url);
 });
 test('fonte principal oculta não impede fonte visível da mesma identidade',()=>{
@@ -29,7 +29,7 @@ test('fonte principal oculta não impede fonte visível da mesma identidade',()=
 test('fallback aceita só nome normalizado inequívoco e ID tem prioridade',()=>{
  const catalog=parseTvCuratedCatalog(document([row('one','Mesmo canal HD'),row('two','Mesmo canal SD','Filmes','Cinema'),row('three','Outro canal HD')]));
  const values=[source('new1','Mesmo canal FHD'),source('new2','Outro canal SD'),source('two','Nome diferente')];const index=curatedTvGroups(groupTvEntries(values).groups,catalog);
- assert.equal(index.categories.find(x=>x.label==='Outros').channels[0],values[0]);assert.equal(index.categories.find(x=>x.label==='Esportes').channels[0],values[1]);assert.equal(index.categories.find(x=>x.label==='Filmes').channels[0],values[2]);
+ assert.equal(index.channels.includes(values[0]),false);assert.equal(index.categories.find(x=>x.label==='Esportes').channels[0],values[1]);assert.equal(index.categories.find(x=>x.label==='Filmes').channels[0],values[2]);
 });
 test('parser rejeita IDs repetidos rótulos inválidos e referências inexistentes',()=>{
  assert.throws(()=>parseTvCuratedCatalog(document([row('same','A'),row('same','B')])));
@@ -44,4 +44,11 @@ test('mapa estático carrega uma vez sem API privada e falhas têm pausa antes d
  const [a,b]=await Promise.all([loader(),loader()]);assert.equal(a,b);assert.equal(calls,1);await loader();assert.equal(calls,1);
  fail=true;const retry=createTvCuratedLoader({now:()=>time,fetcher:async()=>{calls++;if(fail)throw Error('Offline');return Response.json(document([]))}});
  await assert.rejects(retry());await assert.rejects(retry());assert.equal(calls,2);time+=30001;fail=false;await retry();assert.equal(calls,3);
+});
+
+test('Informações da lista Outros e Rádios ficam fora de pastas contagens e Todos sem alterar a fonte',()=>{
+ const rows=[row('info','Guia de canais','Informações da lista','Avisos'),row('other','Desconhecido','Outros','Revisar'),row('radio','Rádio FM','Rádios','FM'),row('sport','Premiere')];
+ const values=rows.map(x=>source(x.id,x.nome)),before=structuredClone(values),index=curatedTvGroups(groupTvEntries(values).groups,parseTvCuratedCatalog(document(rows)));
+ assert.deepEqual(index.channels,[values[3]]);assert.deepEqual(index.categories.map(x=>x.label),['Esportes']);assert.equal(index.groups.length,1);assert.deepEqual(values,before);
+ const fallback=visibleTvCategoryGroups({groups:groupTvEntries(values).groups,channels:values,categories:[{label:'Outros',channels:values.slice(0,3)},{label:'Esportes',channels:[values[3]]}]});assert.deepEqual(fallback.channels,[values[3]]);
 });
