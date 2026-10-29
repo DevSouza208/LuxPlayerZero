@@ -8,7 +8,7 @@ import {createTvCuratedLoader,curatedTvGroups} from './tv-curated-catalog.js';
 const el=(tag,cls='',text)=>{const node=document.createElement(tag);node.className=cls;if(text!==undefined)node.textContent=text;return node};
 const button=(text,action,cls='')=>{const node=el('button',cls,text);node.type='button';node.addEventListener('click',action);return node};
 export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},guest=false,getProfileId=()=>null,fetcher=fetch,storage=createLocalData(),now=()=>new Date(),catalogLoader=createTvCuratedLoader()}={}){
- let sourceGroups=null,catalog=null,catalogLoading=null,subgroup='',disposed=false;
+ let sourceGroups=null,catalog=null,catalogLoading=null,subgroup='',disposed=false,catalogWarning='',statusMessage='';
  let groups=[],index=guideTvGroups([]),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
  const root=el('div','lux-tv-experience');root.hidden=true;host.prepend(root);
  const hero=el('section','lux-tv-hero');hero.setAttribute('aria-label','Canais em destaque');
@@ -26,7 +26,8 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
  form.append(header,explanation,dayLabel,selected,searchLabel,results,editorStatus,save);dialog.append(form);document.body.append(dialog);
  let draft=null,editingDay=day,returnFocus=null;
  const cacheKey=()=>getProfileId()?'tv-highlights:'+getProfileId():null;
- const message=text=>{notices.textContent=text;notices.hidden=!text};
+ const renderNotice=()=>{notices.textContent=[statusMessage,catalogWarning].filter(Boolean).join(' ');notices.hidden=!notices.textContent};
+ const message=text=>{statusMessage=text;renderNotice()};
  function renderHero(){
   hero.replaceChildren();const choices=channelsForDay(groups,schedule,day),current=choices.find(row=>row.key===selectedKey)||choices[0];selectedKey=current?.key||'';
   const content=el('div','lux-tv-hero-copy');content.append(el('span','lux-tv-eyebrow',(current?'EM DESTAQUE':'TV AO VIVO')+' · '+TV_DAYS[day].toLocaleUpperCase('pt-BR')));
@@ -64,8 +65,8 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
  function loadCatalog(){
   if(catalog||catalogLoading||!sourceGroups?.length||disposed)return;
   catalogLoading=Promise.resolve().then(catalogLoader).then(value=>{
-   if(disposed)return;catalog=value;rebuildIndex();onFilterChange();
-  }).catch(()=>{if(!disposed)message('Organização de canais indisponível no momento. Exibindo categorias básicas da playlist.')}).finally(()=>{catalogLoading=null});
+   if(disposed)return;catalog=value;catalogWarning='';renderNotice();rebuildIndex();onFilterChange();
+  }).catch(()=>{if(!disposed){catalogWarning='Organização de canais indisponível no momento. Exibindo categorias básicas da playlist.';renderNotice()}}).finally(()=>{catalogLoading=null});
  }
  function renderEditor(){
   selected.replaceChildren();const rows=draft.days[editingDay];
