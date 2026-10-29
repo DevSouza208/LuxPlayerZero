@@ -35,10 +35,10 @@ test('rotina espera refresh diário e importação pronta, depois gera sem publi
  env.DB.db.exec("UPDATE vod_catalog_jobs SET status='building'");await assert.rejects(prepareHighlights(env,{now:NOW,scheduled:true,fetcher}),/Aguarde/);assert.equal(calls,0);
  env.DB.db.exec("UPDATE vod_catalog_jobs SET status='ready'");const draft=await prepareHighlights(env,{now:NOW,scheduled:true,fetcher});assert.equal(draft.movies.length,1);assert.equal(draft.series.length,0);assert.equal(calls,2);assert.ok(!saved.has(ROOT+'published.json'));
 });
-test('falha TMDB mantém publicação anterior e limita tentativas por uma hora',async()=>{
+test('limite real do TMDB mantém publicação anterior e pausa com a causa identificada',async()=>{
  const {env,title,saved}=await setup();title('filmes',1);saved.set(ROOT+'published.json',{id:'previous'});let calls=0;
  await assert.rejects(prepareHighlights(env,{now:NOW,fetcher:async()=>{calls++;return new Response('',{status:429})}}));
- await assert.rejects(prepareHighlights(env,{now:NOW+1000,fetcher:()=>assert.fail()}),/recentemente/);assert.equal(calls,1);assert.equal(saved.get(ROOT+'published.json').id,'previous');
+ await assert.rejects(prepareHighlights(env,{now:NOW+1000,fetcher:()=>assert.fail()}),/TMDB.*HTTP 429/);assert.equal(calls,1);assert.equal(saved.get(ROOT+'published.json').id,'previous');
 });
 test('rejeita troca de snapshot durante geração',async()=>{
  const {env,title,saved}=await setup();title('filmes',1);let calls=0;
@@ -76,4 +76,29 @@ test('resposta de leitura atrasada não sobrescreve a seleção recém-publicada
  const client=createDailyHighlightsClient({profileId:'race',store,onChange:value=>seen.push(value),fetcher:()=>new Promise(resolve=>{finish=resolve;})});
  const reading=client.load();while(!finish)await new Promise(resolve=>setImmediate(resolve));await client.published(newer);finish(Response.json({selection:old}));await reading;
  assert.equal(seen.at(-1).id,'new');assert.equal((await store.get('daily-highlights:race')).selection.id,'new');
+});
+
+test('bloqueio antigo sem diagnóstico não impede uma nova preparação',async()=>{
+ const {env,title,saved}=await setup();title('filmes',1);saved.set(ROOT+'retry.json',{after:NOW+3600000});let calls=[];
+ const draft=await prepareHighlights(env,{now:NOW,fetcher:ranking([1],calls)});assert.equal(draft.movies.length,1);assert.equal(calls.length,2);
+});
+test('catálogo sem correspondências não ganha espera de uma hora',async()=>{
+ const {env,title,saved}=await setup();await assert.rejects(prepareHighlights(env,{now:NOW,fetcher:ranking([1],[])}),/Nenhuma tendência/);assert.equal(saved.has(ROOT+'retry.json'),false);
+ title('filmes',1);assert.equal((await prepareHighlights(env,{now:NOW+1,fetcher:ranking([1],[])})).movies.length,1);
+});
+test('distingue limite, chave recusada, JSON inválido e conexão sem expor segredos',async()=>{
+ for(const [response,code]of [[()=>new Response('',{status:429,headers:{'retry-after':'120'}}),'TMDB_RATE_LIMIT'],[()=>new Response('',{status:401}),'TMDB_AUTH'],[()=>new Response('invalid'),'TMDB_RESPONSE'],[()=>{throw Error('https://secret.test?api_key=PRIVATE')},'TMDB_NETWORK']]){
+  const {env,saved}=await setup();await assert.rejects(prepareHighlights(env,{now:NOW,fetcher:async()=>response()}),error=>{assert.equal(error.code,code);assert.ok(!error.message.includes('PRIVATE'));return true;});
+  const retry=saved.get(ROOT+'retry.json');assert.equal(retry.code,code);assert.equal(retry.after,NOW+(code==='TMDB_RATE_LIMIT'?120000:60000));assert.ok(!JSON.stringify(retry).includes('PRIVATE'));
+ }
+});
+test('limite por execução do D1 tem diagnóstico próprio, sem SQL ou parâmetros',async()=>{
+ const {env,saved}=await setup(),prepare=env.DB.prepare;
+ env.DB.prepare=sql=>{if(sql.includes('WHERE t.tmdb_id'))throw Error('Too many API requests by single Worker invocation SELECT secret_password');return prepare(sql);};
+ await assert.rejects(prepareHighlights(env,{now:NOW,fetcher:ranking([1],[])}),error=>{assert.equal(error.code,'D1_REQUEST_LIMIT');assert.equal(error.stage,'catalog');assert.ok(!error.message.includes('secret_password'));return true;});
+ assert.equal(saved.get(ROOT+'retry.json').code,'D1_REQUEST_LIMIT');
+});
+test('API retorna a causa e Retry-After durante uma pausa real',async()=>{
+ const {env,saved}=await setup();saved.set(ROOT+'retry.json',{version:2,after:Date.now()+120000,code:'TMDB_RATE_LIMIT',status:429,stage:'tmdb',upstreamStatus:429});
+ const response=await dailyHighlightsApi(req({action:'prepare'}),env,{role:'admin'}),data=await response.json();assert.equal(response.status,429);assert.equal(data.code,'TMDB_RATE_LIMIT');assert.equal(data.upstreamStatus,429);assert.match(data.error,/TMDB.*HTTP 429/);assert.ok(Number(response.headers.get('retry-after'))>0);
 });
