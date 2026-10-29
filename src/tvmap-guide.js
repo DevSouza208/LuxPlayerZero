@@ -48,12 +48,14 @@ async function sourceText(response){
  try{while(true){const {value,done}=await reader.read();if(done)break;bytes+=value.byteLength;if(bytes>MAX_BYTES)throw Error('Resposta muito grande');result+=decoder.decode(value,{stream:true});}return result+decoder.decode();}
  catch(error){await reader.cancel().catch(()=>{});throw error;}
 }
-const flights=new WeakMap();
+const flights=new WeakMap(),memoryRows=new Map();
+// Grade pública: sem R2 configurado, cache de borda + memória limitada às duas chaves fixas.
+const memoryBucket={async get(key){return memoryRows.has(key)?{json:async()=>structuredClone(memoryRows.get(key))}:null},async put(key,value){memoryRows.set(key,JSON.parse(value));}};
 export async function loadTvGuide(env,{now=Date.now(),fetcher=fetch}={}){
- if(!env.CATALOG_BUCKET?.get||!env.CATALOG_BUCKET?.put)throw Object.assign(Error('Guia indisponível.'),{code:'TV_GUIDE_CONFIG'});
- const object=await env.CATALOG_BUCKET.get(KEY);let saved=null;try{if(object)saved=cleanTvGuide(await object.json());}catch{}
+ const storage=env.CATALOG_BUCKET?.get&&env.CATALOG_BUCKET?.put?env.CATALOG_BUCKET:memoryBucket;
+ const object=await storage.get(KEY);let saved=null;try{if(object)saved=cleanTvGuide(await object.json());}catch{}
  if(saved&&now-saved.fetchedAt<GUIDE_TTL&&saved.windowEnd>now)return {guide:saved,stale:false};
- const marker=await env.CATALOG_BUCKET.get(RETRY),retry=marker?await marker.json():null;
+ const marker=await storage.get(RETRY),retry=marker?await marker.json():null;
  if(retry?.after>now&&retry.code){if(saved&&saved.windowEnd>now)return {guide:saved,stale:true};throw Object.assign(Error('A programação está temporariamente indisponível.'),{code:retry.code,upstreamStatus:retry.upstreamStatus,formatReason:retry.formatReason});}
  if(flights.has(env))return flights.get(env);
  const work=(async()=>{
@@ -63,12 +65,12 @@ export async function loadTvGuide(env,{now=Date.now(),fetcher=fetch}={}){
    if(!response.ok)throw Object.assign(Error('Fonte indisponível.'),{code:'TVMAP_HTTP',upstreamStatus:response.status});
    stage='parse';const guide=parseTvMap(await sourceText(response),now);
    stage='cache';
-   await env.CATALOG_BUCKET.put(KEY,JSON.stringify(guide),{httpMetadata:{contentType:'application/json'}});return {guide,stale:false};
+   await storage.put(KEY,JSON.stringify(guide),{httpMetadata:{contentType:'application/json'}});return {guide,stale:false};
   }catch(error){
    const reasons=['Resposta da programação inválida.','A fonte não entregou a grade esperada.','Horário da grade não informado.','A fonte entregou uma grade fora do horário atual.','Nenhum programa com horário válido na fonte.'];
    const formatReason=stage==='parse'&&reasons.includes(error.message)?error.message:undefined;
    const code=error.code==='TVMAP_HTTP'?'TVMAP_HTTP':stage==='fetch'?'TVMAP_NETWORK':stage==='parse'?'TVMAP_FORMAT':'TVMAP_CACHE';
-   await env.CATALOG_BUCKET.put(RETRY,JSON.stringify({after:now+5*60000,code,upstreamStatus:error.upstreamStatus,formatReason}),{httpMetadata:{contentType:'application/json'}}).catch(()=>{});
+   await storage.put(RETRY,JSON.stringify({after:now+5*60000,code,upstreamStatus:error.upstreamStatus,formatReason}),{httpMetadata:{contentType:'application/json'}}).catch(()=>{});
    if(saved&&saved.windowEnd>now)return {guide:saved,stale:true};throw Object.assign(Error('Não foi possível atualizar a programação do TV Map.'),{code,upstreamStatus:error.upstreamStatus,formatReason});
   }
  })();flights.set(env,work);try{return await work;}finally{flights.delete(env);}

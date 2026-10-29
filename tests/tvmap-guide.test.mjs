@@ -38,3 +38,7 @@ test('API pública retorna só grade pública, sem consultar sessão, e não ace
  // Teste de método não precisa de rede ou banco. Dados do endpoint usam a grade validada pelo cache.
  assert.equal((await tvMapGuideApi(new Request(request.url,{method:'POST'}),env)).status,405);
 });
+
+test('guia público funciona sem banco ou R2 configurados e reaproveita cache de memória',async()=>{
+ const env={};let calls=0;const fetcher=async()=>{calls++;return new Response(html());};assert.equal((await loadTvGuide(env,{now:NOW,fetcher})).guide.channels.length,1);await loadTvGuide(env,{now:NOW+1,fetcher:()=>assert.fail()});assert.equal(calls,1);
+});
