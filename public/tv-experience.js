@@ -43,15 +43,16 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   const logo=safeImage(current?.primary.logo);if(logo){const img=el('img');img.src=logo;img.alt='';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>{img.remove();art.textContent='AO VIVO'});art.append(img)}else art.textContent=current?'AO VIVO':'LUX TV';hero.append(art);
  }
  function selectedCategory(){return index.categories.find(row=>row.key===section)}
+ const hasMultipleSubgroups=category=>(category?.subgroups?.length||0)>1;
  function syncFolderView(){host.classList.toggle('is-tv-folder-view',active&&folderLevel!=='channels')}
  function moveTo(level,group='all',sub='',focusKey=''){
-  folderLevel=level;section=group;subgroup=sub;renderNavigation();onFilterChange({clearSearch:true});
+  section=group;folderLevel=level==='subgroups'&&!hasMultipleSubgroups(selectedCategory())?'channels':level;subgroup=sub;renderNavigation();onFilterChange({clearSearch:true});
   const target=focusKey?[...navigation.querySelectorAll('[data-folder]')].find(node=>node.dataset.folder===focusKey):navigation.querySelector('.lux-tv-folder-title')||navigation.querySelector('[aria-current="page"]');
   target?.focus({preventScroll:true});
  }
  function goBack(){
   const category=selectedCategory();
-  if(folderLevel==='channels'&&category?.subgroups?.length)moveTo('subgroups',section,'',subgroup||'all-channels');
+  if(folderLevel==='channels'&&hasMultipleSubgroups(category))moveTo('subgroups',section,'',subgroup||'all-channels');
   else moveTo('groups','all','',section==='all'?'all-channels':section);
  }
  function renderNavigation(){
@@ -60,8 +61,8 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   if(folderLevel!=='groups'){
    const back=button('',goBack,'lux-tv-folder-back');setIconLabel(back,'arrow-left','Voltar');path.append(back);
    path.append(button('TV',()=>moveTo('groups','all','',section),'lux-tv-crumb'));
-   if(category){path.append(el('span','lux-tv-crumb-separator','/'));if(folderLevel==='channels')path.append(button(category.label,()=>moveTo('subgroups',section,'',subgroup||'all-channels'),'lux-tv-crumb'));else {const current=el('span','lux-tv-crumb-current',category.label);current.setAttribute('aria-current','page');path.append(current)}}
-   if(folderLevel==='channels'){path.append(el('span','lux-tv-crumb-separator','/'));const current=el('span','lux-tv-crumb-current',subgroup||'Todos os canais');current.setAttribute('aria-current','page');current.tabIndex=-1;path.append(current)}
+   if(category){path.append(el('span','lux-tv-crumb-separator','/'));if(folderLevel==='channels'&&hasMultipleSubgroups(category))path.append(button(category.label,()=>moveTo('subgroups',section,'',subgroup||'all-channels'),'lux-tv-crumb'));else {const current=el('span','lux-tv-crumb-current',category.label);current.setAttribute('aria-current','page');current.tabIndex=-1;path.append(current)}}
+   if(folderLevel==='channels'&&(!category||hasMultipleSubgroups(category))){path.append(el('span','lux-tv-crumb-separator','/'));const current=el('span','lux-tv-crumb-current',subgroup||'Todos os canais');current.setAttribute('aria-current','page');current.tabIndex=-1;path.append(current)}
   }else {const current=el('span','lux-tv-crumb-current','TV');current.setAttribute('aria-current','page');path.append(current)}
   navigation.append(path);
   if(folderLevel==='channels')return;
@@ -72,7 +73,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   for(const row of choices){
    if(!row.channels.length)continue;
    const card=button('',()=>{
-    if(folderLevel==='groups')moveTo(row.key==='all-channels'?'channels':row.subgroups?.length?'subgroups':'channels',row.key==='all-channels'?'all':row.key);
+    if(folderLevel==='groups')moveTo(row.key==='all-channels'?'channels':hasMultipleSubgroups(row)?'subgroups':'channels',row.key==='all-channels'?'all':row.key);
     else moveTo('channels',section,row.key==='all-channels'?'':row.key);
    },'lux-tv-folder-card');card.dataset.folder=row.key;card.setAttribute('aria-label','Abrir '+row.label+', '+row.channels.length.toLocaleString('pt-BR')+(row.channels.length===1?' canal':' canais'));
    const icon=el('span','lux-tv-folder-icon');setIcon(icon,row.key==='all-channels'?'tv':'folder');
@@ -86,6 +87,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   index=catalog?curatedTvGroups(sourceGroups||[],catalog):visibleTvCategoryGroups(guideTvGroups(sourceGroups||[]));groups=index.groups;
   if(section!=='all'&&!selectedCategory()){section='all';subgroup='';folderLevel='groups'}
   if(subgroup&&!selectedCategory()?.subgroups?.some(row=>row.key===subgroup)){subgroup='';folderLevel='subgroups'}
+  if(folderLevel==='subgroups'&&!hasMultipleSubgroups(selectedCategory()))folderLevel='channels';
   renderHero();renderNavigation();if(dialog.open&&draft)renderEditor();
  }
  function loadCatalog(){
