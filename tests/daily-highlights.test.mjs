@@ -18,10 +18,10 @@ async function setup(){
 const candidate=(id,title='Título '+id)=>({id,title,name:title,release_date:'2026-01-01',first_air_date:'2026-01-01',poster_path:'/sample.jpg',backdrop_path:'/back.jpg',overview:'Descrição'});
 const ranking=(ids,calls)=>async url=>{calls.push(String(url));return Response.json({results:ids.map(id=>candidate(id)),total_pages:1});};
 const req=body=>new Request('https://lux.test/api/editorial/daily-highlights',{method:body?'POST':'GET',headers:{origin:'https://lux.test','content-type':'application/json'},body:body?JSON.stringify(body):undefined});
-test('seleciona seis disponíveis por tipo na ordem do ranking, pula ausentes e reutiliza o dia sem rede',async()=>{
+test('seleciona sete disponíveis por tipo na ordem do ranking, pula ausentes e reutiliza o dia sem rede',async()=>{
  const {env,title,saved}=await setup();for(let id=2;id<=8;id++){title('filmes',id);title('series',id);}const calls=[];
  const result=await prepareHighlights(env,{now:NOW,fetcher:ranking([1,2,3,4,5,6,7,8],calls)});
- assert.deepEqual(result.movies.map(row=>row.tmdbId),[2,3,4,5,6,7]);assert.equal(result.series.length,6);assert.equal(calls.length,2);assert.ok(calls[0].includes('/trending/movie/day'));assert.ok(calls[1].includes('/trending/tv/day'));assert.ok(!saved.has(ROOT+'published.json'));
+ assert.deepEqual(result.movies.map(row=>row.tmdbId),[2,3,4,5,6,7,8]);assert.equal(result.series.length,7);assert.equal(calls.length,2);assert.ok(calls[0].includes('/trending/movie/day'));assert.ok(calls[1].includes('/trending/tv/day'));assert.ok(!saved.has(ROOT+'published.json'));
  assert.equal((await prepareHighlights(env,{now:NOW,fetcher:()=>assert.fail('Não repetir rede')})).id,result.id);
 });
 test('fallback exige título e ano exatos, não contradiz ID existente, ignora vínculos antigos',async()=>{
@@ -116,4 +116,21 @@ test('transporte das tendências é compatível com Workers, que rejeita redirec
 test('redirecionamento do TMDB é recusado sem seguir outra origem com a chave',async()=>{
  const {env}=await setup();let calls=0;
  await assert.rejects(prepareHighlights(env,{now:NOW,fetcher:async(url,init)=>{calls++;assert.equal(init.redirect,'manual');return new Response('',{status:302,headers:{location:'https://other.test'}});}}),error=>error.code==='TMDB_HTTP'&&error.upstreamStatus===302);assert.equal(calls,1);
+});
+
+test('prévia antiga de seis é refeita uma vez para sete, sem alterar a publicação',async()=>{
+ const {env,title,saved}=await setup();for(let id=1;id<=7;id++){title('filmes',id);title('series',id);}
+ const old=await prepareHighlights(env,{now:NOW,fetcher:ranking([1,2,3,4,5,6],[])});
+ const cached=saved.get(ROOT+'draft.json');delete cached.targetSize;saved.set(ROOT+'published.json',old);
+ const calls=[],updated=await prepareHighlights(env,{now:NOW,fetcher:ranking([1,2,3,4,5,6,7],calls)});
+ assert.equal(updated.movies.length,7);assert.equal(updated.series.length,7);assert.equal(calls.length,2);assert.notEqual(updated.id,old.id);
+ assert.equal(saved.get(ROOT+'published.json').id,old.id);
+ assert.equal((await prepareHighlights(env,{now:NOW,fetcher:()=>assert.fail('Não repetir')})).id,updated.id);
+});
+test('limite compartilhado aceita sete, rejeita oito e conserva publicação antiga de seis',()=>{
+ const rows=Array.from({length:8},(_,i)=>({catalogId:'test'+i,tmdbId:i+1,title:'Teste '+i}));
+ const selection={version:1,id:'limit',day:'2026-10-28',movies:rows.slice(0,7),series:[]};
+ assert.equal(cleanHighlights(selection).movies.length,7);
+ assert.equal(cleanHighlights({...selection,movies:rows.slice(0,6)}).movies.length,6);
+ assert.throws(()=>cleanHighlights({...selection,movies:rows}));
 });

@@ -2,7 +2,7 @@
 
 Admin → Publicar destaques prepara/abre a prévia do dia. Confirmar publicação troca as duas fileiras da Home e torna essa mesma seleção elegível para o hero. A preparação automática nunca publica sem confirmação. Antes da primeira publicação, as fileiras existentes continuam funcionando.
 
-São até seis filmes e seis séries entre as tendências diárias do TMDB, em ordem do ranking. O servidor consulta no máximo três páginas de vinte candidatos por tipo (até seis chamadas TMDB no dia), parando ao completar cada seleção. Não enriquece os 40 mil títulos. Só aceita ID TMDB existente no catálogo ativo ou correspondência única de título e ano exatos, sem contradizer um ID já registrado. Títulos sem confirmação são omitidos, inclusive quando isso resulta em menos de seis. Não tenta reproduzir os vídeos para fazer essa conferência.
+São até sete filmes e sete séries entre as tendências diárias do TMDB, em ordem do ranking. O servidor consulta no máximo três páginas de vinte candidatos por tipo (até seis chamadas TMDB no dia), parando ao completar cada seleção. Não enriquece os 40 mil títulos. Só aceita ID TMDB existente no catálogo ativo ou correspondência única de título e ano exatos, sem contradizer um ID já registrado. Títulos sem confirmação são omitidos, inclusive quando isso resulta em menos de sete. Não tenta reproduzir os vídeos para fazer essa conferência.
 
 ## Agenda e armazenamento
 
@@ -37,3 +37,11 @@ O relato seguinte mostrou TMDB_NETWORK. A comparação com as chamadas de detalh
 ## Título no hero
 
 O hero usa o nome editorial dos destaques publicados ou, sem ele, o título da série já agrupada. O nome original do episódio continua preservado para reprodução. Títulos com mais de 25 caracteres recebem escala menor apenas no desktop (até 56 px), mantendo as regras móveis existentes. Prévia no Chrome confirmou A Noiva da Presilha Dourada sem S1 E1, em uma linha a 54,52 px na largura disponível, com os três botões do hero visíveis. Verificação visual com dados sintéticos, sem reprodução real. A página pública temporária foi removida antes do merge.
+
+## Seleção de sete e layout da TV
+
+A meta compartilhada HIGHLIGHT_LIMIT agora é sete por tipo. O painel mostra /7, e o modelo aceita sete sem rejeitar publicações anteriores de seis. Rascunhos guardam targetSize privado no R2. Uma prévia antiga sem esse marcador é preparada novamente, uma única vez, sem alterar a publicação anterior. Seleções novas com menos de sete por falta de correspondências também são reutilizadas durante o dia, sem repetir consultas para tentar preencher vagas. Permanecem o máximo de três páginas por tipo, a conferência de disponibilidade e a confirmação manual. Para trocar a seleção já publicada, o administrador abre Publicar destaques e confirma a nova prévia.
+
+A partir de 1100 px, a fileira Na TV agora usa cinco cards por largura disponível. As capas continuam com sete espaços. O cache do shell passa a 85.
+
+Verificação desta alteração: 20 testes focados passaram, incluindo sete resultados por tipo, limite máximo de sete, compatibilidade com seis já publicados, renovação da prévia antiga e reutilização sem nova rede. Chrome mostrou 7/7 em cada coluna do Admin, exatamente sete cards em cada fileira após confirmação simulada e hero da seleção. A fileira TV mostrou cinco cards completos com programação real e canais de teste. Nenhum destaque real foi publicado na conta do administrador. Sem reprodução ou viewport móvel real. As páginas públicas temporárias foram removidas.

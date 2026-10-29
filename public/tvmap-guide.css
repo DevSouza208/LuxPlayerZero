@@ -11,5 +11,5 @@
 @media(max-width:600px){.lux-tvmap .rail-heading{align-items:flex-start;flex-wrap:wrap}.lux-tvmap .rail-title{font-size:25px}.lux-tvmap-scroll{grid-auto-columns:min(240px,74vw);gap:14px}.lux-tvmap-source,.lux-tvmap-note{font-size:12px}}
 @media(prefers-reduced-motion:reduce){.lux-tvmap-card{transition:none}.lux-tvmap-scroll{scroll-behavior:auto}}
 
-/* A programação de TV usa seis cards completos na largura da fileira. */
-@media(min-width:1100px){.lux-tvmap-scroll{grid-auto-columns:calc((100% - 80px)/6)}}
+/* A programação de TV usa cinco cards completos na largura da fileira. */
+@media(min-width:1100px){.lux-tvmap-scroll{grid-auto-columns:calc((100% - 64px)/5)}}

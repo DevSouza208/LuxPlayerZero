@@ -287,7 +287,7 @@
 const nativeFetch=window.fetch.bind(window);let selection=null,publications=0;
 const all=[];for(const [role,group,path]of [['movies','FILMES','movie'],['series','SÉRIES','series']])for(let n=1;n<=7;n++)all.push({id:role+n,name:(role==='movies'?'Filme de teste ':'Série de teste ')+n+' (2026)'+(role==='series'?' S01E01':''),group,url:'https://example.org/'+path+'/preview/test/'+n+'.mp4',logo:'/assets/tv-covers/'+(role==='movies'?'filmes':'series-e-novelas')+'.svg'});
 const draft={version:1,id:'browser-preview',day:'2026-10-29',createdAt:Date.now(),movies:[],series:[]};
-for(const role of ['movies','series'])for(let n=7;n>=2;n--)draft[role].push({catalogId:(role==='movies'?'filme de teste ':'serie de teste ')+n+'|2026',tmdbId:n+(role==='series'?100:0),title:(role==='movies'?'Filme de teste ':'Série de teste ')+n,year:2026,poster:'',backdrop:'',overview:'Prévia com dados de teste. Nenhuma publicação real é realizada.'});
+for(const role of ['movies','series'])for(let n=7;n>=1;n--)draft[role].push({catalogId:(role==='movies'?'filme de teste ':'serie de teste ')+n+'|2026',tmdbId:n+(role==='series'?100:0),title:(role==='movies'?'Filme de teste ':'Série de teste ')+n,year:2026,poster:'',backdrop:'',overview:'Prévia com dados de teste. Nenhuma publicação real é realizada.'});
 window.fetch=async(input,options={})=>{
  const url=String(input);if(!url.startsWith('/api/'))return nativeFetch(input,options);
  if(url==='/api/account/state')return Response.json({profileId:'daily-preview-only',version:1,value:{settings:{imageEngine:'hybrid',summaryEngine:'off',showTv:false}}});

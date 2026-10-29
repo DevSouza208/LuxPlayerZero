@@ -1,4 +1,4 @@
-import {cleanHighlights,highlightImage} from './daily-highlights-model.js';
+import {cleanHighlights,highlightImage,HIGHLIGHT_LIMIT} from './daily-highlights-model.js';
 const node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
 /** Dentro do dialog Admin existente: prévia primeiro, uma confirmação explícita para publicar. */
 export function mountHighlightsAdmin({actions,before,status}){
@@ -16,7 +16,7 @@ export function mountHighlightsAdmin({actions,before,status}){
    draft=cleanHighlights((await api({action:'prepare'})).draft);
    note.textContent='Seleção de '+draft.day.split('-').reverse().join('/')+'. Somente títulos confirmados no catálogo. A confirmação atualiza as fileiras e o hero do início.';
    for(const [role,label]of [['movies','Filmes'],['series','Séries']]){
-    const column=node('div');column.append(node('h4',label+' · '+draft[role].length+'/6'));
+    const column=node('div');column.append(node('h4',label+' · '+draft[role].length+'/'+HIGHLIGHT_LIMIT));
     if(!draft[role].length)column.append(node('p','Nenhuma tendência confirmada nesta categoria.'));
     for(const row of draft[role]){const item=node('div');item.className='lux-daily-item';if(highlightImage(row.poster)){const image=node('img');image.src=row.poster;image.alt='';image.loading='lazy';image.referrerPolicy='no-referrer';item.append(image);}item.append(node('span',row.title+(row.year?' · '+row.year:'')));column.append(item);}grid.append(column);
    }

@@ -1,4 +1,5 @@
 import {vodRecord} from './vod-model.js';
+export const HIGHLIGHT_LIMIT=7;
 export const highlightDay=now=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(now));
 export function highlightImage(value){
  return typeof value==='string'&&/^https:\/\/image\.tmdb\.org\/t\/p\/(?:w500|w1280|original)\/[a-zA-Z0-9_-]+\.(?:jpg|png|webp)$/.test(value)?value:'';
@@ -7,7 +8,7 @@ export function cleanHighlights(value){
  if(!value||value.version!==1||typeof value.id!=='string'||!/^[\w-]{1,80}$/.test(value.id)||!/^\d{4}-\d{2}-\d{2}$/.test(value.day))throw Error('Seleção de destaques inválida.');
  const result={version:1,id:value.id,day:value.day,createdAt:Number(value.createdAt)||0,publishedAt:Number(value.publishedAt)||0,movies:[],series:[]};
  for(const role of ['movies','series']){
-  if(!Array.isArray(value[role])||value[role].length>6)throw Error('Seleção de destaques inválida.');
+  if(!Array.isArray(value[role])||value[role].length>HIGHLIGHT_LIMIT)throw Error('Seleção de destaques inválida.');
   const seen=new Set();
   for(const row of value[role]){
    if(!Number.isSafeInteger(row?.tmdbId)||row.tmdbId<1||typeof row.catalogId!=='string'||row.catalogId.length>260||!row.catalogId||typeof row.title!=='string'||!row.title.trim()||row.title.length>240||seen.has(row.tmdbId))throw Error('Título de destaque inválido.');

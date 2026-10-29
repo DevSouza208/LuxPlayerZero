@@ -2,7 +2,7 @@ import {bodyJson,HttpError,reply} from './account-security.js';
 import {ensureVodSchema} from './vod-schema.js';
 import {vodFailure} from './vod-errors.js';
 import {normalizeSearchText} from '../public/media-taxonomy.js';
-import {cleanHighlights,highlightDay} from '../public/daily-highlights-model.js';
+import {cleanHighlights,highlightDay,HIGHLIGHT_LIMIT} from '../public/daily-highlights-model.js';
 const ROOT='editorial/daily-highlights-v1/',DRAFT=ROOT+'draft.json',LIVE=ROOT+'published.json',REFRESH=ROOT+'refresh.json',RETRY=ROOT+'retry.json';
 const read=async(env,key)=>{const object=await env.CATALOG_BUCKET.get(key);return object?object.json():null};
 const write=(env,key,data)=>env.CATALOG_BUCKET.put(key,JSON.stringify(data),{httpMetadata:{contentType:'application/json',cacheControl:'private, no-store'}});
@@ -64,7 +64,7 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
  if(preparing.has(env))return preparing.get(env);
  const work=(async()=>{
   const day=highlightDay(now),draft=await read(env,DRAFT);
-  if(draft?.day===day&&(scheduled||draft.catalogGeneration===await readyCatalog(env)))return cleanHighlights(draft);
+  if(draft?.day===day&&draft.targetSize===HIGHLIGHT_LIMIT&&(scheduled||draft.catalogGeneration===await readyCatalog(env)))return cleanHighlights(draft);
   if(scheduled){const refreshed=await read(env,REFRESH);if(refreshed?.day!==day)return null;}
   const retry=await read(env,RETRY);
   // Registros antigos não guardavam a causa e bloqueavam até erros recuperáveis por uma hora.
@@ -79,8 +79,8 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
    await ensureVodSchema(env.DB);stage='catalog';const generation=await readyCatalog(env);
    for(const [role,type,table]of [['movies','movie','filmes'],['series','tv','series']]){
     const seen=new Set();
-    // No máximo 3 páginas (60 candidatos) por tipo; para assim que encontra 6.
-    for(let page=1;page<=3&&selection[role].length<6;page++){
+    // No máximo 3 páginas (60 candidatos) por tipo; para assim que encontra sete.
+    for(let page=1;page<=3&&selection[role].length<HIGHLIGHT_LIMIT;page++){
      const url=new URL('https://api.themoviedb.org/3/trending/'+type+'/day');url.searchParams.set('language','pt-BR');url.searchParams.set('page',String(page));url.searchParams.set('api_key',env.TMDB_API_KEY.trim());
      // Workers aceita manual/follow; redirect:error lança TypeError antes da rede.
      stage='tmdb';const response=await fetcher(url.href,{method:'GET',signal:AbortSignal.timeout(8000),redirect:'manual',headers:{accept:'application/json'}});
@@ -93,7 +93,7 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
      stage='catalog';
      for(const candidate of data.results.slice(0,20)){
       if(!Number.isSafeInteger(candidate?.id)||candidate.id<1||candidate.adult===true||seen.has(candidate.id))continue;seen.add(candidate.id);
-      const match=await matchHighlight(env,table,candidate);if(match)selection[role].push(match);if(selection[role].length===6)break;
+      const match=await matchHighlight(env,table,candidate);if(match)selection[role].push(match);if(selection[role].length===HIGHLIGHT_LIMIT)break;
      }
      if(page>=Number(data.total_pages||1))break;
     }
@@ -101,7 +101,7 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
    // Não aceita uma lista que mudou enquanto consultávamos as tendências.
    stage='catalog';if(generation!==await readyCatalog(env))throw new HttpError(409,'A lista mudou durante a preparação. Tente novamente.');
    if(!selection.movies.length&&!selection.series.length)throw new HttpError(409,'Nenhuma tendência pôde ser confirmada no catálogo. Os destaques anteriores foram preservados.');
-   const safe=cleanHighlights(selection);stage='save';await write(env,DRAFT,{...safe,catalogGeneration:generation});return safe;
+   const safe=cleanHighlights(selection);stage='save';await write(env,DRAFT,{...safe,targetSize:HIGHLIGHT_LIMIT,catalogGeneration:generation});return safe;
   }catch(error){
    const failure=describeFailure(error,stage);
    if(failure.retryAfter){
