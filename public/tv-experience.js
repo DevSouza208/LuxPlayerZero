@@ -65,7 +65,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   }else {const current=el('span','lux-tv-crumb-current','TV');current.setAttribute('aria-current','page');path.append(current)}
   navigation.append(path);
   if(folderLevel==='channels')return;
-  const title=el('h2','lux-tv-folder-title',folderLevel==='groups'?'Categorias de canais':category?.label||'Canais');title.tabIndex=-1;
+  const title=el('h1','lux-tv-folder-title',folderLevel==='groups'?'Categorias de canais':category?.label||'Canais');title.tabIndex=-1;
   const intro=el('p','lux-tv-folder-intro',folderLevel==='groups'?'Escolha uma categoria para explorar.':'Escolha uma pasta para ver os canais.');
   const grid=el('div','lux-tv-folder-grid');grid.setAttribute('role','group');grid.setAttribute('aria-label',folderLevel==='groups'?'Grupos de canais':'Subgrupos de '+category?.label);
   const choices=folderLevel==='groups'?[{key:'all-channels',label:'Todos os canais',channels:index.channels},...index.categories]:[{key:'all-channels',label:'Todos os canais',channels:category?.channels||[]},...(category?.subgroups||[])];
@@ -74,7 +74,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
    const card=button('',()=>{
     if(folderLevel==='groups')moveTo(row.key==='all-channels'?'channels':row.subgroups?.length?'subgroups':'channels',row.key==='all-channels'?'all':row.key);
     else moveTo('channels',section,row.key==='all-channels'?'':row.key);
-   },'lux-tv-folder-card');card.dataset.folder=row.key;card.setAttribute('aria-label','Abrir '+row.label+', '+row.channels.length.toLocaleString('pt-BR')+' canais');
+   },'lux-tv-folder-card');card.dataset.folder=row.key;card.setAttribute('aria-label','Abrir '+row.label+', '+row.channels.length.toLocaleString('pt-BR')+(row.channels.length===1?' canal':' canais'));
    const icon=el('span','lux-tv-folder-icon');setIcon(icon,row.key==='all-channels'?'tv':'folder');
    const text=el('span','lux-tv-folder-copy');text.append(el('strong','',row.label),el('span','',row.channels.length.toLocaleString('pt-BR')+(row.channels.length===1?' canal':' canais')));
    const arrow=el('span','lux-tv-folder-arrow');setIcon(arrow,'chevron-right');card.append(icon,text,arrow);grid.append(card);
