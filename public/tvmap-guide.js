@@ -6,7 +6,7 @@ const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.class
 const clock=value=>new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
 export function createTvMapGuide({onPlay=()=>{},fetcher=fetch,store=localData}={}){
  const element=node('section','content-rail lux-tvmap');element.id='home-tv-guide';element.dataset.rail='tv';element.setAttribute('aria-label','Programação da TV');
- const header=node('div','rail-heading'),head=node('div');head.append(node('span','rail-eyebrow','AO VIVO · GUIA DE PROGRAMAÇÃO'),node('h2','rail-title','Na TV agora'));
+ const header=node('div','rail-heading'),head=node('div');head.append(node('h2','rail-title','Na TV agora'));
  const source=node('a','lux-tvmap-source','Abrir no TV Map ↗');source.href=TVMAP_SOURCE;source.target='_blank';source.rel='noopener noreferrer';source.referrerPolicy='no-referrer';header.append(head,source);
  const status=node('p','lux-tvmap-status','Conecte uma lista para ver a programação dos seus canais.');status.setAttribute('role','status');
  const wrap=node('div','lux-tvmap-scroll');wrap.setAttribute('aria-label','Canais e programação atual');wrap.setAttribute('role','list');
@@ -15,9 +15,10 @@ export function createTvMapGuide({onPlay=()=>{},fetcher=fetch,store=localData}={
  function draw(){
   const focus=element.contains(document.activeElement)?document.activeElement?.dataset?.guideChannel:null,scrollTop=wrap.scrollTop,scrollLeft=wrap.scrollLeft;
   wrap.replaceChildren();
-  if(!items.length){status.textContent='Conecte uma lista para ver a programação dos seus canais.';wrap.hidden=true;return;}
+  if(!items.length){status.hidden=false;status.textContent='Conecte uma lista para ver a programação dos seus canais.';wrap.hidden=true;return;}
   if(!guide){wrap.hidden=true;return;}
   const channels=matchGuideChannels(guide,items);wrap.hidden=!channels.length;
+  status.hidden=channels.length>0&&!stale;
   status.textContent=channels.length?channels.length+' canais da sua lista · Consulta '+clock(guide.fetchedAt)+(stale?' · Não foi possível atualizar a fonte agora.':''):'Os canais deste guia não foram encontrados na sua lista.';
   if(!channels.length)return;
   const now=Date.now();
@@ -51,11 +52,11 @@ export function createTvMapGuide({onPlay=()=>{},fetcher=fetch,store=localData}={
   pending=(async()=>{
    if(!cacheRead){cacheRead=true;const saved=await store.get('public:tvmap-guide-v1').catch(()=>null);try{if(saved){const clean=cleanTvGuide(saved);if(clean.windowEnd>Date.now()){guide=clean;draw();}}}catch{}}
    if(guide&&Date.now()-guide.fetchedAt<GUIDE_TTL){lastCheck=guide.fetchedAt;return;}
-   if(!guide)status.textContent='Carregando programação dos seus canais…';
+   if(!guide){status.hidden=false;status.textContent='Carregando programação dos seus canais…';}
    const response=await fetcher('/api/metadata/tv-guide',{credentials:'omit',signal:AbortSignal.timeout(15000)}),data=await response.json();
    if(!response.ok)throw Error(data.error||'Programação indisponível.');
    guide=cleanTvGuide(data.guide);stale=data.stale===true;lastCheck=stale?Date.now()-GUIDE_TTL+3*60000:guide.fetchedAt;await store.set('public:tvmap-guide-v1',guide).catch(()=>{});draw();
-  })().catch(error=>{lastCheck=Date.now()-GUIDE_TTL+3*60000;if(guide){stale=true;draw();}else status.textContent=error.message+' Você pode consultar a fonte pelo botão acima.';}).finally(()=>{pending=null});return pending;
+  })().catch(error=>{lastCheck=Date.now()-GUIDE_TTL+3*60000;if(guide){stale=true;draw();}else {status.hidden=false;status.textContent=error.message+' Você pode consultar a fonte pelo botão acima.';}}).finally(()=>{pending=null});return pending;
  }
  const timer=setInterval(()=>{if(visible&&!document.hidden){if(guide&&guide.windowEnd<=Date.now()){guide=null;draw();}else if(guide&&!element.contains(document.activeElement))draw();void load();}},60000);timer.unref?.();
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void load();});
