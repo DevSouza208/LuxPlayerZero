@@ -1,3 +1,4 @@
+import {mountHighlightsAdmin} from './daily-highlights-admin.js';
 import {setIconLabel} from './lux-icons.js';
 import {scanVod,remainingTime} from './vod-progress.js';
 const element=(tag,className,text)=>{const el=document.createElement(tag);if(className)el.className=className;if(text!==undefined)el.textContent=text;return el};
@@ -28,6 +29,7 @@ export async function mountVodAdmin({getItems=()=>[]}={}){
  const original=element('p','lux-vod-note'),save=element('button','lux-vod-primary','Salvar alterações');save.type='submit';setIconLabel(save,'save','Salvar alterações');editor.append(original,save,element('p','lux-vod-note','Salvar marca o registro como manual. A rotina automática não sobrescreve essa classificação. Alterar IDs aqui não muda o endereço de reprodução da playlist.'));layout.append(tableWrap,editor);
  const pages=element('div','lux-vod-pages'),previous=element('button','','‹ Anterior'),next=element('button','','Próxima ›'),pageText=element('span');previous.type=next.type='button';setIconLabel(previous,'chevron-left','Anterior');setIconLabel(next,'chevron-right','Próxima');pages.append(previous,pageText,next);
  const progress=element('progress','lux-vod-progress');progress.max=100;progress.value=0;progress.hidden=true;progress.setAttribute('aria-label','Progresso da etapa atual');modal.append(header,actions,status,progress,note,filters,layout,pages);document.body.append(modal);
+ mountHighlightsAdmin({actions,before:filters,status});
  let page=1,selected=null,viewGeneration=0,running=false,closed=false;
  const busy=value=>{running=value;sync.disabled=scan.disabled=rebuild.disabled=metadataOnly.disabled=value};
  function showProgress(done,total,label,started){progress.hidden=false;progress.value=total?Math.min(100,done/total*100):0;status.textContent=`${label}: ${done.toLocaleString('pt-BR')} de ${total.toLocaleString('pt-BR')} · ${Math.round(progress.value)}% · ${remainingTime(done,total,performance.now()-started)}`;}

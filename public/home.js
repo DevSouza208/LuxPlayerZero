@@ -1,3 +1,5 @@
+import {createDailyHighlightsClient} from './daily-highlights-client.js';
+import {resolveHighlights} from './daily-highlights-model.js';
 import {createTvExperience} from './tv-experience.js';
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
@@ -71,6 +73,13 @@ export function createHome({ play } = {}) {
   let recommendationMap = new Map(), recommendations = [];
   let movieRelations=null,seriesRelations=null;
   let relationSource=null,relationRules='';
+  let dailySelection=null,daily={movies:[],series:[],metadata:new Map()};
+  const dailyHeroSeed=Math.random();
+  const updateDaily=selection=>{dailySelection=selection;resolveDaily();render();};
+  const dailyClient=guest?null:createDailyHighlightsClient({profileId:personal.profileId,onChange:updateDaily});
+  function resolveDaily(){daily=resolveHighlights(dailySelection,{movies:showcase.catalogs.movies,series:seriesIndex.representatives});}
+  // A carga começa depois de concluir a montagem síncrona da home.
+  if(dailyClient){queueMicrotask(()=>void dailyClient.load());document.addEventListener('visibilitychange',()=>{if(!document.hidden)void dailyClient.load();});window.addEventListener('lux-daily-highlights-published',event=>void dailyClient.published(event.detail));}
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
@@ -338,7 +347,8 @@ export function createHome({ play } = {}) {
   function queryFor(item) {
     if (!item) return null;
     const role = classifyRole(item);
-    return tmdbQueryForItem(item, role);
+    const query=tmdbQueryForItem(item, role);
+    return query&&daily.metadata.has(item)?{...query,tmdbId:daily.metadata.get(item).tmdbId}:query;
   }
   function classifyRole(item) {
     // A categoria já foi derivada da M3U; nunca confiar em uma imagem TMDB
@@ -352,6 +362,7 @@ export function createHome({ play } = {}) {
     return safeImage(item?.logo) || seriesIndex.byItemId.get(item?.id)?.poster || '';
   }
   function cachedMetadata(item) {
+    if(daily.metadata.has(item))return daily.metadata.get(item);
     const query = queryFor(item);
     return query ? tmdbResolved.get(keyForQuery(query)) || null : null;
   }
@@ -359,6 +370,7 @@ export function createHome({ play } = {}) {
     return item?catalogArtwork(providerArtwork(item),cachedMetadata(item),config.imageEngine,classifyRole(item)):'';
   }
   async function metadataFor(item, {preload=false} = {}) {
+    if(daily.metadata.has(item))return daily.metadata.get(item);
     const query = queryFor(item);
     if (!query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
@@ -444,6 +456,7 @@ export function createHome({ play } = {}) {
     }
   }
   function autoArtRequest(item,{priority=false}={}) {
+    if(daily.metadata.has(item))return Promise.resolve(daily.metadata.get(item));
     if(!item)return Promise.resolve(null);
     const role=classifyRole(item);
     if(role==='tv'||config.imageEngine==='playlist')return Promise.resolve(null);
@@ -466,6 +479,7 @@ export function createHome({ play } = {}) {
   function rebuild() {
     showcase = buildShowcase(items, config, savedKeys());
     seriesIndex=buildSeriesIndex(showcase.catalogs.series);
+    resolveDaily();
     tvIndex=groupTvEntries(showcase.catalogs.tv);
     tvExperience.setGroups(tvIndex.groups);
     const rules=JSON.stringify([config.tvKeywords,config.moviesKeywords,config.seriesKeywords]);
@@ -813,14 +827,16 @@ export function createHome({ play } = {}) {
   function renderHero() {
     const ordered = config.heroMode === 'tv' ? ['tv','movies','series'] :
       config.heroMode === 'series' ? ['series','movies','tv'] : ['movies','series','tv'];
-    heroItem = pinnedItem || ordered.map(role =>
+    const dailyPool=config.heroMode==='tv'?[]:config.heroMode==='series'?daily.series:[...daily.movies,...daily.series];
+    const dailyHero=dailyPool[Math.floor(dailyHeroSeed*dailyPool.length)];
+    heroItem = pinnedItem || dailyHero || ordered.map(role =>
       (role==='tv'?tvExperience.allChannels:showcase.rails[role]).find(item => safeImage(item.logo)) || (role==='tv'?tvExperience.allChannels:showcase.rails[role])[0]
     ).find(Boolean) || null;
     const title = $('hero-title');
     title.textContent = heroItem ? titleForDisplay(heroItem) : config.heroTitle;
     $('hero-subtitle').textContent = heroItem ?
       (heroItem.group || 'Da sua biblioteca') + ' · ' + config.heroSubtitle : config.heroSubtitle;
-    $('hero-category').textContent = heroItem ? 'SELECIONADO PARA VOCÊ' : 'BEM-VINDO AO SEU UNIVERSO';
+    $('hero-category').textContent = heroItem ? (daily.metadata.has(heroItem)?'EM ALTA HOJE · NA SUA BIBLIOTECA':'SELECIONADO PARA VOCÊ') : 'BEM-VINDO AO SEU UNIVERSO';
     // O hero mantém o cenário cinematográfico; logos pequenos ficam em um cartão próprio.
     const poster = $('hero-poster');
     const data = cachedMetadata(heroItem);
@@ -860,6 +876,9 @@ export function createHome({ play } = {}) {
     const availableRecent = recent.map(x => [itemFromKey(x.key), x]).filter(([item]) => !!item);
     const availableFav = favorites.map(x => [itemFromKey(x.key), x]).filter(([item]) => !!item);
     const recentMap = new Map(availableRecent.map(([item, saved]) => [itemKey(item), saved]));
+    const dailyPublished=Boolean(dailySelection);
+    const movieHighlights=dailyPublished?daily.movies:showcase.rails.movies;
+    const seriesHighlights=dailyPublished?daily.series:seriesIndex.representatives.slice(0,16);
     const rails = {
       continue: { enabled: 'showContinue', list: availableRecent.map(([item]) => item), draw: () =>
         createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap) },
@@ -868,11 +887,11 @@ export function createHome({ play } = {}) {
       tv: { enabled: 'showTv', list: tvExperience.allChannels.slice(0,16), draw: () =>
         createRail('destaques-tv', settingsTitle('tv'), tvExperience.allChannels.slice(0,16),
           'AO VIVO · ' + tvExperience.allChannels.length.toLocaleString('pt-BR') + ' CANAIS') },
-      movies: { enabled: 'showMovies', list: showcase.rails.movies, draw: () =>
-        createRail('destaques-filmes', settingsTitle('movies'), showcase.rails.movies, 'PARA DESCOBRIR · ' + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
-      series: { enabled: 'showSeries', list: seriesIndex.representatives.slice(0,16), draw: () =>
-        createRail('destaques-series', settingsTitle('series'), seriesIndex.representatives.slice(0,16),
-          'PARA MARATONAR · ' + seriesIndex.representatives.length.toLocaleString('pt-BR') + ' SÉRIES') }
+      movies: { enabled: 'showMovies', list: movieHighlights, draw: () =>
+        createRail('destaques-filmes', settingsTitle('movies'), movieHighlights, (dailyPublished?'EM ALTA HOJE · ':'PARA DESCOBRIR · ') + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
+      series: { enabled: 'showSeries', list: seriesHighlights, draw: () =>
+        createRail('destaques-series', settingsTitle('series'), seriesHighlights,
+          (dailyPublished?'EM ALTA HOJE · ':'PARA MARATONAR · ') + seriesIndex.representatives.length.toLocaleString('pt-BR') + ' SÉRIES') }
     };
     const order = config.railOrder === 'favorites' ? ['favorites','continue','tv','movies','series']
       : config.railOrder === 'discovery' ? ['tv','movies','series','continue','favorites']

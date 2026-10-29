@@ -11,6 +11,8 @@ export const VOD_SCHEMA=[
   "CREATE TABLE IF NOT EXISTS vod_catalog_state (id TEXT PRIMARY KEY, value TEXT NOT NULL)",
   "CREATE INDEX IF NOT EXISTS filmes_pendentes ON filmes(consultar_apos,id) WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND generos='[]'",
   "CREATE INDEX IF NOT EXISTS series_pendentes ON series(consultar_apos,id) WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND generos='[]'",
+  "CREATE INDEX IF NOT EXISTS filmes_tmdb ON filmes(tmdb_id)",
+  "CREATE INDEX IF NOT EXISTS series_tmdb ON series(tmdb_id)",
   "CREATE INDEX IF NOT EXISTS vod_catalog_lookup ON vod_catalog_items(tipo,item_id)"
 ];
 const initialized=new WeakMap();

@@ -1,4 +1,5 @@
 import {serveCatalogVersion} from './catalog-version.js';
+import {prepareHighlights,markHighlightsRefresh} from './daily-highlights.js';
 import {metadataRequestBudget} from './request-budget.js';
 import {vodAdminApi} from './vod-api.js';
 import {runVodMaintenance} from './vod-catalog.js';
@@ -23,15 +24,22 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 });
 export default {
   async scheduled(event, env, ctx) {
+    const highlights=()=>prepareHighlights(env,{scheduled:true}).catch(()=>console.warn('Preparação dos destaques adiada; seleção publicada preservada.'));
+    if(event.cron==='0 9 * * *'){const work=highlights();ctx.waitUntil(work);return work;}
     if(event.cron==='* * * * *'){
       if(!env.DB?.prepare)throw new Error('Configure o binding DB no Worker de manutenção do catálogo.');
       // Retoma apenas o trabalho pendente em lotes.
-      const work=runVodMaintenance(env,{discover:false});ctx.waitUntil(work);return work;
+      const work=runVodMaintenance(env,{discover:false}).then(async result=>{
+        // Retoma às 6h ou depois, se a importação demorou. Após preparar, só lê o JSON diário.
+        const now=new Date(),hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',hourCycle:'h23'}).format(now));
+        if(hour>=6&&now.getUTCMinutes()%15===0)await highlights();
+        return result;
+      });ctx.waitUntil(work);return work;
     }
     const work=refreshDailyCatalogs(env).then(async result=>{
       if(result.failed)throw new Error(result.failed+' catálogo(s) não puderam ser atualizados. As cópias anteriores foram preservadas.');
       // 05h de São Paulo: snapshot primeiro, índice depois.
-      if(event.cron==='0 8 * * *')await runVodMaintenance(env,{discover:true});
+      if(event.cron==='0 8 * * *'){await runVodMaintenance(env,{discover:true});if(result.updated)await markHighlightsRefresh(env);}
       return result;
     });
     ctx.waitUntil(work);
