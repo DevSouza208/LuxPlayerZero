@@ -860,8 +860,9 @@ export function createHome({ play } = {}) {
     const description=rich?.overview||data?.overview;
     if(description){$('hero-subtitle').textContent=description;$('hero-subtitle').classList.add('hero-overview');}
     else $('hero-subtitle').classList.remove('hero-overview');
+    $('hero-subtitle').hidden=Boolean(heroItem);
     const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.replaceChildren();const plain=document.createElement('span');plain.className='hero-facts-desktop';plain.textContent=values.join(' · ');facts.append(plain);const mobile=document.createElement('span');mobile.className='hero-facts-mobile';renderFactBadges(mobile,values);facts.append(mobile);facts.hidden=!values.length;}
-    const tagline=$('hero-tagline');if(tagline){tagline.textContent=rich?.tagline||'';tagline.hidden=!rich?.tagline;}
+    const tagline=$('hero-tagline');if(tagline){tagline.textContent='';tagline.hidden=true;}
     if(config.summaryEngine!=='off'&&data?.status==='matched'&&!richCache.has(richKey)&&!richPending.has(richKey)){
       const selected=heroItem;void extendedMetadata(data,selected).then(result=>{if(result&&heroItem===selected)renderHero()});
     }
