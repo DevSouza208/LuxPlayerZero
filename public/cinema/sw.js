@@ -1,5 +1,5 @@
 /* Lux Cinema: interface pública, mapa de categorias sem URLs e capas visíveis. Playlists privadas, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-86';
+const VERSION = 'lux-cinema-shell-87';
 const ASSETS = [
   '/tvmap-model.js', '/tvmap-guide.js', '/tvmap-guide.css',
   '/daily-highlights-model.js', '/daily-highlights-client.js', '/daily-highlights-admin.js',
