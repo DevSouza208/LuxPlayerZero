@@ -20,6 +20,7 @@ export function cleanHighlights(value){
 export function resolveHighlights(selection,catalogs){
  const result={movies:[],series:[],metadata:new Map()};if(!selection)return result;
  for(const role of ['movies','series']){
+  if(!selection[role]?.length)continue;
   const byId=new Map(),byTmdb=new Map();
   for(const item of catalogs[role]||[]){const record=vodRecord(item);if(record&&!byId.has(record.id))byId.set(record.id,item);if(item.tmdbId)byTmdb.set(Number(item.tmdbId),item);}
   for(const row of selection[role]||[]){const item=byId.get(row.catalogId)||byTmdb.get(row.tmdbId);if(!item||result[role].includes(item))continue;result[role].push(item);result.metadata.set(item,{status:'matched',...row});}
