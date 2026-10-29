@@ -862,7 +862,7 @@ export function createHome({ play } = {}) {
     else $('hero-subtitle').classList.remove('hero-overview');
     $('hero-subtitle').hidden=Boolean(heroItem);
     const facts=$('hero-facts');if(facts){const values=rich?detailFacts(rich):data?[data.year,...(data.genres||[]),data.rating?'★ '+data.rating:null].filter(Boolean):[];facts.replaceChildren();const plain=document.createElement('span');plain.className='hero-facts-desktop';plain.textContent=values.join(' · ');facts.append(plain);const mobile=document.createElement('span');mobile.className='hero-facts-mobile';renderFactBadges(mobile,values);facts.append(mobile);facts.hidden=!values.length;}
-    const tagline=$('hero-tagline');if(tagline){tagline.textContent='';tagline.hidden=true;}
+    const tagline=$('hero-tagline');if(tagline){const phrase=String(rich?.tagline||'').trim();tagline.textContent=phrase?'“'+phrase.replace(/^[“\"]|[”\"]$/g,'')+'”':'';tagline.hidden=!phrase;}
     if(config.summaryEngine!=='off'&&data?.status==='matched'&&!richCache.has(richKey)&&!richPending.has(richKey)){
       const selected=heroItem;void extendedMetadata(data,selected).then(result=>{if(result&&heroItem===selected)renderHero()});
     }
