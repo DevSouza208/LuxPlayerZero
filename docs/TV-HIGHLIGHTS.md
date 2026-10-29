@@ -49,3 +49,5 @@ Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sin
 ## Grupos ocultos
 
 Informações da lista, Outros e Rádios ficam ocultos da TV, Todos os canais, Home e editor de destaques. O filtro se aplica também às categorias básicas de contingência. Os registros do JSON e as fontes da playlist são preservados. 7 testes locais da curadoria aprovados.
+
+Grupos com zero ou um subgrupo abrem diretamente todos os seus canais. Nesses grupos, Voltar retorna aos cards principais, e o caminho não oferece a etapa redundante de subpastas. Grupos com dois ou mais subgrupos mantêm a escolha de pasta.
