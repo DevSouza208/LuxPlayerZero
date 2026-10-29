@@ -21,3 +21,5 @@ Cloud-browser review of the deployed guest preview confirmed home, source import
 ## Filtro do catálogo
 
 O controle de filtro do Cinema usa o vetor filter da mesma família Feather, com grade de 24px e traço 1.8 arredondado. O SVG é local, tem 20px visuais e área de toque de 44px. O rótulo fica disponível para tecnologia assistiva e tooltip, sem texto visível ou seta.
+
+- TV em pastas: ícone folder no mesmo traço Feather do catálogo, setas de navegação existentes e texto acessível nos cards.

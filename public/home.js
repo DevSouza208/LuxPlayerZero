@@ -199,7 +199,7 @@ export function createHome({ play } = {}) {
   let browseYear='',browseGenre='',browseLanguage='',browseSort='source',facetSource=null;
   const yearSelect=$('browse-year'),genreSelect=$('browse-genre'),languageSelect=$('browse-language'),sortSelect=$('browse-sort');
   let tvCategory = '', tvCategorySource = null, tvCategoryCache = null;
-  const tvExperience=createTvExperience({host:browseRoot,guest,getProfileId:()=>personal?.profileId,onPlay:start,onDetails:showDetails,onFilterChange:()=>{browsePage=1;browseGroup='';renderBrowse();if(!browseRole)render()}});
+  const tvExperience=createTvExperience({host:browseRoot,guest,getProfileId:()=>personal?.profileId,onPlay:start,onDetails:showDetails,onFilterChange:(options={})=>{if(options.clearSearch){browseSearch='';if(navSearch)navSearch.value=''}browsePage=1;browseGroup='';renderBrowse();if(!browseRole)render()}});
   let browseLastGroupSource = null;
   let browseLastGroupRole = null;
   let searchCatalog = createCatalogSearch(), remotePage = null, remoteKey = '', requestedKey = '';
@@ -250,6 +250,7 @@ export function createHome({ play } = {}) {
     searchTimer = setTimeout(() => {
       if (browseRole) {
         browseSearch = navSearch.value;
+        if(browseRole==='tv'&&browseSearch.trim())tvExperience.openAllForSearch();
         browsePage = 1;
         renderBrowse();
         return;
@@ -264,6 +265,7 @@ export function createHome({ play } = {}) {
       clearTimeout(searchTimer);
       if (browseRole) {
         browseSearch = navSearch.value;
+        if(browseRole==='tv'&&browseSearch.trim())tvExperience.openAllForSearch();
         browsePage = 1;
         renderBrowse();
         return;
@@ -574,7 +576,7 @@ export function createHome({ play } = {}) {
       }
     }
 
-    const title = browseRole === 'tv' ? (configRaw.tvTitle ? settingsTitle('tv') : 'Ao vivo')
+    const title = browseRole === 'tv' ? (tvExperience.browseTitle || (configRaw.tvTitle ? settingsTitle('tv') : 'Ao vivo'))
       : browseRole === 'movies' ? (configRaw.moviesTitle ? settingsTitle('movies') : 'Filmes')
       : browseRole === 'series' ? (configRaw.seriesTitle ? settingsTitle('series') : 'Séries')
       : config.favoritesTitle;

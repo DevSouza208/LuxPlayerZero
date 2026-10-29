@@ -36,3 +36,23 @@
 .lux-tv-subgroups{padding-top:12px;border-top:1px solid #ffffff12}
 .lux-tv-subgroups button{font-size:12px;padding:8px 13px;min-height:44px;color:#b4a6c2}
 .lux-tv-subgroups button[aria-pressed=true]{color:#f4eaff;background:#b38aff20;border-color:#b38aff55}
+
+/* Navegação em pastas: apenas um nível visível por vez. */
+.browse-screen.is-tv-folder-view > :is(.browse-heading,.browse-grid,.browse-load,.browse-foot,.browse-toolbar){display:none!important}
+.lux-tv-folder-path{display:flex;align-items:center;flex-wrap:wrap;gap:9px;min-height:44px;color:#b3a5c2;font-size:13px}
+.lux-tv-folder-back,.lux-tv-crumb{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:8px 12px;border:1px solid #ffffff20;border-radius:9px;background:#ffffff04;color:#d8cce7;font:inherit;cursor:pointer}
+.lux-tv-crumb{border-color:transparent;background:none;padding-inline:5px}.lux-tv-crumb-current{color:#f3ebff;overflow-wrap:anywhere}.lux-tv-crumb-separator{color:#706278}
+.lux-tv-folder-title{font-size:clamp(24px,3vw,36px);line-height:1.2;letter-spacing:-.03em;margin:12px 0 0;color:#f7f4ff}
+.lux-tv-folder-title:focus{outline:none}.lux-tv-folder-intro{font-size:14px;color:#a99cb8;margin:0 0 12px}
+.lux-tv-folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.lux-tv-folder-card{position:relative;display:flex;align-items:center;gap:12px;min-width:0;min-height:128px!important;padding:20px 16px;text-align:left;border:1px solid #ffffff1c;border-radius:16px;background:linear-gradient(125deg,#1b1426,#111015);color:#f5eeff;font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s,transform .15s}
+.lux-tv-folder-card:hover{border-color:#b38aff80;background:linear-gradient(125deg,#2c1d3d,#15101c);transform:translateY(-2px)}
+.lux-tv-folder-icon{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:12px;background:#b38aff13;color:#cbb9ff}.lux-tv-folder-icon .lux-icon{width:29px;height:29px}
+.lux-tv-folder-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:8px}.lux-tv-folder-copy strong{font:650 16px/1.35 'Outfit',sans-serif;overflow-wrap:anywhere}.lux-tv-folder-copy>span{font-size:12px;color:#a89ab8}.lux-tv-folder-arrow{color:#887797;flex:none}.lux-tv-folder-arrow .lux-icon{width:18px;height:18px}
+.lux-tv-folder-empty{grid-column:1/-1;border:1px dashed #51405e;padding:32px;border-radius:14px;color:#b5a6c1;text-align:center}
+@media(max-width:600px){.lux-tv-folder-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lux-tv-folder-card{padding:17px 14px;gap:12px;min-height:142px!important;align-items:flex-start;flex-direction:column}.lux-tv-folder-icon{width:38px;height:38px}.lux-tv-folder-icon .lux-icon{width:25px;height:25px}.lux-tv-folder-copy strong{font-size:14px}.lux-tv-folder-arrow{position:absolute;right:12px;top:25px}.lux-tv-folder-intro{font-size:13px}}
+@media(prefers-reduced-motion:reduce){.lux-tv-folder-card{transition:none}.lux-tv-folder-card:hover{transform:none}}
+
+.lux-tv-folder-grid{grid-auto-rows:max-content;align-content:start;align-items:start}
+.lux-tv-folder-card{width:100%;height:144px;box-sizing:border-box}
+@media(max-width:600px){.lux-tv-folder-card{height:auto;min-height:154px!important}}

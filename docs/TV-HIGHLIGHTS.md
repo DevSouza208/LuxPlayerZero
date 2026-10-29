@@ -10,7 +10,9 @@ Com uma conta administradora, abra Ao vivo e clique em Programar destaques. Esco
 
 A TV usa public/data/tv-channel-groups.json, o JSON produzido a partir da playlist enviada: 2.289 IDs de fontes e 16 grupos, incluindo Esportes, 24h, Eventos e PPV, Religiosos e Internacionais. O arquivo não contém mídia, URLs, logos, usuário ou senha. Não adiciona canais à biblioteca: só classifica fontes já carregadas da própria playlist do usuário.
 
-O primeiro nível mostra os grupos presentes na playlist. Selecionar Esportes revela uma segunda linha com Todos, Premiere, SporTV, ESPN, famílias de PPV e demais subgrupos presentes. 24h mostra seus tipos de maratona. Grupos e subgrupos vazios ficam ocultos. A troca de grupo limpa a seleção de subgrupo; contagens e cards usam canais lógicos e conservam todas as variantes e links originais. A seleção entra na chave da paginação contínua.
+A TV funciona como um gerenciador de pastas. A tela inicial mostra cards de grupos. Ao abrir Esportes, os grupos somem e aparecem apenas os cards de subgrupos (Premiere, SporTV, ESPN, PPVs e outros presentes). Abrir Premiere substitui as pastas pelos canais. O caminho TV / Esportes / Premiere e Voltar permitem subir um nível, recuperando o foco na pasta anterior. Todos os canais é um card para abrir a grade completa do nível atual.
+
+Somente um nível fica visível por vez. Grupos e subgrupos vazios ficam ocultos. A busca do cabeçalho, quando iniciada sobre uma tela de pastas, abre a grade de todos os canais. Navegar para outra pasta limpa a busca anterior. Contagens e cards continuam usando canais lógicos, com todas as variantes e links originais. O nível da pasta entra na chave da paginação contínua.
 
 A correspondência usa primeiro o ID da fonte e depois somente nomes normalizados com classificação inequívoca no JSON. Canais novos sem correspondência vão para Outros / Não mapeados. A curadoria de plataformas genéricas permanece em Eventos e PPV, sem afirmar que toda transmissão é esportiva. Entradas com visivel=false e países internacionais identificados ficam ocultos da TV, Home e agenda; a playlist e as referências pessoais continuam intactas.
 
@@ -39,3 +41,7 @@ Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sin
 ## Integração da curadoria no app
 
 25 testes locais de catálogo, classificação, carregamento e regressão do hero aprovados. O JSON completo é validado sem expor credenciais. A fixture tests/browser/tv-curated-catalog.html usa o JSON real e fontes de exemplo para testar o filtro sem abrir streams nem alterar a agenda. Navegador confirmou Esportes com Premiere e SporTV, seleção de Premiere, troca para 24h limpando o subgrupo anterior, Animes com Pokémon e foco preservado nos controles. A leitura completa da playlist enviada encontrou 1.089 canais lógicos visíveis e nenhuma fonte sem correspondência. A cópia pública da fixture foi removida antes do merge. Reprodução real não exercitada.
+
+## Navegação em pastas
+
+14 testes locais de catálogo, curadoria e regressão do hero aprovados. Navegador com JSON real e fontes sintéticas confirmou: grupos em cards sem grade de canais, Esportes somente com subpastas, Premiere somente com canais, Voltar retornando o foco à pasta Premiere e cards com altura controlada. A fixture atualizada permanece em tests/browser/tv-curated-catalog.html. A cópia pública temporária foi removida antes do merge. Reprodução real não exercitada.
