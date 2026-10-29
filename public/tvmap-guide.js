@@ -58,7 +58,7 @@ export function createTvMapGuide({onPlay=()=>{},fetcher=fetch,store=localData}={
    if(!guide)status.textContent='Carregando programação dos seus canais…';
    const response=await fetcher('/api/metadata/tv-guide',{credentials:'omit',signal:AbortSignal.timeout(15000)}),data=await response.json();
    if(!response.ok)throw Error(data.error||'Programação indisponível.');
-   guide=cleanTvGuide(data.guide);stale=data.stale===true;lastCheck=Date.now();await store.set('public:tvmap-guide-v1',guide).catch(()=>{});draw();
+   guide=cleanTvGuide(data.guide);stale=data.stale===true;lastCheck=stale?Date.now()-GUIDE_TTL+3*60000:guide.fetchedAt;await store.set('public:tvmap-guide-v1',guide).catch(()=>{});draw();
   })().catch(error=>{lastCheck=Date.now()-GUIDE_TTL+3*60000;if(guide){stale=true;draw();}else status.textContent=error.message+' Você pode consultar a fonte pelo botão acima.';}).finally(()=>{pending=null});return pending;
  }
  const timer=setInterval(()=>{if(visible&&!document.hidden){if(guide&&guide.windowEnd<=Date.now()){guide=null;draw();}else if(guide&&!element.contains(document.activeElement))draw();void load();}},60000);timer.unref?.();
