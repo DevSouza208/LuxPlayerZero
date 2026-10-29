@@ -41,3 +41,7 @@ Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sin
 ## Integração da curadoria no app
 
 25 testes locais de catálogo, classificação, carregamento e regressão do hero aprovados. O JSON completo é validado sem expor credenciais. A fixture tests/browser/tv-curated-catalog.html usa o JSON real e fontes de exemplo para testar o filtro sem abrir streams nem alterar a agenda. Navegador confirmou Esportes com Premiere e SporTV, seleção de Premiere, troca para 24h limpando o subgrupo anterior, Animes com Pokémon e foco preservado nos controles. A leitura completa da playlist enviada encontrou 1.089 canais lógicos visíveis e nenhuma fonte sem correspondência. A cópia pública da fixture foi removida antes do merge. Reprodução real não exercitada.
+
+## Navegação em pastas
+
+14 testes locais de catálogo, curadoria e regressão do hero aprovados. Navegador com JSON real e fontes sintéticas confirmou: grupos em cards sem grade de canais, Esportes somente com subpastas, Premiere somente com canais, Voltar retornando o foco à pasta Premiere e cards com altura controlada. A fixture atualizada permanece em tests/browser/tv-curated-catalog.html. A cópia pública temporária foi removida antes do merge. Reprodução real não exercitada.
