@@ -229,3 +229,6 @@
 .media-info .media-favorite[aria-pressed=true]::before{border-color:#b38aff45;background:#b38aff10}
 .media-info .media-favorite:focus-visible{outline:2px solid #cbb9ff;outline-offset:1px}
 .media-info .media-favorite .lux-icon{width:14px;height:14px}
+
+/* Player Zero: o atalho de guia não aparece sobre o vídeo. */
+.lux-player-modal .lux-quick-guide-button{display:none!important}
