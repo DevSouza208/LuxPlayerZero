@@ -1,3 +1,4 @@
+import {createTvMapGuide} from './tvmap-guide.js';
 import {createDailyHighlightsClient} from './daily-highlights-client.js';
 import {resolveHighlights,highlightDay} from './daily-highlights-model.js';
 import {createTvExperience} from './tv-experience.js';
@@ -215,6 +216,7 @@ export function createHome({ play } = {}) {
   let browseYear='',browseGenre='',browseLanguage='',browseSort='source',facetSource=null;
   const yearSelect=$('browse-year'),genreSelect=$('browse-genre'),languageSelect=$('browse-language'),sortSelect=$('browse-sort');
   let tvCategory = '', tvCategorySource = null, tvCategoryCache = null;
+  const homeTvGuide=createTvMapGuide({onPlay:start});
   const tvExperience=createTvExperience({host:browseRoot,guest,getProfileId:()=>personal?.profileId,onPlay:start,onDetails:showDetails,onFilterChange:(options={})=>{if(options.clearSearch){browseSearch='';if(navSearch)navSearch.value=''}browsePage=1;browseGroup='';renderBrowse();if(!browseRole)render()}});
   let browseLastGroupSource = null;
   let browseLastGroupRole = null;
@@ -547,6 +549,7 @@ export function createHome({ play } = {}) {
       if (navSearch) navSearch.value = '';
     }
     browseRole = valid;
+    homeTvGuide.show(!valid&&configRaw.showTv!==false);
     tvExperience.show(valid==='tv');
     const path = valid === 'tv' ? '#destaques-tv' : valid === 'movies' ? '#destaques-filmes'
       : valid === 'series' ? '#destaques-series' : valid === 'favorites' ? '#minha-lista' : '#inicio';
@@ -881,6 +884,7 @@ export function createHome({ play } = {}) {
   }
 
   function render() {
+    homeTvGuide.setChannels(tvExperience.allChannels);homeTvGuide.show(!browseRole&&configRaw.showTv!==false);
     renderHero();
     const availableRecent = recent.map(x => [itemFromKey(x.key), x]).filter(([item]) => !!item);
     const availableFav = favorites.map(x => [itemFromKey(x.key), x]).filter(([item]) => !!item);
@@ -893,9 +897,7 @@ export function createHome({ play } = {}) {
         createRail('continue', config.continueTitle, availableRecent.map(([item]) => item), 'RETOME DE ONDE PAROU', recentMap) },
       favorites: { enabled: 'showFavorites', list: availableFav.map(([item]) => item), draw: () =>
         createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SUA SELEÇÃO') },
-      tv: { enabled: 'showTv', list: tvExperience.allChannels.slice(0,16), draw: () =>
-        createRail('destaques-tv', settingsTitle('tv'), tvExperience.allChannels.slice(0,16),
-          'AO VIVO · ' + tvExperience.allChannels.length.toLocaleString('pt-BR') + ' CANAIS') },
+      tv: { enabled: 'showTv', list: tvExperience.allChannels, draw: () => homeTvGuide.element },
       movies: { enabled: 'showMovies', list: movieHighlights, draw: () =>
         createRail('destaques-filmes', settingsTitle('movies'), movieHighlights, (dailyPublished?highlightsLabel()+' · ':'PARA DESCOBRIR · ') + (dailyPublished?movieHighlights.length:showcase.counts.movies).toLocaleString('pt-BR') + ' TÍTULOS') },
       series: { enabled: 'showSeries', list: seriesHighlights, draw: () =>
