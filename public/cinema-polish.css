@@ -264,3 +264,8 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
 @media(max-width:760px){
  .cinema-shell .cinema-account-link{position:fixed;top:calc(7px + env(safe-area-inset-top,0px));right:12px;z-index:36;width:44px;height:44px;min-width:44px}
 }
+
+/* Nome editorial no hero: títulos longos têm escala menor sem alterar o layout móvel. */
+@media(min-width:781px){
+ .cinema-shell .hero-content h1[data-title-length="long"]{font-size:clamp(34px,4vw,56px);line-height:1.12;max-width:720px}
+}

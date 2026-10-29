@@ -840,7 +840,9 @@ export function createHome({ play } = {}) {
       (role==='tv'?tvExperience.allChannels:showcase.rails[role]).find(item => safeImage(item.logo)) || (role==='tv'?tvExperience.allChannels:showcase.rails[role])[0]
     ).find(Boolean) || null;
     const title = $('hero-title');
-    title.textContent = heroItem ? titleForDisplay(heroItem) : config.heroTitle;
+    const heroTitle=heroItem?(daily.metadata.get(heroItem)?.title||seriesIndex.byItemId.get(heroItem.id)?.title||titleForDisplay(heroItem)):config.heroTitle;
+    title.textContent=heroTitle;
+    title.dataset.titleLength=Array.from(heroTitle).length>25?'long':'regular';
     $('hero-subtitle').textContent = heroItem ?
       (heroItem.group || 'Da sua biblioteca') + ' · ' + config.heroSubtitle : config.heroSubtitle;
     $('hero-category').textContent = heroItem ? (daily.metadata.has(heroItem)?highlightsLabel()+' · NA SUA BIBLIOTECA':'SELECIONADO PARA VOCÊ') : 'BEM-VINDO AO SEU UNIVERSO';
