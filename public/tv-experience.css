@@ -69,3 +69,6 @@
 .lux-tv-folder-copy strong{font-size:15px;overflow-wrap:normal}.lux-tv-folder-arrow{position:absolute;bottom:26px;right:14px;top:auto}
 @media(max-width:600px){.lux-tv-folder-card{height:auto;min-height:0!important;padding:0;gap:0}.lux-tv-folder-copy{padding:12px 28px 13px 12px;min-height:74px}.lux-tv-folder-copy strong{font-size:13px}.lux-tv-folder-art .lux-tv-folder-icon{right:8px;top:8px;width:25px;height:25px}.lux-tv-folder-arrow{right:9px;bottom:25px;top:auto}}
 @media(prefers-reduced-motion:reduce){.lux-tv-folder-art img{transition:none}.lux-tv-folder-card:hover .lux-tv-folder-art img{transform:none}}
+
+/* Destaques da TV temporariamente ocultos. Remover esta regra para reativar o hero existente. */
+.lux-tv-experience .lux-tv-hero{display:none}
