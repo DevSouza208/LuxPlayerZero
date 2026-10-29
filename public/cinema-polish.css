@@ -283,3 +283,15 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
  .cinema-shell:not(.is-compact) .home-rails .rail-track .media-card,
  .cinema-shell:not(.is-compact) .home-rails .content-rail[data-rail="tv"] .media-card{flex-basis:calc((100% - 84px)/7)}
 }
+
+/* Carrossel do hero: controles discretos, com alvos de toque e teclado. */
+.cinema-shell .hero-slides{display:flex;align-items:center;gap:7px;margin-top:18px;width:max-content;max-width:100%;position:relative;z-index:5}
+.cinema-shell .hero-slides[hidden]{display:none}
+.cinema-shell .hero-slides button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffff38;border-radius:50%;background:#111017b3;color:#f7f4ff;cursor:pointer}
+.cinema-shell .hero-slides button:hover{background:#30213d;border-color:#b38aff}
+.cinema-shell .hero-slides button:focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
+.cinema-shell .hero-slides button svg{width:18px;height:18px}
+.cinema-shell .hero-slides-count{min-width:52px;text-align:center;color:#c1b9d1;font-size:12px;font-variant-numeric:tabular-nums}
+.cinema-shell .hero-slides-announcement{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(min-width:781px){.cinema-shell .feature-hero:has(.hero-slides:not([hidden])) .hero-content{padding-bottom:70px}}
+@media(max-width:780px){.cinema-shell .hero-slides{margin-top:16px}}

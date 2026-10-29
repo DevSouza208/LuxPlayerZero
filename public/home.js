@@ -1,3 +1,4 @@
+import {createHeroSlides} from './hero-slides.js';
 import {createTvMapGuide} from './tvmap-guide.js';
 import {createDailyHighlightsClient} from './daily-highlights-client.js';
 import {resolveHighlights,highlightDay} from './daily-highlights-model.js';
@@ -76,6 +77,7 @@ export function createHome({ play } = {}) {
   let relationSource=null,relationRules='';
   let dailySelection=null,daily={movies:[],series:[],metadata:new Map()};
   const dailyHeroSeed=Math.random();
+  const heroSlides=createHeroSlides({root:document.querySelector('.feature-hero'),key:itemKey,seed:dailyHeroSeed,onChange:()=>renderHero()});
   const highlightsLabel=()=>dailySelection?.day===highlightDay(Date.now())?'EM ALTA HOJE':'DESTAQUES · '+(dailySelection?.day||'').split('-').reverse().join('/');
   const updateDaily=selection=>{dailySelection=selection;resolveDaily();render();};
   const dailyClient=guest?null:createDailyHighlightsClient({profileId:personal.profileId,onChange:updateDaily});
@@ -551,6 +553,7 @@ export function createHome({ play } = {}) {
     }
     browseRole = valid;
     homeTvGuide.show(!valid&&configRaw.showTv!==false);
+    heroSlides.setActive(!valid);
     tvExperience.show(valid==='tv');
     const path = valid === 'tv' ? '#destaques-tv' : valid === 'movies' ? '#destaques-filmes'
       : valid === 'series' ? '#destaques-series' : valid === 'favorites' ? '#minha-lista' : '#inicio';
@@ -839,10 +842,8 @@ export function createHome({ play } = {}) {
     const ordered = config.heroMode === 'tv' ? ['tv','movies','series'] :
       config.heroMode === 'series' ? ['series','movies','tv'] : ['movies','series','tv'];
     const dailyPool=config.heroMode==='tv'?[]:config.heroMode==='series'?daily.series:[...daily.movies,...daily.series];
-    const dailyHero=dailyPool[Math.floor(dailyHeroSeed*dailyPool.length)];
-    heroItem = pinnedItem || dailyHero || ordered.map(role =>
-      (role==='tv'?tvExperience.allChannels:showcase.rails[role]).find(item => safeImage(item.logo)) || (role==='tv'?tvExperience.allChannels:showcase.rails[role])[0]
-    ).find(Boolean) || null;
+    const fallbackPool=ordered.flatMap(role=>(role==='tv'?tvExperience.allChannels:role==='series'?seriesIndex.representatives:showcase.rails.movies).slice(0,7)).slice(0,14);
+    heroItem=heroSlides.setItems(pinnedItem?[pinnedItem]:dailyPool.length?dailyPool:fallbackPool);
     const title = $('hero-title');
     const heroTitle=heroItem?(daily.metadata.get(heroItem)?.title||seriesIndex.byItemId.get(heroItem.id)?.title||titleForDisplay(heroItem)):config.heroTitle;
     title.textContent=heroTitle;
@@ -950,6 +951,7 @@ export function createHome({ play } = {}) {
   }
   // VOD e TV ao vivo têm fluxos independentes de abertura.
   function showDetails(item) {
+    heroSlides.pause();
     if(!item)return;
     const role=classifyRole(item);
     if(role==='movies'||role==='series')return showVodDetails(item,role);
@@ -1046,6 +1048,7 @@ export function createHome({ play } = {}) {
   });
   function start(item) {
     if (!item) return;
+    heroSlides.pause();
     continuation.cancel();returnButton.hidden=!fullDetails.canResume();
     void play(item);
   }
