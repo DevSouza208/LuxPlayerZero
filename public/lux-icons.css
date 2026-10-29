@@ -9,30 +9,30 @@ button .lux-icon,a .lux-icon{color:inherit}
 .media-play-glyph .lux-icon,.lux-full-episode-play .lux-icon,.play-orbit .lux-icon{width:1.6rem;height:1.6rem}
 .media-favorite .lux-icon{width:1.15rem;height:1.15rem}
 .lux-video-button .lux-icon{width:1.5rem;height:1.5rem}
-/* Ícones de ±10s: controles compactos e legíveis, sem alterar ações de seek. */
+/* ±10s: comandos discretos; nenhum SVG circular ou número sobreposto. */
 .lux-video-button.lux-video-skip{
-  display:inline-flex;align-items:center;justify-content:center;gap:2px;
-  width:52px;height:44px;padding:0 7px;
-  border:1px solid #d1b6ff30;border-radius:12px;
-  background:#17121fbd;color:#efe8ff;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  width:60px;min-width:60px;height:44px;padding:0 8px;
+  border:1px solid #ffffff26;border-radius:11px;
+  background:#14121bb8;color:#f2edfb;
 }
-.lux-video-skip>span{position:static;display:grid;place-items:center;width:21px;height:21px;font:inherit}
-.lux-video-skip .lux-icon{width:21px;height:21px;stroke-width:2.2}
+.lux-video-skip>span{position:static;top:auto;display:grid;place-items:center;width:21px;height:21px;font:inherit}
+.lux-video-skip .lux-icon{width:20px;height:20px;stroke-width:2.2}
 .lux-video-skip small{
   position:static;inset:auto;display:block;margin:0;padding:0;
-  font:700 12px/1 'Outfit',system-ui,sans-serif;
-  font-variant-numeric:tabular-nums;letter-spacing:-.025em;pointer-events:none
+  font:700 13px/1 'Outfit',system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:0;pointer-events:none
 }
 .lux-video-button.lux-video-skip:hover:not(:disabled){
-  background:#b38aff29;border-color:#b38aff88;color:#fff
+  background:#b38aff29;border-color:#b38aff80;color:#fff
 }
 .lux-video-button.lux-video-skip:disabled{
-  opacity:.44;background:#ffffff08;border-color:#ffffff17;color:#b4aebe
+  opacity:.56;background:#14121b80;border-color:#ffffff1c;color:#d1cbd9
 }
 @media(max-width:600px){
-  .lux-video-button.lux-video-skip{width:46px;min-width:46px;padding:0 3px;gap:0;border-radius:11px}
+  .lux-video-button.lux-video-skip{width:52px;min-width:52px;padding:0 5px;gap:1px;border-radius:10px}
   .lux-video-skip .lux-icon{width:19px;height:19px}
-  .lux-video-skip small{font-size:11px}
+  .lux-video-skip small{font-size:12px}
 }
 .lux-video-episodes,.lux-video-tracks{gap:.45rem}
 .lux-boot-symbol .lux-icon{width:2rem;height:2rem}
