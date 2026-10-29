@@ -269,3 +269,11 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
 @media(min-width:781px){
  .cinema-shell .hero-content h1[data-title-length="long"]{font-size:clamp(34px,4vw,56px);line-height:1.12;max-width:720px}
 }
+
+/* Home: capas um pouco menores, com textos e controles no tamanho legível atual. */
+.cinema-shell:not(.is-compact) .home-rails .rail-track .media-card{flex-basis:clamp(130px,12vw,166px)}
+.cinema-shell:not(.is-compact) .home-rails .content-rail[data-rail="tv"] .media-card{flex-basis:clamp(185px,18.5vw,262px)}
+@media(max-width:780px){
+ .cinema-shell:not(.is-compact) .home-rails .rail-track .media-card{flex-basis:126px}
+ .cinema-shell:not(.is-compact) .home-rails .content-rail[data-rail="tv"] .media-card{flex-basis:198px}
+}
