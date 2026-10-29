@@ -59,3 +59,7 @@ Grupos com zero ou um subgrupo abrem diretamente todos os seus canais. Nesses gr
 Os cards carregam as capas sob demanda com lazy loading. O service worker guarda somente as capas visitadas, sem pré-carregar os 104 arquivos ou consultar o D1. Os SVGs completos somam menos de 250 KB. O gerador reproduzível é scripts/build-tv-covers.py.
 
 Verificação das capas: 10 testes locais aprovados e os 104 SVGs parseados como XML válido. Navegador confirmou 104 de 104 imagens carregadas, sem falhas, além dos grupos e subgrupos esportivos nos cards. A prévia usa fontes sintéticas e não reproduz streams. Fixture em tests/browser/tv-folder-covers.html; cópia pública temporária removida antes do merge.
+
+## Destaques temporariamente ocultos
+
+O hero da TV está oculto por uma regra CSS ao final de public/tv-experience.css. Sua renderização, agenda e editor continuam preservados. Remover essa regra reativa a apresentação. Os cards de grupos, subgrupos e suas capas não foram alterados.
