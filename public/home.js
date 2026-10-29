@@ -78,7 +78,13 @@ export function createHome({ play } = {}) {
   const highlightsLabel=()=>dailySelection?.day===highlightDay(Date.now())?'EM ALTA HOJE':'DESTAQUES · '+(dailySelection?.day||'').split('-').reverse().join('/');
   const updateDaily=selection=>{dailySelection=selection;resolveDaily();render();};
   const dailyClient=guest?null:createDailyHighlightsClient({profileId:personal.profileId,onChange:updateDaily});
-  function resolveDaily(){daily=resolveHighlights(dailySelection,{movies:showcase.catalogs.movies,series:seriesIndex.representatives});}
+  let dailySource=null,dailyVersion=null,dailyRules='';
+  function resolveDaily(){
+    const rules=JSON.stringify([config.tvKeywords,config.moviesKeywords,config.seriesKeywords]);
+    if(dailySource===items&&dailyVersion===dailySelection?.id&&dailyRules===rules)return;
+    dailySource=items;dailyVersion=dailySelection?.id;dailyRules=rules;
+    daily=resolveHighlights(dailySelection,{movies:showcase.catalogs.movies,series:seriesIndex.representatives});
+  }
   // A carga começa depois de concluir a montagem síncrona da home.
   if(dailyClient){queueMicrotask(()=>void dailyClient.load());document.addEventListener('visibilitychange',()=>{if(!document.hidden)void dailyClient.load();});window.addEventListener('lux-daily-highlights-published',event=>void dailyClient.published(event.detail));}
   let heroItem = null;
