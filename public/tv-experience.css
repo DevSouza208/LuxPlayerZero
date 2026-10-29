@@ -30,3 +30,9 @@
 .lux-tv-experience button:focus-visible,.lux-tv-experience select:focus-visible,.lux-tv-editor :is(button,input,select):focus-visible{outline:2px solid #cbb9ff;outline-offset:3px}
 .browse-grid[data-role=tv]{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}.browse-grid[data-role=tv] .media-visual{aspect-ratio:16/9}.browse-grid[data-role=tv] .media-visual img{object-fit:contain;padding:24px 18px 14px}
 @media(max-width:650px){.lux-tv-hero{grid-template-columns:1fr;padding:24px 20px;gap:20px;border-radius:17px}.lux-tv-hero-logo{display:none}.lux-tv-hero h2{font-size:32px}.lux-tv-hero p{font-size:13px}.lux-tv-navigation{gap:12px}.lux-tv-types button{font-size:12px;padding:8px 11px}.lux-tv-country{width:100%}.lux-tv-country select{flex:1;min-width:0}.browse-grid[data-role=tv]{grid-template-columns:repeat(2,minmax(0,1fr))}.lux-tv-editor{padding:18px}.lux-tv-editor h2{font-size:20px}.lux-tv-results{grid-template-columns:1fr}.lux-tv-selected-row{flex-wrap:wrap}.lux-tv-selected-row>span{flex-basis:100%}}
+
+/* Curadoria local: grupo e subgrupo em duas linhas independentes. */
+.lux-tv-navigation{flex-direction:column;align-items:stretch;gap:10px}
+.lux-tv-subgroups{padding-top:12px;border-top:1px solid #ffffff12}
+.lux-tv-subgroups button{font-size:12px;padding:8px 13px;min-height:44px;color:#b4a6c2}
+.lux-tv-subgroups button[aria-pressed=true]{color:#f4eaff;background:#b38aff20;border-color:#b38aff55}

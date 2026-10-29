@@ -199,7 +199,7 @@ export function createHome({ play } = {}) {
   let browseYear='',browseGenre='',browseLanguage='',browseSort='source',facetSource=null;
   const yearSelect=$('browse-year'),genreSelect=$('browse-genre'),languageSelect=$('browse-language'),sortSelect=$('browse-sort');
   let tvCategory = '', tvCategorySource = null, tvCategoryCache = null;
-  const tvExperience=createTvExperience({host:browseRoot,guest,getProfileId:()=>personal?.profileId,onPlay:start,onDetails:showDetails,onFilterChange:()=>{browsePage=1;browseGroup='';renderBrowse()}});
+  const tvExperience=createTvExperience({host:browseRoot,guest,getProfileId:()=>personal?.profileId,onPlay:start,onDetails:showDetails,onFilterChange:()=>{browsePage=1;browseGroup='';renderBrowse();if(!browseRole)render()}});
   let browseLastGroupSource = null;
   let browseLastGroupRole = null;
   let searchCatalog = createCatalogSearch(), remotePage = null, remoteKey = '', requestedKey = '';
@@ -942,7 +942,7 @@ export function createHome({ play } = {}) {
         const option=document.createElement('option');option.value=variant.item.id;
         option.textContent=variant.label+' · '+variant.item.name;select.append(option);
       }
-      select.value=tvIndex.byItemId.get(item.id)?.primary?.id||item.id;
+      select.value=item.id;
     }
     $('details-title').textContent = titleForDisplay(item);
     $('details-group').textContent = [item.normalizedGroup || item.group || 'Disponível na sua biblioteca',
