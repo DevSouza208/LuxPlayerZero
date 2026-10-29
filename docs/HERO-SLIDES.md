@@ -13,3 +13,9 @@ Título, arte, informações e as ações existentes usam o item selecionado. O 
 Quatro testes focados verificam ciclo completo, voltar ao início, identidade/URLs, atualização de seleção, reordenação, duplicatas, lista vazia e destaque fixado. Nenhum teste chamou fontes remotas.
 
 Chrome na Home com catálogo e publicação simulados confirmou avanço manual, seta esquerda pelo teclado, foco preservado, pausa/retomada e avanço automático observado de 4/14 para 7/14. Ao avançar para 8/14 mostrou a primeira série da seleção e manteve Assistir agora, Mais informações e Minha lista visíveis. A pausa permaneceu em 8/14 durante a conferência seguinte. Prévia pública temporária removida antes do merge. Não houve vídeo real, publicação real, viewport móvel real ou controle remoto físico.
+
+## Correção do layout do hero
+
+A área de destaque agora omite sinopse e tagline quando há um título selecionado. Esses dados continuam nos detalhes. No desktop usa duas colunas e altura natural com mínimo, em vez de comprimir o conteúdo em altura fixa. Título sem limite de linhas ou overflow oculto. Ações podem quebrar de linha sem compressão vertical. O pôster usa toda a área 2:3, reto, sem vidro, moldura, inclinação, brilho ou selo. Comportamento de rotação permanece igual. Shell 89.
+
+Chrome conferiu Backrooms: Um Não-Lugar inteiro, sinopse com display none, todos os controles dentro da área do hero e pôster de 245,33 × 367,98 px com transform none e fundo transparente. Arte e catálogo sintéticos. Sem reprodução real ou viewport móvel real. HTML/SVG temporários de prévia removidos antes do merge. Sintaxe e diff válidos.
