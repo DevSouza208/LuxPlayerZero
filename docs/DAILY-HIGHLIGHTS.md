@@ -27,3 +27,9 @@ A prévia no Chrome usou APIs e catálogo sintéticos: verificou botão no Admin
 A preparação distingue resposta 429 do TMDB, chave recusada (401/403), JSON inválido, conexão/timeout, limites do D1 e falha ao salvar no R2. A resposta inclui código, etapa, status do fornecedor quando conhecido e Retry-After quando houver pausa. O painel existente mostra a mensagem segura com o código. Os logs e o marcador de retry guardam apenas esses campos, sem erro bruto, SQL, URLs ou chave.
 
 Correção após relato em produção: a mensagem antiga não comprovava limite, pois qualquer falha recebia o mesmo bloqueio de uma hora. O motivo original não foi persistido e não pôde ser recuperado nesta sessão. Dezesseis testes focados passaram, incluindo ignorar o marcador antigo, permitir nova tentativa após nenhuma correspondência, distinguir falhas do fornecedor/D1 e preservar a publicação anterior. Não foi feita uma preparação real com a sessão privada do administrador durante essa verificação.
+
+## Compatibilidade do transporte no Cloudflare
+
+O relato seguinte mostrou TMDB_NETWORK. A comparação com as chamadas de detalhes e a documentação oficial do runtime identificou uma incompatibilidade concreta: Workers só aceita redirect follow/manual; redirect error lança TypeError antes de enviar a requisição. A chamada de tendências agora usa URL em texto, GET, Accept application/json e redirect manual, como os detalhes existentes. Respostas 3xx são recusadas, sem encaminhar a chave para outra origem. Referência: https://developers.cloudflare.com/workers/runtime-apis/request/ .
+
+18 testes focados passaram, incluindo um transporte que aplica a restrição real de Workers e um teste de redirecionamento recusado. Não foram usados TMDB/D1 remotos nem a sessão privada do administrador nos testes.

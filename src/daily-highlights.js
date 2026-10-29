@@ -82,7 +82,8 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
     // No máximo 3 páginas (60 candidatos) por tipo; para assim que encontra 6.
     for(let page=1;page<=3&&selection[role].length<6;page++){
      const url=new URL('https://api.themoviedb.org/3/trending/'+type+'/day');url.searchParams.set('language','pt-BR');url.searchParams.set('page',String(page));url.searchParams.set('api_key',env.TMDB_API_KEY.trim());
-     stage='tmdb';const response=await fetcher(url,{signal:AbortSignal.timeout(8000),redirect:'error'});
+     // Workers aceita manual/follow; redirect:error lança TypeError antes da rede.
+     stage='tmdb';const response=await fetcher(url.href,{method:'GET',signal:AbortSignal.timeout(8000),redirect:'manual',headers:{accept:'application/json'}});
      if(!response.ok){
       const code=response.status===429?'TMDB_RATE_LIMIT':[401,403].includes(response.status)?'TMDB_AUTH':'TMDB_HTTP';
       const seconds=Number(response.headers.get('retry-after'));
