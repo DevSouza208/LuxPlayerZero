@@ -34,7 +34,7 @@ export function createPlayerControls(shell,{getEpisodes=()=>null,onEpisode=()=>{
  }
  const play=button('Reproduzir','play','lux-video-play');
  const back=document.createElement('button'),forward=document.createElement('button');
- for(const [el,label,text] of [[back,'Voltar 10 segundos','↶'],[forward,'Avançar 10 segundos','↷']]){el.type='button';el.className='lux-video-button lux-video-skip';el.setAttribute('aria-label',label);el.title=label;const arrow=document.createElement('span');setIcon(arrow,el===back?'rotate-ccw':'rotate-cw');const number=document.createElement('small');number.textContent='10';el.append(arrow,number);row.append(el);}
+ for(const [el,label,iconName] of [[back,'Voltar 10 segundos','chevrons-left'],[forward,'Avançar 10 segundos','chevrons-right']]){el.type='button';el.className='lux-video-button lux-video-skip';el.setAttribute('aria-label',label);el.title=label;const arrow=document.createElement('span');setIcon(arrow,iconName);const number=document.createElement('small');number.textContent='10';if(el===back)el.append(arrow,number);else el.append(number,arrow);row.append(el);}
  const mute=button('Silenciar','volume');
  const volume=document.createElement('input');volume.type='range';volume.min='0';volume.max='1';volume.step='.05';volume.value='1';volume.className='lux-video-volume';volume.setAttribute('aria-label','Volume');row.append(volume);
  const time=document.createElement('span');time.className='lux-video-time';row.append(time);
