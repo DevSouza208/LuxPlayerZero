@@ -8,7 +8,8 @@ export async function accountGate(request, env) {
   if(['GET','HEAD'].includes(request.method)&&/^\/cinema\/?$/.test(path)&&url.searchParams.get('guest')==='1')return null;
   // Public title metadata contains no account/catalog data; lookup keeps its own
   // same-origin validation, bounded queries, D1 cache and daily quota.
-  if((request.method==='GET'&&path==='/api/metadata/status')||
+  // TV guide is public schedule data, never user channels, playlist URLs or account data.
+  if((request.method==='GET'&&['/api/metadata/status','/api/metadata/tv-guide'].includes(path))||
      (request.method==='POST'&&['/api/metadata/tmdb','/api/metadata/details'].includes(path)))return null;
   const cinema=/^\/(cinema(?:\/|\.html|$)|player\.html$)/.test(path);
   const privatePage=cinema||path.startsWith('/guide/')||/^\/account(?:\/|\.html|$)/.test(path);
