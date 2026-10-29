@@ -37,7 +37,7 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
  if(preparing.has(env))return preparing.get(env);
  const work=(async()=>{
   const day=highlightDay(now),draft=await read(env,DRAFT);
-  if(draft?.day===day)return cleanHighlights(draft);
+  if(draft?.day===day&&(scheduled||draft.catalogGeneration===await readyCatalog(env)))return cleanHighlights(draft);
   if(scheduled){const refreshed=await read(env,REFRESH);if(refreshed?.day!==day)return null;}
   const retry=await read(env,RETRY);if(retry?.after>now)throw new HttpError(429,'A preparação falhou recentemente. Tente novamente mais tarde.');
   if(!env.TMDB_API_KEY?.trim())throw new HttpError(503,'TMDB não configurado neste servidor.');
@@ -62,7 +62,7 @@ export async function prepareHighlights(env,{now=Date.now(),fetcher=fetch,schedu
    // Não aceita uma lista que mudou enquanto consultávamos as tendências.
    if(generation!==await readyCatalog(env))throw new HttpError(409,'A lista mudou durante a preparação. Tente novamente.');
    if(!selection.movies.length&&!selection.series.length)throw new HttpError(409,'Nenhuma tendência pôde ser confirmada no catálogo. Os destaques anteriores foram preservados.');
-   const safe=cleanHighlights(selection);await write(env,DRAFT,safe);return safe;
+   const safe=cleanHighlights(selection);await write(env,DRAFT,{...safe,catalogGeneration:generation});return safe;
   }catch(error){await write(env,RETRY,{after:now+3600000});throw error;}
  })();preparing.set(env,work);try{return await work;}finally{preparing.delete(env);}
 }
@@ -78,7 +78,7 @@ export async function dailyHighlightsApi(request,env,user){
   if(body.action!=='publish')throw new HttpError(400,'Ação inválida.');
   const draft=await read(env,DRAFT);
   if(!draft||draft.id!==body.id||draft.day!==highlightDay(Date.now()))throw new HttpError(409,'A prévia mudou ou venceu. Prepare os destaques novamente.');
-  await readyCatalog(env);
+  if(draft.catalogGeneration!==await readyCatalog(env))throw new HttpError(409,'A lista mudou desde a prévia. Prepare os destaques novamente.');
   // Reconfere os vínculos após o tempo que o administrador passou na prévia.
   for(const [role,table]of [['movies','filmes'],['series','series']])for(const row of draft[role]){
    const active=await env.DB.prepare(`SELECT 1 FROM vod_catalog_items i JOIN vod_catalog_jobs j ON j.catalog_id=i.catalog_id AND j.generation=i.generation
