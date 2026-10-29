@@ -130,3 +130,11 @@ body,.nav-link,.primary-btn,.media-title{font-family:'Outfit',sans-serif}
 .nav-link:focus-visible,.hero-primary:focus-visible,.hero-secondary:focus-visible,.media-visual:focus-visible,.media-favorite:focus-visible,.admin-close:focus-visible{outline:2px solid #cb9aff;outline-offset:3px}
 
 .guest-notice{margin:90px 20px 20px;padding:14px;border:1px solid #80619b;border-radius:10px;color:#f7f4ff;background:#28183b;font-size:14px;line-height:1.5}
+
+/* Prévia editorial no Admin: compacta, sem substituir a tabela. */
+.lux-daily-preview{border:1px solid #393043;border-radius:16px;padding:20px;margin:20px 0;background:#120e1b}
+.lux-daily-preview[hidden]{display:none}.lux-daily-preview h3{margin:0 0 12px}.lux-daily-preview p{color:#c1b9d1;line-height:1.6}
+.lux-daily-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.lux-daily-columns h4{margin:12px 0}
+.lux-daily-item{display:flex;align-items:center;gap:12px;padding:8px 0;min-height:52px}.lux-daily-item img{width:36px;height:54px;object-fit:cover;border-radius:5px}.lux-daily-item span{overflow-wrap:anywhere}
+.lux-daily-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}.lux-daily-actions button{min-height:44px}
+@media(max-width:600px){.lux-daily-columns{grid-template-columns:1fr;gap:8px}.lux-daily-preview{padding:16px}}
