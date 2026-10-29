@@ -50,21 +50,26 @@ async function sourceText(response){
 }
 const flights=new WeakMap();
 export async function loadTvGuide(env,{now=Date.now(),fetcher=fetch}={}){
- if(!env.CATALOG_BUCKET?.get||!env.CATALOG_BUCKET?.put)throw Error('Guia indisponível: confira CATALOG_BUCKET.');
+ if(!env.CATALOG_BUCKET?.get||!env.CATALOG_BUCKET?.put)throw Object.assign(Error('Guia indisponível.'),{code:'TV_GUIDE_CONFIG'});
  const object=await env.CATALOG_BUCKET.get(KEY);let saved=null;try{if(object)saved=cleanTvGuide(await object.json());}catch{}
  if(saved&&now-saved.fetchedAt<GUIDE_TTL&&saved.windowEnd>now)return {guide:saved,stale:false};
  const marker=await env.CATALOG_BUCKET.get(RETRY),retry=marker?await marker.json():null;
- if(retry?.after>now){if(saved&&saved.windowEnd>now)return {guide:saved,stale:true};throw Error('A programação está temporariamente indisponível. Abra a fonte ou tente mais tarde.');}
+ if(retry?.after>now&&retry.code){if(saved&&saved.windowEnd>now)return {guide:saved,stale:true};throw Object.assign(Error('A programação está temporariamente indisponível.'),{code:retry.code,upstreamStatus:retry.upstreamStatus,formatReason:retry.formatReason});}
  if(flights.has(env))return flights.get(env);
  const work=(async()=>{
+  let stage='fetch';
   try{
    const response=await fetcher(TVMAP_SOURCE,{method:'GET',redirect:'manual',headers:{accept:'text/html','cache-control':'no-cache'},signal:AbortSignal.timeout(10000)});
-   if(!response.ok)throw Error('Fonte indisponível (HTTP '+response.status+').');
-   const guide=parseTvMap(await sourceText(response),now);
+   if(!response.ok)throw Object.assign(Error('Fonte indisponível.'),{code:'TVMAP_HTTP',upstreamStatus:response.status});
+   stage='parse';const guide=parseTvMap(await sourceText(response),now);
+   stage='cache';
    await env.CATALOG_BUCKET.put(KEY,JSON.stringify(guide),{httpMetadata:{contentType:'application/json'}});return {guide,stale:false};
-  }catch{
-   await env.CATALOG_BUCKET.put(RETRY,JSON.stringify({after:now+5*60000}),{httpMetadata:{contentType:'application/json'}}).catch(()=>{});
-   if(saved&&saved.windowEnd>now)return {guide:saved,stale:true};throw Error('Não foi possível atualizar a programação do TV Map. Abra a fonte ou tente mais tarde.');
+  }catch(error){
+   const reasons=['Resposta da programação inválida.','A fonte não entregou a grade esperada.','Horário da grade não informado.','A fonte entregou uma grade fora do horário atual.','Nenhum programa com horário válido na fonte.'];
+   const formatReason=stage==='parse'&&reasons.includes(error.message)?error.message:undefined;
+   const code=error.code==='TVMAP_HTTP'?'TVMAP_HTTP':stage==='fetch'?'TVMAP_NETWORK':stage==='parse'?'TVMAP_FORMAT':'TVMAP_CACHE';
+   await env.CATALOG_BUCKET.put(RETRY,JSON.stringify({after:now+5*60000,code,upstreamStatus:error.upstreamStatus,formatReason}),{httpMetadata:{contentType:'application/json'}}).catch(()=>{});
+   if(saved&&saved.windowEnd>now)return {guide:saved,stale:true};throw Object.assign(Error('Não foi possível atualizar a programação do TV Map.'),{code,upstreamStatus:error.upstreamStatus,formatReason});
   }
  })();flights.set(env,work);try{return await work;}finally{flights.delete(env);}
 }
@@ -77,5 +82,5 @@ export async function tvMapGuideApi(request,env){
   const response=Response.json(await loadTvGuide(env),{headers:{'cache-control':'public, max-age=60, s-maxage=300','x-content-type-options':'nosniff','referrer-policy':'no-referrer'}});
   if(cache)await cache.put(key,response.clone()).catch(()=>{});return response;
  }
- catch{return Response.json({error:'A programação do TV Map está temporariamente indisponível.',code:'TV_GUIDE_UNAVAILABLE'},{status:503,headers:{'cache-control':'no-store','x-content-type-options':'nosniff'}});}
+ catch(error){return Response.json({error:'A programação do TV Map está temporariamente indisponível.',code:['TV_GUIDE_CONFIG','TVMAP_HTTP','TVMAP_NETWORK','TVMAP_FORMAT','TVMAP_CACHE'].includes(error.code)?error.code:'TV_GUIDE_UNAVAILABLE',upstreamStatus:Number.isInteger(error.upstreamStatus)?error.upstreamStatus:undefined,formatReason:error.code==='TVMAP_FORMAT'?error.formatReason:undefined},{status:503,headers:{'cache-control':'no-store','x-content-type-options':'nosniff'}});}
 }
