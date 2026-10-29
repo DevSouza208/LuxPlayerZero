@@ -4,12 +4,12 @@ import {normalizeSearchText} from './media-taxonomy.js';
 import {createLocalData} from './local-data.js';
 import {TV_DAYS,saoPauloDay,emptyTvSchedule,cleanTvSchedule,channelsForDay} from './tv-feature-model.js';
 import {guideTvGroups} from './tv-guide-categories.js';
-import {createTvCuratedLoader,curatedTvGroups} from './tv-curated-catalog.js';
+import {createTvCuratedLoader,curatedTvGroups,visibleTvCategoryGroups} from './tv-curated-catalog.js';
 const el=(tag,cls='',text)=>{const node=document.createElement(tag);node.className=cls;if(text!==undefined)node.textContent=text;return node};
 const button=(text,action,cls='')=>{const node=el('button',cls,text);node.type='button';node.addEventListener('click',action);return node};
 export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},guest=false,getProfileId=()=>null,fetcher=fetch,storage=createLocalData(),now=()=>new Date(),catalogLoader=createTvCuratedLoader()}={}){
  let sourceGroups=null,catalog=null,catalogLoading=null,subgroup='',folderLevel='groups',disposed=false,catalogWarning='',statusMessage='';
- let groups=[],index=guideTvGroups([]),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
+ let groups=[],index=visibleTvCategoryGroups(guideTvGroups([])),section='all',schedule=emptyTvSchedule(),canEdit=false,active=false,day=saoPauloDay(now()),selectedKey='',lastRead=0,loading=null;
  const root=el('div','lux-tv-experience');root.hidden=true;host.prepend(root);
  const hero=el('section','lux-tv-hero');hero.setAttribute('aria-label','Canais em destaque');
  const navigation=el('nav','lux-tv-navigation');navigation.setAttribute('aria-label','Categorias de canais');
@@ -83,7 +83,7 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
   navigation.append(title,intro,grid);
  }
  function rebuildIndex(){
-  index=catalog?curatedTvGroups(sourceGroups||[],catalog):guideTvGroups(sourceGroups||[]);groups=index.groups;
+  index=catalog?curatedTvGroups(sourceGroups||[],catalog):visibleTvCategoryGroups(guideTvGroups(sourceGroups||[]));groups=index.groups;
   if(section!=='all'&&!selectedCategory()){section='all';subgroup='';folderLevel='groups'}
   if(subgroup&&!selectedCategory()?.subgroups?.some(row=>row.key===subgroup)){subgroup='';folderLevel='subgroups'}
   renderHero();renderNavigation();if(dialog.open&&draft)renderEditor();
