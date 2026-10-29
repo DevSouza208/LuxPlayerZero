@@ -350,7 +350,8 @@ export function createHome({ play } = {}) {
     if (role === 'series' && !configRaw.seriesTitle &&
       showcase.groups.some(([group]) => /m[oó]dulo|temporada/i.test(group)) &&
       !showcase.groups.some(([group]) => /s[eé]rie/i.test(group))) return 'Módulos e episódios';
-    return config[role + 'Title'];
+    const title=config[role + 'Title'];
+    return title==='Filmes para descobrir'?'Filmes em alta':title==='Séries para maratonar'?'Séries do momento':title;
   }
 
   function queryFor(item) {
@@ -802,7 +803,7 @@ export function createHome({ play } = {}) {
     const header = document.createElement('div');
     header.className = 'rail-heading';
     const left = document.createElement('div');
-    appendText(left, 'span', 'rail-eyebrow', caption);
+    if(caption)appendText(left, 'span', 'rail-eyebrow', caption);
     appendText(left, 'h2', 'rail-title', title);
     header.append(left);
     if (entries.length > 4) {
@@ -899,10 +900,9 @@ export function createHome({ play } = {}) {
         createRail('minha-lista', config.favoritesTitle, availableFav.map(([item]) => item), 'SUA SELEÇÃO') },
       tv: { enabled: 'showTv', list: tvExperience.allChannels, draw: () => homeTvGuide.element },
       movies: { enabled: 'showMovies', list: movieHighlights, draw: () =>
-        createRail('destaques-filmes', settingsTitle('movies'), movieHighlights, (dailyPublished?highlightsLabel()+' · ':'PARA DESCOBRIR · ') + (dailyPublished?movieHighlights.length:showcase.counts.movies).toLocaleString('pt-BR') + ' TÍTULOS') },
+        createRail('destaques-filmes', settingsTitle('movies'), movieHighlights, '') },
       series: { enabled: 'showSeries', list: seriesHighlights, draw: () =>
-        createRail('destaques-series', settingsTitle('series'), seriesHighlights,
-          (dailyPublished?highlightsLabel()+' · ':'PARA MARATONAR · ') + (dailyPublished?seriesHighlights.length:seriesIndex.representatives.length).toLocaleString('pt-BR') + ' SÉRIES') }
+        createRail('destaques-series', settingsTitle('series'), seriesHighlights, '') }
     };
     const order = config.railOrder === 'favorites' ? ['favorites','continue','tv','movies','series']
       : config.railOrder === 'discovery' ? ['tv','movies','series','continue','favorites']
