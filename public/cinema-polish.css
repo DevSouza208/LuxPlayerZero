@@ -277,3 +277,9 @@ body :is(a[href],button,summary,select,[role="button"],input,textarea,label[for]
  .cinema-shell:not(.is-compact) .home-rails .rail-track .media-card{flex-basis:126px}
  .cinema-shell:not(.is-compact) .home-rails .content-rail[data-rail="tv"] .media-card{flex-basis:198px}
 }
+
+/* Desktop: sete espaços de capa por fileira, mesmo quando há só seis destaques. */
+@media(min-width:1100px){
+ .cinema-shell:not(.is-compact) .home-rails .rail-track .media-card,
+ .cinema-shell:not(.is-compact) .home-rails .content-rail[data-rail="tv"] .media-card{flex-basis:calc((100% - 84px)/7)}
+}
