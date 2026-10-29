@@ -51,3 +51,9 @@ Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sin
 Informações da lista, Outros e Rádios ficam ocultos da TV, Todos os canais, Home e editor de destaques. O filtro se aplica também às categorias básicas de contingência. Os registros do JSON e as fontes da playlist são preservados. 7 testes locais da curadoria aprovados.
 
 Grupos com zero ou um subgrupo abrem diretamente todos os seus canais. Nesses grupos, Voltar retorna aos cards principais, e o caminho não oferece a etapa redundante de subpastas. Grupos com dois ou mais subgrupos mantêm a escolha de pasta.
+
+## Capas dos grupos e subgrupos
+
+104 ilustrações vetoriais originais em public/assets/tv-covers: 12 grupos, 91 subgrupos e Todos os canais. Todas têm arquivo próprio com paleta, composição temática e nome editorial. Não são logos oficiais das emissoras. O manifesto public/tv-folder-covers.js resolve a capa pela chave exata do grupo/subgrupo e reutiliza a capa do grupo para novas famílias desconhecidas. Nenhum stream ou dado do fornecedor é incorporado nas imagens.
+
+Os cards carregam as capas sob demanda com lazy loading. O service worker guarda somente as capas visitadas, sem pré-carregar os 104 arquivos ou consultar o D1. Os SVGs completos somam menos de 250 KB. O gerador reproduzível é scripts/build-tv-covers.py.

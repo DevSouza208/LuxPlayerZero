@@ -1,7 +1,7 @@
 /* Lux Cinema: interface pública, mapa de categorias sem URLs e capas visíveis. Playlists privadas, APIs e streams não entram neste cache. */
-const VERSION = 'lux-cinema-shell-76';
+const VERSION = 'lux-cinema-shell-77';
 const ASSETS = [
-  '/data/tv-channel-groups.json', '/tv-curated-catalog.js', '/tv-guide-categories.js', '/tv-feature-model.js', '/tv-experience.js', '/tv-experience.css',
+  '/tv-folder-covers.js', '/data/tv-channel-groups.json', '/tv-curated-catalog.js', '/tv-guide-categories.js', '/tv-feature-model.js', '/tv-experience.js', '/tv-experience.css',
   '/local-data.js', '/profile-sync-model.js', '/library-cache.js', '/player-visibility.js', '/playback-errors.js',
   '/legal/links.css',
   '/catalog-prepare.js', '/catalog-prepare-worker.js', '/presentation-metadata.js', '/episode-metadata.js', '/vod-admin.js', '/vod-model.js', '/lux-icons.js', '/lux-icons.css',
@@ -28,6 +28,12 @@ self.addEventListener('activate', event => {
 
 const isPublicAsset = url => url.origin === self.location.origin &&
   ASSETS.includes(url.pathname) && !url.search;
+
+const isTvCover = url => url.origin === self.location.origin && !url.search && /^\/assets\/tv-covers\/[a-z0-9-]+\.svg$/.test(url.pathname);
+async function cachedTvCover(request){
+ const cache=await caches.open(VERSION),saved=await cache.match(request);if(saved)return saved;
+ const response=await fetch(request);if(response.ok&&response.type==='basic')await cache.put(request,response.clone());return response;
+}
 
 const ART_CACHE = 'lux-cinema-artwork-v1';
 const ART_LIMIT = 600;
@@ -59,6 +65,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  if(isTvCover(url)){event.respondWith(cachedTvCover(request));return;}
   if (isArtwork(request, url)) {
     event.respondWith(cachedArtwork(request));
     return;
