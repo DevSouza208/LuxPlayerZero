@@ -19,3 +19,11 @@ Chrome na Home com catálogo e publicação simulados confirmou avanço manual, 
 A área de destaque agora omite sinopse e tagline quando há um título selecionado. Esses dados continuam nos detalhes. No desktop usa duas colunas e altura natural com mínimo, em vez de comprimir o conteúdo em altura fixa. Título sem limite de linhas ou overflow oculto. Ações podem quebrar de linha sem compressão vertical. O pôster usa toda a área 2:3, reto, sem vidro, moldura, inclinação, brilho ou selo. Comportamento de rotação permanece igual. Shell 89.
 
 Chrome conferiu Backrooms: Um Não-Lugar inteiro, sinopse com display none, todos os controles dentro da área do hero e pôster de 245,33 × 367,98 px com transform none e fundo transparente. Arte e catálogo sintéticos. Sem reprodução real ou viewport móvel real. HTML/SVG temporários de prévia removidos antes do merge. Sintaxe e diff válidos.
+
+## Apresentação essencial
+
+Oculta as chamadas Em alta hoje e Lux Originals / Zero Edition. A tagline disponível nos metadados completos volta abaixo do título, entre um único par de aspas, enquanto a sinopse permanece fora do hero. Se não houver tagline, não inventa texto. Mantém o cache e a configuração existentes para buscar esses metadados.
+
+Setas, contador e pausa saem da apresentação visual padrão, mas continuam acessíveis a leitores de tela e aparecem quando recebem foco de teclado. Isso permite controlar a rotação sem manter a barra visível. A rotação automática e suas pausas existentes continuam iguais. Cache do shell 90.
+
+Chrome confirmou frase entre aspas sob o título, sem pseudo-elementos que duplicassem as aspas, chamadas superiores ocultas, sinopse oculta e barra de controles recortada fora da apresentação padrão. Tab após Explorar biblioteca revelou os controles com foco em Destaque anterior. Dados e frase sintéticos. Sem reprodução ou viewport móvel reais. Prévia HTML/SVG removida antes do merge. Sintaxe/diff válidos.
