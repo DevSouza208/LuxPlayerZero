@@ -57,3 +57,5 @@ Grupos com zero ou um subgrupo abrem diretamente todos os seus canais. Nesses gr
 104 ilustrações vetoriais originais em public/assets/tv-covers: 12 grupos, 91 subgrupos e Todos os canais. Todas têm arquivo próprio com paleta, composição temática e nome editorial. Não são logos oficiais das emissoras. O manifesto public/tv-folder-covers.js resolve a capa pela chave exata do grupo/subgrupo e reutiliza a capa do grupo para novas famílias desconhecidas. Nenhum stream ou dado do fornecedor é incorporado nas imagens.
 
 Os cards carregam as capas sob demanda com lazy loading. O service worker guarda somente as capas visitadas, sem pré-carregar os 104 arquivos ou consultar o D1. Os SVGs completos somam menos de 250 KB. O gerador reproduzível é scripts/build-tv-covers.py.
+
+Verificação das capas: 10 testes locais aprovados e os 104 SVGs parseados como XML válido. Navegador confirmou 104 de 104 imagens carregadas, sem falhas, além dos grupos e subgrupos esportivos nos cards. A prévia usa fontes sintéticas e não reproduz streams. Fixture em tests/browser/tv-folder-covers.html; cópia pública temporária removida antes do merge.
