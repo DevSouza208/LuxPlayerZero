@@ -1,15 +1,15 @@
 import {localData} from './local-data.js';
 import {cleanTvGuide,matchGuideChannels,GUIDE_TTL,TVMAP_SOURCE} from './tvmap-model.js';
 import {safeImage} from './home-model.js';
-import {setIconLabel} from './lux-icons.js';
+import {setIcon} from './lux-icons.js';
 const node=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
 const clock=value=>new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',hour:'2-digit',minute:'2-digit'}).format(new Date(value));
 export function createTvMapGuide({onPlay=()=>{},fetcher=fetch,store=localData}={}){
  const element=node('section','content-rail lux-tvmap');element.id='home-tv-guide';element.dataset.rail='tv';element.setAttribute('aria-label','Programação da TV');
- const header=node('div','rail-heading'),head=node('div');head.append(node('span','rail-eyebrow','AO VIVO · GUIA DE PROGRAMAÇÃO'),node('h2','rail-title','Programação da TV'));
+ const header=node('div','rail-heading'),head=node('div');head.append(node('span','rail-eyebrow','AO VIVO · GUIA DE PROGRAMAÇÃO'),node('h2','rail-title','Na TV agora'));
  const source=node('a','lux-tvmap-source','Abrir no TV Map ↗');source.href=TVMAP_SOURCE;source.target='_blank';source.rel='noopener noreferrer';source.referrerPolicy='no-referrer';header.append(head,source);
  const status=node('p','lux-tvmap-status','Conecte uma lista para ver a programação dos seus canais.');status.setAttribute('role','status');
- const wrap=node('div','lux-tvmap-scroll');wrap.tabIndex=0;wrap.setAttribute('aria-label','Grade de três horas. Role para ver mais canais e horários.');
+ const wrap=node('div','lux-tvmap-scroll');wrap.setAttribute('aria-label','Canais e programação atual');wrap.setAttribute('role','list');
  const note=node('p','lux-tvmap-note','Fonte: TV Map · Horário de Brasília. A programação pode variar por região.');element.append(header,status,wrap,note);
  let items=[],guide=null,visible=false,pending=null,cacheRead=false,lastCheck=0,stale=false;
  function draw(){
@@ -18,35 +18,31 @@ export function createTvMapGuide({onPlay=()=>{},fetcher=fetch,store=localData}={
   if(!items.length){status.textContent='Conecte uma lista para ver a programação dos seus canais.';wrap.hidden=true;return;}
   if(!guide){wrap.hidden=true;return;}
   const channels=matchGuideChannels(guide,items);wrap.hidden=!channels.length;
-  status.textContent=channels.length?channels.length+' canais da sua lista · Consulta '+clock(guide.fetchedAt)+(stale?' · Não foi possível atualizar a fonte agora.':''):'Os canais desta grade não foram encontrados na sua lista.';
+  status.textContent=channels.length?channels.length+' canais da sua lista · Consulta '+clock(guide.fetchedAt)+(stale?' · Não foi possível atualizar a fonte agora.':''):'Os canais deste guia não foram encontrados na sua lista.';
   if(!channels.length)return;
-  const table=node('table','lux-tvmap-table');table.setAttribute('aria-label','Programação dos canais disponíveis');const caption=node('caption','lux-tvmap-caption','Programação de '+clock(guide.windowStart)+' a '+clock(guide.windowEnd)+' · TV Map');table.append(caption);
-  const cols=node('colgroup');cols.append(node('col','lux-tvmap-channel-col'));for(let i=0;i<6;i++)cols.append(node('col'));table.append(cols);
-  const thead=node('thead'),tr=node('tr'),first=node('th','','Canal');first.scope='col';tr.append(first);for(let i=0;i<6;i++){const th=node('th','',clock(guide.windowStart+i*30*60000));th.scope='col';tr.append(th);}thead.append(tr);table.append(thead);
-  const tbody=node('tbody'),now=Date.now(),span=guide.windowEnd-guide.windowStart;
+  const now=Date.now();
   for(const channel of channels){
-   const row=node('tr'),name=node('th');name.scope='row';
-   const button=node('button','lux-tvmap-channel');button.type='button';button.dataset.guideChannel=channel.name;button.setAttribute('aria-label','Assistir '+channel.name);
-   const logo=safeImage(channel.item.logo)||channel.logo;
-   if(logo){const img=node('img');img.src=logo;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove(),{once:true});button.append(img);}
-   button.append(node('span','',channel.name));button.addEventListener('click',()=>onPlay(channel.item));name.append(button);
-   const cell=node('td');cell.colSpan=6;const track=node('div','lux-tvmap-track');
-   for(const program of channel.programs){
-    const start=program.start??guide.windowStart,end=program.end??guide.windowEnd;
-    if(end<=guide.windowStart||start>=guide.windowEnd)continue;
-    const current=program.start!==null&&program.end!==null&&program.start<=now&&program.end>now;
-    const block=node(program.sourceUrl?'a':'div','lux-tvmap-program'+(current?' is-current':''));
-    if(program.sourceUrl){block.href=program.sourceUrl;block.target='_blank';block.rel='noopener noreferrer';block.referrerPolicy='no-referrer';}
-    const begin=Math.max(start,guide.windowStart),finish=Math.min(end,guide.windowEnd);
-    block.style.left=((begin-guide.windowStart)/span*100)+'%';block.style.width=((finish-begin)/span*100)+'%';
-    const time=current?'Agora · '+clock(program.start)+'–'+clock(program.end):program.start!==null?clock(program.start)+(program.end!==null?'–'+clock(program.end):' · fim não informado'):'Em exibição na consulta';
-    block.append(node('span','lux-tvmap-time',time),node('strong','',program.title));block.title=program.title+' · '+time;
-    if(current||program.current&&program.progress!==null){const progress=node('progress');progress.max=1;progress.value=current?(now-program.start)/(program.end-program.start):program.progress;progress.setAttribute('aria-label','Progresso informado de '+program.title);block.append(progress);}
-    track.append(block);
-   }
-   cell.append(track);row.append(name,cell);tbody.append(row);
+   const current=channel.programs.find(p=>p.start!==null&&p.end!==null&&p.start<=now&&p.end>now)
+    ||channel.programs.find(p=>p.current&&(p.end===null||p.end>now));
+   const next=channel.programs.find(p=>p!==current&&p.start!==null&&p.start>now);
+   const card=node('article','lux-tvmap-card');card.setAttribute('role','listitem');
+   const button=node('button','lux-tvmap-channel');button.type='button';button.dataset.guideChannel=channel.name;
+   button.setAttribute('aria-label','Assistir '+channel.name+(current?' · '+current.title:''));
+   const artwork=node('div','lux-tvmap-artwork'),logo=safeImage(channel.item.logo)||channel.logo;
+   if(logo){const img=node('img');img.src=logo;img.alt='';img.loading='lazy';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove(),{once:true});artwork.append(img);}
+   artwork.append(node('span','lux-tvmap-live','AO VIVO'));
+   const play=node('span','lux-tvmap-play');play.setAttribute('aria-hidden','true');setIcon(play,'play',true);artwork.append(play);
+   const body=node('div','lux-tvmap-body');body.append(node('span','lux-tvmap-name',channel.name));
+   body.append(node('strong','lux-tvmap-title',current?.title||'Programação atual não informada'));
+   const time=current?.start!==null&&current?.start!==undefined?clock(current.start)+(current.end!==null?' – '+clock(current.end):' · Em exibição na consulta'):current?'Em exibição na consulta':'Consulte a programação do canal';
+   body.append(node('span','lux-tvmap-time',time));
+   const progress=node('progress');progress.max=1;
+   const ratio=current&&current.start!==null&&current.end!==null?(now-current.start)/(current.end-current.start):current?.progress;
+   if(Number.isFinite(ratio)){progress.value=Math.max(0,Math.min(1,ratio));progress.setAttribute('aria-label','Progresso de '+current.title);body.append(progress);}
+   const upcoming=node('div','lux-tvmap-next');upcoming.append(node('span','lux-tvmap-next-label',next?'A SEGUIR · '+clock(next.start):'A SEGUIR'),node('span','lux-tvmap-next-title',next?.title||'Programação não informada'));
+   body.append(upcoming);button.append(artwork,body);button.addEventListener('click',()=>onPlay(channel.item));card.append(button);wrap.append(card);
   }
-  table.append(tbody);wrap.append(table);wrap.scrollTop=scrollTop;wrap.scrollLeft=scrollLeft;
+  wrap.scrollTop=scrollTop;wrap.scrollLeft=scrollLeft;
   if(focus){const button=[...wrap.querySelectorAll('[data-guide-channel]')].find(el=>el.dataset.guideChannel===focus);button?.focus({preventScroll:true});}
  }
  async function load(){
