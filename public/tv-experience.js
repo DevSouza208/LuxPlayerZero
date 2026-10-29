@@ -1,3 +1,4 @@
+import {tvFolderCover} from './tv-folder-covers.js';
 import {safeImage} from './home-model.js';
 import {setIcon,setIconLabel} from './lux-icons.js';
 import {normalizeSearchText} from './media-taxonomy.js';
@@ -76,9 +77,12 @@ export function createTvExperience({host,onPlay,onDetails,onFilterChange=()=>{},
     if(folderLevel==='groups')moveTo(row.key==='all-channels'?'channels':hasMultipleSubgroups(row)?'subgroups':'channels',row.key==='all-channels'?'all':row.key);
     else moveTo('channels',section,row.key==='all-channels'?'':row.key);
    },'lux-tv-folder-card');card.dataset.folder=row.key;card.setAttribute('aria-label','Abrir '+row.label+', '+row.channels.length.toLocaleString('pt-BR')+(row.channels.length===1?' canal':' canais'));
-   const icon=el('span','lux-tv-folder-icon');setIcon(icon,row.key==='all-channels'?'tv':'folder');
+   const art=el('span','lux-tv-folder-art'),image=el('img');
+   image.src=tvFolderCover(folderLevel==='groups'?(row.key==='all-channels'?'':row.label):category?.label,row.key==='all-channels'||folderLevel==='groups'?'':row.label);image.alt='';image.width=640;image.height=360;image.loading='lazy';image.decoding='async';
+   image.addEventListener('error',()=>{image.remove();art.classList.add('is-unavailable')},{once:true});
+   const icon=el('span','lux-tv-folder-icon');setIcon(icon,row.key==='all-channels'?'tv':'folder');art.append(image,icon);
    const text=el('span','lux-tv-folder-copy');text.append(el('strong','',row.label),el('span','',row.channels.length.toLocaleString('pt-BR')+(row.channels.length===1?' canal':' canais')));
-   const arrow=el('span','lux-tv-folder-arrow');setIcon(arrow,'chevron-right');card.append(icon,text,arrow);grid.append(card);
+   const arrow=el('span','lux-tv-folder-arrow');setIcon(arrow,'chevron-right');card.append(art,text,arrow);grid.append(card);
   }
   if(!grid.children.length){const empty=el('div','lux-tv-folder-empty');empty.append(el('p','','Conecte sua playlist para explorar os canais.'),button('Conectar fonte',()=>document.getElementById('open-source')?.click(),'lux-tv-quiet'));grid.append(empty)}
   navigation.append(title,intro,grid);
