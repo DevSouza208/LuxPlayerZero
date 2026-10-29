@@ -33,3 +33,7 @@ Correção após relato em produção: a mensagem antiga não comprovava limite,
 O relato seguinte mostrou TMDB_NETWORK. A comparação com as chamadas de detalhes e a documentação oficial do runtime identificou uma incompatibilidade concreta: Workers só aceita redirect follow/manual; redirect error lança TypeError antes de enviar a requisição. A chamada de tendências agora usa URL em texto, GET, Accept application/json e redirect manual, como os detalhes existentes. Respostas 3xx são recusadas, sem encaminhar a chave para outra origem. Referência: https://developers.cloudflare.com/workers/runtime-apis/request/ .
 
 18 testes focados passaram, incluindo um transporte que aplica a restrição real de Workers e um teste de redirecionamento recusado. Não foram usados TMDB/D1 remotos nem a sessão privada do administrador nos testes.
+
+## Título no hero
+
+O hero usa o nome editorial dos destaques publicados ou, sem ele, o título da série já agrupada. O nome original do episódio continua preservado para reprodução. Títulos com mais de 25 caracteres recebem escala menor apenas no desktop (até 56 px), mantendo as regras móveis existentes. Prévia no Chrome confirmou A Noiva da Presilha Dourada sem S1 E1, em uma linha a 54,52 px na largura disponível, com os três botões do hero visíveis. Verificação visual com dados sintéticos, sem reprodução real. A página pública temporária foi removida antes do merge.
