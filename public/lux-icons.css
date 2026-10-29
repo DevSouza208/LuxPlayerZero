@@ -9,14 +9,34 @@ button .lux-icon,a .lux-icon{color:inherit}
 .media-play-glyph .lux-icon,.lux-full-episode-play .lux-icon,.play-orbit .lux-icon{width:1.6rem;height:1.6rem}
 .media-favorite .lux-icon{width:1.15rem;height:1.15rem}
 .lux-video-button .lux-icon{width:1.5rem;height:1.5rem}
-.lux-video-skip{position:relative;display:grid;place-items:center}
-.lux-video-skip .lux-icon{width:1.85rem;height:1.85rem}
-.lux-video-skip small{position:absolute;inset:0;display:grid;place-items:center;padding-top:2px;font:700 9px/1 sans-serif;pointer-events:none}
+/* Ícones de ±10s: controles compactos e legíveis, sem alterar ações de seek. */
+.lux-video-button.lux-video-skip{
+  display:inline-flex;align-items:center;justify-content:center;gap:2px;
+  width:52px;height:44px;padding:0 7px;
+  border:1px solid #d1b6ff30;border-radius:12px;
+  background:#17121fbd;color:#efe8ff;
+}
+.lux-video-skip>span{position:static;display:grid;place-items:center;width:21px;height:21px;font:inherit}
+.lux-video-skip .lux-icon{width:21px;height:21px;stroke-width:2.2}
+.lux-video-skip small{
+  position:static;inset:auto;display:block;margin:0;padding:0;
+  font:700 12px/1 'Outfit',system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:-.025em;pointer-events:none
+}
+.lux-video-button.lux-video-skip:hover:not(:disabled){
+  background:#b38aff29;border-color:#b38aff88;color:#fff
+}
+.lux-video-button.lux-video-skip:disabled{
+  opacity:.44;background:#ffffff08;border-color:#ffffff17;color:#b4aebe
+}
+@media(max-width:600px){
+  .lux-video-button.lux-video-skip{width:46px;min-width:46px;padding:0 3px;gap:0;border-radius:11px}
+  .lux-video-skip .lux-icon{width:19px;height:19px}
+  .lux-video-skip small{font-size:11px}
+}
 .lux-video-episodes,.lux-video-tracks{gap:.45rem}
 .lux-boot-symbol .lux-icon{width:2rem;height:2rem}
 @media(max-width:600px){.cinema-nav-link .lux-icon{width:1.1rem;height:1.1rem}}
-.lux-video-skip>span{position:static;display:grid;place-items:center;font:inherit}
-.lux-video-skip small{margin:0}
 .lux-video-episodes,.lux-video-tracks{display:flex;align-items:center;justify-content:center}
 
 /* Keep labels readable while icons provide a stable scanning cue. */
