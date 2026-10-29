@@ -1,5 +1,5 @@
 import {createDailyHighlightsClient} from './daily-highlights-client.js';
-import {resolveHighlights} from './daily-highlights-model.js';
+import {resolveHighlights,highlightDay} from './daily-highlights-model.js';
 import {createTvExperience} from './tv-experience.js';
 import {iconMarkup,setIcon,setIconLabel} from './lux-icons.js';
 import {createArtworkMetadataCache} from './artwork-metadata-cache.js';
@@ -75,6 +75,7 @@ export function createHome({ play } = {}) {
   let relationSource=null,relationRules='';
   let dailySelection=null,daily={movies:[],series:[],metadata:new Map()};
   const dailyHeroSeed=Math.random();
+  const highlightsLabel=()=>dailySelection?.day===highlightDay(Date.now())?'EM ALTA HOJE':'DESTAQUES · '+(dailySelection?.day||'').split('-').reverse().join('/');
   const updateDaily=selection=>{dailySelection=selection;resolveDaily();render();};
   const dailyClient=guest?null:createDailyHighlightsClient({profileId:personal.profileId,onChange:updateDaily});
   function resolveDaily(){daily=resolveHighlights(dailySelection,{movies:showcase.catalogs.movies,series:seriesIndex.representatives});}
@@ -836,7 +837,7 @@ export function createHome({ play } = {}) {
     title.textContent = heroItem ? titleForDisplay(heroItem) : config.heroTitle;
     $('hero-subtitle').textContent = heroItem ?
       (heroItem.group || 'Da sua biblioteca') + ' · ' + config.heroSubtitle : config.heroSubtitle;
-    $('hero-category').textContent = heroItem ? (daily.metadata.has(heroItem)?'EM ALTA HOJE · NA SUA BIBLIOTECA':'SELECIONADO PARA VOCÊ') : 'BEM-VINDO AO SEU UNIVERSO';
+    $('hero-category').textContent = heroItem ? (daily.metadata.has(heroItem)?highlightsLabel()+' · NA SUA BIBLIOTECA':'SELECIONADO PARA VOCÊ') : 'BEM-VINDO AO SEU UNIVERSO';
     // O hero mantém o cenário cinematográfico; logos pequenos ficam em um cartão próprio.
     const poster = $('hero-poster');
     const data = cachedMetadata(heroItem);
@@ -888,10 +889,10 @@ export function createHome({ play } = {}) {
         createRail('destaques-tv', settingsTitle('tv'), tvExperience.allChannels.slice(0,16),
           'AO VIVO · ' + tvExperience.allChannels.length.toLocaleString('pt-BR') + ' CANAIS') },
       movies: { enabled: 'showMovies', list: movieHighlights, draw: () =>
-        createRail('destaques-filmes', settingsTitle('movies'), movieHighlights, (dailyPublished?'EM ALTA HOJE · ':'PARA DESCOBRIR · ') + showcase.counts.movies.toLocaleString('pt-BR') + ' TÍTULOS') },
+        createRail('destaques-filmes', settingsTitle('movies'), movieHighlights, (dailyPublished?highlightsLabel()+' · ':'PARA DESCOBRIR · ') + (dailyPublished?movieHighlights.length:showcase.counts.movies).toLocaleString('pt-BR') + ' TÍTULOS') },
       series: { enabled: 'showSeries', list: seriesHighlights, draw: () =>
         createRail('destaques-series', settingsTitle('series'), seriesHighlights,
-          (dailyPublished?'EM ALTA HOJE · ':'PARA MARATONAR · ') + seriesIndex.representatives.length.toLocaleString('pt-BR') + ' SÉRIES') }
+          (dailyPublished?highlightsLabel()+' · ':'PARA MARATONAR · ') + (dailyPublished?seriesHighlights.length:seriesIndex.representatives.length).toLocaleString('pt-BR') + ' SÉRIES') }
     };
     const order = config.railOrder === 'favorites' ? ['favorites','continue','tv','movies','series']
       : config.railOrder === 'discovery' ? ['tv','movies','series','continue','favorites']

@@ -8,7 +8,7 @@ export function createDailyHighlightsClient({profileId,onChange,fetcher=fetch,st
   if(checkedAt&&now()-checkedAt<3600000)return selection;
   const started=epoch;
   pending=(async()=>{
-   if(!checkedAt){const saved=await store.get(key).catch(()=>null);if(saved?.selection){try{selection=cleanHighlights(saved.selection);onChange(selection);checkedAt=Number(saved.checkedAt)||0;}catch{}}}
+   if(!checkedAt){const saved=await store.get(key).catch(()=>null);if(saved?.selection&&started===epoch){try{selection=cleanHighlights(saved.selection);onChange(selection);checkedAt=Number(saved.checkedAt)||0;}catch{}}}
    if(checkedAt&&now()-checkedAt<3600000)return selection;
    const response=await fetcher('/api/editorial/daily-highlights',{credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(8000)});
    if(!response.ok)throw Error('Destaques indisponíveis');

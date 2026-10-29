@@ -70,3 +70,10 @@ test('cache privado reutiliza seleção, mantém offline e atualiza ao publicar'
  const newer={...selection,id:'new'};await client.published(newer);assert.equal(seen.at(-1).id,'new');time+=3600001;
  const offline=createDailyHighlightsClient({profileId:'a',store,now:()=>time,onChange:value=>seen.push(value),fetcher:async()=>{throw Error('offline')}});assert.equal((await offline.load()).id,'new');
 });
+
+test('resposta de leitura atrasada não sobrescreve a seleção recém-publicada',async()=>{
+ const store=memoryStorage(),seen=[],old={version:1,id:'old',day:'2026-10-29',movies:[],series:[]},newer={...old,id:'new'};let finish;
+ const client=createDailyHighlightsClient({profileId:'race',store,onChange:value=>seen.push(value),fetcher:()=>new Promise(resolve=>{finish=resolve;})});
+ const reading=client.load();while(!finish)await new Promise(resolve=>setImmediate(resolve));await client.published(newer);finish(Response.json({selection:old}));await reading;
+ assert.equal(seen.at(-1).id,'new');assert.equal((await store.get('daily-highlights:race')).selection.id,'new');
+});
