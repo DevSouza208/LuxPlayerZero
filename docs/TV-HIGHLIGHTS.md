@@ -6,15 +6,15 @@ Em Ao vivo, o hero mostra os canais escolhidos pelo administrador para o dia atu
 
 Com uma conta administradora, abra Ao vivo e clique em Programar destaques. Escolha o dia da semana, busque os canais da playlist aberta, adicione até seis e ajuste a ordem. Salvar destaques grava a semana inteira. A agenda se repete até ser editada. Canais indisponíveis na playlist do usuário não são exibidos no hero nem podem ser reproduzidos por essa agenda.
 
-## Navegação
+## Navegação e JSON de curadoria
 
-Todos mostra somente os canais nacionais visíveis. A navegação usa a divisão do MeuGuia (https://meuguia.tv/), consultada em 28/10/2026: Filmes, Séries, Esportes, Infantil, Variedades, Documentários, Notícias e TV aberta. As oito páginas de categoria servem de referência para um mapa local de nomes e aliases dos canais. Canais sem correspondência ficam em Outros. Categorias vazias não aparecem. Um canal lógico aparece uma vez e conserva todas as variantes.
+A TV usa public/data/tv-channel-groups.json, o JSON produzido a partir da playlist enviada: 2.289 IDs de fontes e 16 grupos, incluindo Esportes, 24h, Eventos e PPV, Religiosos e Internacionais. O arquivo não contém mídia, URLs, logos, usuário ou senha. Não adiciona canais à biblioteca: só classifica fontes já carregadas da própria playlist do usuário.
 
-A classificação é de apresentação e não altera o group-title original. Prefixos de país são avaliados antes da classificação. Sufixos de qualidade são ignorados na comparação de nomes. Afiliadas com nome explícito de Globo, SBT, Record ou Band entram em TV aberta. Não se infere uma rede somente pelo nome de uma cidade. O filtro Grupo restaurado continua exibindo os grupos originais da playlist, dentro da categoria escolhida.
+O primeiro nível mostra os grupos presentes na playlist. Selecionar Esportes revela uma segunda linha com Todos, Premiere, SporTV, ESPN, famílias de PPV e demais subgrupos presentes. 24h mostra seus tipos de maratona. Grupos e subgrupos vazios ficam ocultos. A troca de grupo limpa a seleção de subgrupo; contagens e cards usam canais lógicos e conservam todas as variantes e links originais. A seleção entra na chave da paginação contínua.
 
-Internacionais ficam ocultos da página da TV, do editor de destaques e da vitrine de TV da Home, mas não são removidos da playlist. A detecção usa siglas explícitas reconhecidas e o grupo internacional do fornecedor. Prefixos de qualidade ou locais, como HD, TV e SP, não são países. LT/LA e grupos internacionais sem país reconhecível também ficam ocultos. A pesquisa do player e referências pessoais já salvas não são apagadas.
+A correspondência usa primeiro o ID da fonte e depois somente nomes normalizados com classificação inequívoca no JSON. Canais novos sem correspondência vão para Outros / Não mapeados. A curadoria de plataformas genéricas permanece em Eventos e PPV, sem afirmar que toda transmissão é esportiva. Entradas com visivel=false e países internacionais identificados ficam ocultos da TV, Home e agenda; a playlist e as referências pessoais continuam intactas.
 
-Não há consulta ao MeuGuia em tempo de execução, importação de programação, nova API ou gravação de categorias no D1. O mapa local pode precisar de atualização quando canais mudarem de nome. Os agrupamentos por EPG, variantes e URLs originais continuam intactos. Os cards de TV usam capas horizontais, com logos contidos em vez de esticados.
+O mapa é um arquivo estático baixado uma vez por instância da interface e incluído no cache do service worker. Não há consulta ao MeuGuia ou ao banco para classificar canais. Atualizações do JSON devem acompanhar uma nova versão do shell do service worker. Se o mapa falhar, a interface mantém as categorias básicas anteriores e informa a indisponibilidade; nova tentativa aguarda pelo menos 30 segundos.
 
 ## Persistência e acesso
 
@@ -35,3 +35,7 @@ O navegador confirmou o filtro de categorias, a ocultação de internacionais, a
 A referência do MeuGuia substitui as abas genéricas do fornecedor. A verificação anterior acima documenta a versão com grupos do fornecedor. A nova classificação é verificada por testes de nomes, categorias, canais desconhecidos e preservação das fontes.
 
 Validação nova: 19 testes locais aprovados. Prévia no navegador com dados sintéticos confirmou as oito categorias e Outros, filtro Infantil com Cartoon Network, Notícias com GloboNews e seleção do canal. Nenhuma fonte de exemplo é gravada em produção. A fixture permanece em tests/browser/tv-guide-categories.html e a cópia pública temporária foi removida antes do merge.
+
+## Integração da curadoria no app
+
+25 testes locais de catálogo, classificação, carregamento e regressão do hero aprovados. O JSON completo é validado sem expor credenciais. A fixture tests/browser/tv-curated-catalog.html usa o JSON real e fontes de exemplo para testar o filtro sem abrir streams nem alterar a agenda. Prévia visual em verificação.
