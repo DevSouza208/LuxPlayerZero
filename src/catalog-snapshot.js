@@ -214,7 +214,7 @@ export async function refreshCatalogSource(rawSource,env,fetcher=fetch,options={
   try{return await refreshCatalogSourceUnlocked(rawSource,env,fetcher,options);}
   finally{try{await env.DB.prepare('DELETE FROM catalog_refresh_locks WHERE source_hash=? AND lease_until=?').bind(hash,lease).run();}catch{}}
 }
-async function refreshCatalogSourceUnlocked(rawSource, env, fetcher = fetch, {requireFresh = true} = {}) {
+async function refreshCatalogSourceUnlocked(rawSource, env, fetcher = fetch, {requireFresh = true, forceReplace = false} = {}) {
   if (!snapshotReady(env)) return apiError(503, 'Armazenamento da biblioteca indisponível.');
   let source;
   try { source = permittedUrl(rawSource, env).href; }
@@ -268,7 +268,8 @@ async function refreshCatalogSourceUnlocked(rawSource, env, fetcher = fetch, {re
   }
   let previousManifest;
   try{previousManifest=await readCatalogManifest(env,id);}catch{}
-  if(old&&old.r2_key===previousManifest?.fileKey&&previousManifest?.contentVersion===imported.contentVersion){
+  // A importação manual pode reutilizar bytes iguais; o cron publica um novo snapshot diário.
+  if(!forceReplace&&old&&old.r2_key===previousManifest?.fileKey&&previousManifest?.contentVersion===imported.contentVersion){
     await env.CATALOG_BUCKET.delete(fileKey).catch(()=>{});
     return apiOk({...savedResult(old,true),contentVersion:imported.contentVersion});
   }
@@ -369,7 +370,7 @@ export async function refreshDailyCatalogs(env, fetcher = fetch, {catalogId=null
     try {
       const source=await unseal(row.source_cipher,env);
       if(source.scope!=='catalog-source')throw new Error('Origem inválida.');
-      const response=await refreshCatalogSource(source.url,env,fetcher);
+      const response=await refreshCatalogSource(source.url,env,fetcher,{forceReplace:true});
       if(!response.ok)throw new Error('Download indisponível.');
       result.updated++;
     } catch { result.failed++; }
