@@ -1,24 +1,33 @@
-# Catálogo diário com entrega HTTPS fixa
+# Catálogo diário — Cloudflare Pages + Worker dedicado
 
-A importação autenticada baixa a M3U inteira por streaming, valida o arquivo e grava no R2. O D1 aponta o identificador estável `catalog_id` para a versão atual. A URL de entrega é `/api/bridge/playlist?id=<catalog_id>`; não muda na atualização diária.
+## Como funciona
 
-A origem é cifrada com AES-GCM usando o segredo `BRIDGE_ACCESS_KEY` e registrada em `catalog_refresh_sources`. Ela não é enviada ao cron em texto aberto nem registrada nos logs. Uma nova conexão bem-sucedida cadastra a origem para as próximas atualizações. Listas sincronizadas antes desta mudança precisam de uma reconexão para cadastrar a origem: o hash antigo não permite recuperar a URL.
+A playlist continua privada. O Pages é o único serviço que utiliza a chave `BRIDGE_ACCESS_KEY` existente, o D1 `DB` e o bucket privado `CATALOG_BUCKET`. A M3U é baixada inteira, validada e só então publicada em um novo objeto R2. O identificador `catalog_id` e a URL HTTPS de leitura permanecem estáveis.
 
-O Worker usa `scheduled()` com `0 6 * * *`: diariamente às 03h em São Paulo (06h UTC). A rotina usa o mesmo download/validação da importação manual, mantém o ID e só troca a referência depois do arquivo completo. Downloads que falham preservam a última versão íntegra. A antiga versão do objeto é removida após a troca.
+**Regra diária:** a tarefa agendada **sempre publica um novo snapshot**, inclusive quando os bytes da M3U são idênticos. O conteúdo idêntico conserva o mesmo `contentVersion` para evitar download desnecessário no cliente. A importação manual, por outro lado, pode reutilizar o snapshot se nada mudou. O arquivo anterior só é excluído após a publicação da referência. Uma falha de download mantém a versão já publicada.
 
-## Configuração necessária
+O Worker `lux-zero-maintenance` é um agendador mínimo: **não possui a chave original nem as URLs do fornecedor**. A função `/api/maintenance/refresh` roda dentro do Pages, usando os bindings já configurados. Os dois serviços compartilham apenas `LUX_MAINTENANCE_TOKEN` (segredo aleatório e independente). O Worker assina a tarefa e a data com HMAC-SHA256, e o Pages aceita somente a operação esperada e assinaturas com até dois minutos de diferença. A rota não exige nem expõe sessão de usuário.
 
-O Worker que executa o cron precisa dos mesmos recursos do Pages:
+| Cron (UTC) | São Paulo (UTC−3) | Trabalho |
+|---|---|---|
+| `0 8 * * *` | 05h00 | Buscar e publicar a M3U nova; iniciar a indexação VOD |
+| `0 9 * * *` | 06h00 | Preparar os destaques, quando o índice estiver pronto |
+| `* * * * *` | A cada minuto | Retomar lotes da indexação VOD e metadados; recuperar descobertas pendentes a cada 15 minutos |
 
-- `DB`: o MESMO D1 de `catalog_sources` do Pages.
-- `CATALOG_BUCKET`: o MESMO bucket R2 privado do Pages.
-- `BRIDGE_ACCESS_KEY`: o MESMO segredo usado pelo Pages, necessário para decifrar a origem.
-- `BRIDGE_ALLOWED_HOSTS`: os mesmos fornecedores autorizados.
+## Instalação / migração
 
-Não adivinhar IDs de bindings nem copiar segredos para o Git. A tabela é criada automaticamente na primeira conexão; também há a migração `0011_catalog_daily_refresh.sql`.
+1. Preserve os bindings e secrets atuais do Pages em produção: `DB`, `CATALOG_BUCKET`, `BRIDGE_ACCESS_KEY`, `BRIDGE_ALLOWED_HOSTS` e `TMDB_API_KEY`. **Não redefina `BRIDGE_ACCESS_KEY`**, pois a origem cadastrada no D1 foi cifrada com ela.
+2. Adicione **o mesmo valor aleatório** de `LUX_MAINTENANCE_TOKEN` como segredo do Pages (Production) e do Worker dedicado; nunca coloque o valor em repositórios ou logs.
+3. Faça o deploy do Pages com `functions/api/maintenance/refresh.js` e de `src/maintenance-cron.js` com o arquivo `wrangler.maintenance.jsonc` para o Worker `lux-zero-maintenance`.
+4. Confira os cron triggers do novo Worker e só depois remova os triggers do antigo Worker `luxplayerzero`. O `wrangler.jsonc` principal não deve reintroduzi-los.
+5. Confirme a execução nos logs do Worker de agendamento (resultado HTTP 200) e as referências `catalog_sources.synced_at` / `r2_key` no D1 após a próxima atualização real. A validação de metadados fica em `vod_catalog_jobs`.
 
-A entrega continua autenticada. Não é um endpoint público de playlists privadas. O HTTPS é do arquivo M3U; URLs HTTP dentro dele permanecem intactas e ainda dependem da compatibilidade do reprodutor.
+Um token ausente, erro na API, binding incompleto ou lista indisponível **não deve ser apresentado como atualização concluída**. Os serviços reportam falha para observabilidade.
 
-## Validação
+## Segurança
 
-Testes confirmam que a atualização diária baixa novamente a origem, substitui a M3U completa, mantém a mesma entrega, protege a URL de origem no D1 e preserva o arquivo anterior em falhas. A ativação real do cron depende de conferir os bindings no painel Cloudflare; não considerar essa etapa concluída apenas pelo merge ou pelos testes locais.
+A URL da fonte não aparece nas respostas da manutenção. A rota é POST-only, sem CORS de navegador e autenticação por HMAC; rejeita pedidos anônimos e assinaturas antigas. Os links de streaming internos não são convertidos para HTTPS. As playlists continuam autenticadas e os segredos existentes do Pages não devem ser enviados ao Worker.
+
+## Diagnóstico de 03/11/2026
+
+O cron `luxplayerzero` antigo disparou às 05h mas falhou com falta de `DB`, `CATALOG_BUCKET` e segredo. A manutenção de minuto também falhava sem o binding `DB`. O Pages já possuía os bindings necessários; a correção separou o agendamento da execução para evitar duplicar ou alterar a chave cifrada existente.
