@@ -84,3 +84,17 @@ test('visibilitychange e retorno da rede acionam flush sem precisar esperar cinc
  const store=await createProfileStore(c.fetcher,{...c.options,events});await store.write('recent',[row('a',50)]);docHandlers.visibilitychange();await store.flush();assert.equal(c.requests.length,1);
  await store.write('favorites',[row('a')]);handlers.online();await store.flush();assert.equal(c.requests.length,2);store.dispose();assert.deepEqual(handlers,{});assert.deepEqual(docHandlers,{});
 });
+
+test('excluir um item de Continuar assistindo persiste no perfil e mantém os demais',async()=>{
+  const c=setup({value:{recent:[row('canal-a',20,1000),row('canal-b',40,1000)]}});
+  const store=await c.create();
+  c.time.advance(5000);
+  await store.write('recent',[row('canal-b',40,1000)]);
+  assert.deepEqual(store.read('recent',[]).map(item=>item.key),['canal-b']);
+  await store.flush();
+  assert.deepEqual(c.remote.value.recent.map(item=>item.key),['canal-b']);
+  store.dispose();
+  const nextSession=await c.create();
+  assert.deepEqual(nextSession.read('recent',[]).map(item=>item.key),['canal-b']);
+  nextSession.dispose();
+});

@@ -93,6 +93,7 @@ export function createHome({ play } = {}) {
   let heroItem = null;
   let active = null;
   let lastProgress = 0;
+  let dismissedDuringPlayback = null;
   window.addEventListener('lux-sync-status',event=>{if(event.detail?.state==='warning'&&event.detail.message)flash(event.detail.message,true);});
 
   // O formulário de origem continua na sidebar, intacto e sempre acessível.
@@ -194,6 +195,60 @@ export function createHome({ play } = {}) {
   }
 
   const railsRoot = $('home-rails');
+  const removeDialog = $('continue-remove-dialog');
+  const removeName = $('continue-remove-name');
+  const removeConfirm = $('continue-remove-confirm');
+  let pendingRemoveKey = null;
+  let removeTrigger = null;
+  let removeSucceeded = false;
+
+  function requestHistoryRemoval(item, trigger) {
+    const key = itemKey(item);
+    if (!removeDialog || !recent.some(row => row.key === key)) return;
+    pendingRemoveKey = key;
+    removeTrigger = trigger;
+    removeSucceeded = false;
+    removeName.textContent = titleForDisplay(item);
+    removeConfirm.disabled = false;
+    openDialog(removeDialog);
+    $('continue-remove-cancel')?.focus({preventScroll:true});
+  }
+
+  $('continue-remove-cancel')?.addEventListener('click', () => closeDialog(removeDialog));
+  removeDialog?.addEventListener('click', event => {
+    if (event.target === removeDialog) closeDialog(removeDialog);
+  });
+  removeDialog?.addEventListener('close', () => {
+    const target = removeSucceeded
+      ? railsRoot.querySelector('[data-remove-history]') || $('nav-home')
+      : removeTrigger;
+    if (target?.isConnected) target.focus({preventScroll:true});
+    pendingRemoveKey = null;
+    removeTrigger = null;
+    removeSucceeded = false;
+  });
+  removeConfirm?.addEventListener('click', async () => {
+    const key = pendingRemoveKey;
+    if (!key || removeConfirm.disabled) return;
+    const next = recent.filter(row => row.key !== key);
+    if (next.length === recent.length) { closeDialog(removeDialog); return; }
+    removeConfirm.disabled = true;
+    try {
+      await write('recent', next);
+      recent = next;
+      // A reprodução em andamento não deve recriar o card removido.
+      if (active && itemKey(active) === key) dismissedDuringPlayback = key;
+      if (!favorites.some(row => row.key === key)) showcase.matches.delete(key);
+      updateRecommendations();
+      render();
+      removeSucceeded = true;
+      closeDialog(removeDialog);
+      flash('Removido de Continuar assistindo.');
+    } catch (error) {
+      removeConfirm.disabled = false;
+      flash(error.message || 'Não foi possível remover do histórico.', true);
+    }
+  });
   const browseRoot = $('cinema-browse');
   const browseGrid = $('browse-grid');
   const filterMenu=document.querySelector('.browse-filter-menu');
@@ -763,6 +818,16 @@ export function createHome({ play } = {}) {
       visual.append(progress);
     }
     card.append(visual);
+    if (category === 'continue') {
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className = 'media-remove-history';
+      removeButton.dataset.removeHistory = item.id;
+      removeButton.title = 'Remover do histórico';
+      removeButton.setAttribute('aria-label', 'Remover ' + cardTitle + ' de Continuar assistindo');
+      setIcon(removeButton, 'trash-2');
+      card.append(removeButton);
+    }
     const info = document.createElement('div');
     info.className = 'media-info';
     const labels = document.createElement('div');
@@ -933,6 +998,14 @@ export function createHome({ play } = {}) {
   }
 
   railsRoot.addEventListener('click', event => {
+    const removeButton = event.target.closest('[data-remove-history]');
+    if (removeButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      const item = getById(removeButton.dataset.removeHistory);
+      if (item) requestHistoryRemoval(item, removeButton);
+      return;
+    }
     const fav = event.target.closest('[data-favorite]');
     if (fav) {
       const item = getById(fav.dataset.favorite);
@@ -1088,6 +1161,7 @@ export function createHome({ play } = {}) {
   function remember(item, position = 0, duration = 0) {
     if (!item) return;
     const key = itemKey(item);
+    if (key === dismissedDuringPlayback) return;
     const previous = recent.find(x => x.key === key);
     const value = record(item, position || previous?.position || 0, duration || previous?.duration || 0);
     recent = [value, ...recent.filter(x => x.key !== key)].slice(0, 30);
@@ -1250,7 +1324,7 @@ export function createHome({ play } = {}) {
       return {title:group.title,current:current?.item.id||active.id,entries:episodes.map(ep=>({id:ep.item.id,season:ep.season,number:ep.number}))};
     },
     playEpisode(id){const group=seriesIndex.byItemId.get(active?.id);const next=group?.episodes.find(ep=>ep.item.id===id);if(next)start(next.item);},
-    onSelect(item) { quickGuide.select(classifyRole(item)==='tv'?item:null);continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },
+    onSelect(item) { dismissedDuringPlayback = null;quickGuide.select(classifyRole(item)==='tv'?item:null);continuation.cancel();returnButton.hidden=!fullDetails.canResume();active = item; },
     onPlaying(item) {
       if (!item) return;
       active = item;
