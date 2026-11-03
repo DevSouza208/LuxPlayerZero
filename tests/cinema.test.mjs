@@ -97,3 +97,21 @@ test('Vitrines processam 260 mil entradas com até 16 cards por seção', () => 
  assert.equal(classifyItem(item('Episódio','FILMES','https://provider.example/series/test/test/2.mp4'),settings),'series');
  assert.equal(classifyItem(item('Filme','FILMES','https://live.example/movie/test/test/3.mp4')),'movies');
 });
+
+test('Continuar assistindo tem lixeira exclusiva e confirmacao acessivel', () => {
+  const home = file('home.js');
+  assert.ok(home.includes("if (category === 'continue')"));
+  assert.ok(home.includes("setIcon(removeButton, 'trash-2')"));
+  assert.ok(home.includes('event.stopPropagation()'));
+  assert.ok(home.includes("await write('recent', next)"));
+  assert.ok(home.includes('dismissedDuringPlayback'));
+  assert.ok(file('home.css').includes('.media-remove-history:focus-visible'));
+  for (const page of ['cinema.html', 'cinema/index.html']) {
+    const html = file(page);
+    for (const id of ['continue-remove-dialog', 'continue-remove-name', 'continue-remove-cancel', 'continue-remove-confirm']) {
+      assert.ok(html.includes('id="' + id + '"'), 'Dialogo ausente em ' + page + ': ' + id);
+    }
+    assert.ok(html.includes('aria-labelledby="continue-remove-title"'));
+    assert.ok(html.includes('aria-describedby="continue-remove-description"'));
+  }
+});
