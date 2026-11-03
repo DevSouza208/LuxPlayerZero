@@ -319,3 +319,20 @@ test('lease e snapshot executam SQL real sem duplicar referência para conteúdo
  assert.equal(env.DB.db.prepare('SELECT COUNT(*) n FROM catalog_sources').get().n,1);
  assert.equal(env.DB.db.prepare('SELECT COUNT(*) n FROM catalog_refresh_locks').get().n,0);
 });
+
+test('cron substitui snapshot mesmo com playlist identica sem mudar a versao do conteudo',async()=>{
+  const {env,objects,rows}=mockResources(),c=await cookie(env);
+  const first=await(await syncCatalog(req('sync','POST',{url:original},c),env,fetchMock)).json();
+  const old=[...rows.values()][0];
+  const oldKey=old.r2_key;
+  const result=await refreshDailyCatalogs(env,fetchMock);
+  assert.deepEqual(result,{updated:1,failed:0});
+  const next=[...rows.values()][0];
+  assert.equal(next.catalog_id,first.catalogId);
+  assert.notEqual(next.r2_key,oldKey,'O cron deve criar uma nova copia, mesmo sem mudanca');
+  assert.equal(objects.has(oldKey),false,'O R2 deve eliminar a copia obsoleta apos a publicacao');
+  assert.equal(objects.size,2,'Somente o novo snapshot e o manifesto permanecem');
+  const version=await(await serveCatalogVersion(req('catalog-version?id='+first.catalogId,'GET',null,c),env)).json();
+  assert.equal(version.contentVersion,first.contentVersion,'Os clientes nao precisam recarregar bytes iguais');
+  assert.equal(await(await serveCatalog(req('playlist?id='+first.catalogId,'GET',null,c),env)).text(),m3u);
+});
