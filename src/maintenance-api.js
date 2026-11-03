@@ -20,7 +20,7 @@ export async function authorizeMaintenance(request,env,now=Date.now()){
   try{
     const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['verify']);
     const bytes=Uint8Array.from(signature.match(/.{2}/g),pair=>Number.parseInt(pair,16));
-    return crypto.subtle.verify('HMAC',key,bytes,encoder.encode(timestamp+'\\n'+task));
+    return crypto.subtle.verify('HMAC',key,bytes,encoder.encode(timestamp+String.fromCharCode(10)+task));
   }catch{return false;}
 }
 
