@@ -46,7 +46,8 @@ export function groupTvEntries(items){
    // Só reutilizamos EPG como alias se a numeração não entrar em conflito.
    let group=byName.get(nameKey)||(epgKey&&byEpg.get(epgKey)?.number===number?byEpg.get(epgKey):null);
    if(!group){
-     const key=epgKey||nameKey;
+     // Um EPG incorreto não pode fazer o canal 2 sobrescrever o canal 1.
+     const key=epgKey&&!groups.has(epgKey)?epgKey:nameKey;
      group={key,title:name,number,primary:item,variants:[],aliases:[],
        categories:new Set(),category:tvCategory(name,item.group)};
      groups.set(key,group);
