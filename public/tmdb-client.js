@@ -49,6 +49,16 @@ export function chooseArtwork(original, matched, imageEngine) {
   return playlistImage;
 }
 
+/** Quando R2 estiver pronto a mesma URL servira WebP; ate la retorna a capa TMDB original. */
+export function useCachedArtwork(data,type){
+ if(data?.status!=='matched'||!['movie','tv'].includes(type)||!Number.isSafeInteger(data.tmdbId)||data.tmdbId<1)return data;
+ const toUrl=(kind,source)=>{
+  if(typeof source!=='string'||!source.startsWith('https://image.tmdb.org/t/p/'))return source;
+  return '/api/artwork/'+type+'/'+data.tmdbId+'/'+kind+'?src='+encodeURIComponent(source);
+ };
+ return {...data,poster:toUrl('poster',data.poster),backdrop:toUrl('backdrop',data.backdrop)};
+}
+
 export async function requestTmdb(query, fetcher = fetch, signal) {
   if (!query) return null;
   const response = await fetcher('/api/metadata/tmdb', {
@@ -62,7 +72,7 @@ export async function requestTmdb(query, fetcher = fetch, signal) {
   });
   if (!response.ok) return null;
   const data = await response.json();
-  return data && data.status === 'matched' ? data : null;
+  return data && data.status === 'matched' ? useCachedArtwork(data,query.type) : null;
 }
 
 /** Aguarda TMDB; usa o fornecedor quando a consulta termina sem capa. */
