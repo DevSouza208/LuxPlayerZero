@@ -89,7 +89,8 @@ export async function processImageQueue(env,{now=Date.now(),fetcher=fetch,conver
    const start=performance.now();
    try{
     // A previous attempt may have uploaded R2 before recording success in D1.
-    const existing=await env.CATALOG_BUCKET.head(key);
+    const stored=await env.CATALOG_BUCKET.head(key);
+    const existing=stored?.customMetadata?.tmdbSource===source?stored:null;
     let bytes=0;
     if(!existing){
      const response=await fetcher(source,{method:'GET',redirect:'manual',signal:AbortSignal.timeout(10000),headers:{accept:'image/jpeg,image/png'}});
@@ -101,10 +102,11 @@ export async function processImageQueue(env,{now=Date.now(),fetcher=fetch,conver
      bytes=webp.byteLength;
      if(bytes<24||bytes>IMAGE_BUDGET.maxBytesPerImage)throw Error('Imagem convertida excede o limite');
      const elapsed=Math.max(1,Math.ceil(performance.now()-start));
-     if(!imageBudgetAllows(await usage(env.DB,month),await usage(env.DB,day),bytes)||elapsed>60000) {
+     const currentUsage=await usage(env.DB,month);
+     if(!imageBudgetAllows(currentUsage,await usage(env.DB,day),bytes)||Number(currentUsage?.processing_ms||0)+elapsed>IMAGE_BUDGET.maxProcessingMsPerMonth||elapsed>60000) {
        paused=true;reason='Limite de processamento ou armazenamento de imagens';break;
      }
-     await env.CATALOG_BUCKET.put(key,webp,{httpMetadata:{contentType:'image/webp',cacheControl:'public, max-age=86400'},customMetadata:{source:'tmdb',kind:row.kind}});
+     await env.CATALOG_BUCKET.put(key,webp,{httpMetadata:{contentType:'image/webp',cacheControl:'public, max-age=86400'},customMetadata:{source:'tmdb',kind:row.kind,tmdbSource:source}});
      // Charged only after a successful put; includes fetch and encode wall time.
      await debit(env.DB,month,bytes,elapsed);
      await debit(env.DB,day,bytes,elapsed);
