@@ -73,7 +73,7 @@ export async function advanceVodJob(env,{chunks=1,now=Date.now()}={}){
   await env.DB.prepare('UPDATE vod_catalog_jobs SET lease_until=0 WHERE catalog_id=? AND generation=? AND lease_until=?').bind(job.catalog_id,job.generation,lease).run();
  }
 }
-export async function enrichVod(env,{limit=4,now=Date.now(),fetcher=fetch}={}){
+export async function enrichVod(env,{limit=8,now=Date.now(),fetcher=fetch}={}){
  if(!env.TMDB_API_KEY?.trim())return {matched:0,pending:true,reason:'TMDB não configurado neste servidor: falta TMDB_API_KEY. O front e o Worker precisam da mesma configuração.'};
  // O limite TMDB e por dia UTC. Ao esgotar, suspende a fila inteira em vez
  // de adiar milhares de titulos individualmente; a fila volta sozinha no dia seguinte.
