@@ -11,7 +11,7 @@ const known=new Map([
 ]);
 // Remove somente marcadores tecnicos no fim, sem apagar nomes como "Discovery HD Theater".
 const TECH='(?:2160p|1080p|720p|480p|4k|uhd|fhd|full\\s*hd|hd|sd|hevc|h\\.?26[45]|x26[45]|hdr10?)';
-const trailingVariant=new RegExp('(?:\\s*\\[(?:'+TECH+')\\]|\\s*\\((?:'+TECH+'|BR\\d+)\\)|\\s*[²³⁴]|\\s+(?:'+TECH+'))\\s*,'i');
+const trailingVariant=new RegExp('(?:\\s*\\[(?:'+TECH+')\\]|\\s*\\((?:'+TECH+'|BR\\d+)\\)|\\s*[²³⁴]|\\s+(?:'+TECH+'))\\s*$','i');
 const leadingQuality=/^(?:(?:4k|uhd|fhd|full\s*hd|hd|sd)\s*[:|]\s*|\[(?:4k|uhd|fhd|full\s*hd|hd|sd)\]\s*)/i;
 export function canonicalTvName(raw) {
  const input=String(raw??'').trim();
