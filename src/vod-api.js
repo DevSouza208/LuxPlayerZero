@@ -1,5 +1,6 @@
 import {requiredSession,bodyJson,HttpError,reply} from './account-security.js';
 import {ensureVodSchema} from './vod-schema.js';
+import {imageQueueStatus} from './vod-images.js';
 import {startVodJobs,advanceVodJob,enrichVod,writeVodRows} from './vod-catalog.js';
 import {refreshDailyCatalogs} from './catalog-snapshot.js';
 import {normalizeSearchText} from '../public/media-taxonomy.js';
@@ -29,7 +30,7 @@ export async function vodAdminApi(request,env){
    const sources=hasSources?await env.DB.prepare("SELECT catalog_id,item_count,size_bytes FROM catalog_sources ORDER BY catalog_id").all():{results:[]};
    const progress={read:0,total:0};for(const source of sources.results){progress.total+=source.item_count;const job=jobs.results.find(job=>job.catalog_id===source.catalog_id);progress.read+=Math.min(source.item_count,job?.entry_count||0);}
    const metadata=await env.DB.prepare("SELECT value FROM vod_catalog_state WHERE id='metadata_status'").first();
-   return reply({filmes,series,jobs:jobs.results,sources:sources.results,progress,tmdb:{configured:Boolean(env.TMDB_API_KEY?.trim()),last:metadata?JSON.parse(metadata.value):null}});
+   return reply({filmes,series,jobs:jobs.results,sources:sources.results,progress,tmdb:{configured:Boolean(env.TMDB_API_KEY?.trim()),last:metadata?JSON.parse(metadata.value):null},images:await imageQueueStatus(env)});
   }
   if(request.method!=='POST')throw new HttpError(405,'Método não permitido.');
   const body=await bodyJson(request,131072);
