@@ -10,6 +10,7 @@ import {isGuestMode,createGuestStore} from './guest-mode.js';
 import {relationIndex,resolveRelations} from './catalog-relations.js';
 import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
+import {createUniversalSearch} from './universal-search.js';
 import { recommendationIndex, recommend, afterWatchRecommendations } from './recommendations.js';
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
 import { tmdbQueryForItem, metadataNeeded, catalogArtwork, requestTmdb, useCachedArtwork } from './tmdb-client.js';
@@ -265,34 +266,21 @@ export function createHome({ play } = {}) {
     if (event.key === 'Escape' && sourceDrawer?.classList.contains('is-open')) closeDrawer();
   });
   const navSearch = $('nav-search');
-  navSearch?.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      if (browseRole) {
-        browseSearch = navSearch.value;
-        if(browseRole==='tv'&&browseSearch.trim())tvExperience.openAllForSearch();
-        browsePage = 1;
-        renderBrowse();
-        return;
-      }
-      const search = $('search');
-      if (search) { search.value = navSearch.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
-    }, 260);
+  // Busca universal sob demanda: nenhuma consulta é feita a cada tecla.
+  const universalSearch=createUniversalSearch({
+    getItems:()=>items,
+    kindFor:item=>classifyRole(item),
+    onOpen:item=>showDetails(item)
   });
-  navSearch?.addEventListener('keydown', event => {
-    if (event.key === 'Enter') {
+  navSearch?.addEventListener('focus',()=>{
+    const query=navSearch.value;
+    navSearch.blur();
+    universalSearch.open(query);
+  });
+  navSearch?.addEventListener('keydown',event=>{
+    if(event.key==='Enter'){
       event.preventDefault();
-      clearTimeout(searchTimer);
-      if (browseRole) {
-        browseSearch = navSearch.value;
-        if(browseRole==='tv'&&browseSearch.trim())tvExperience.openAllForSearch();
-        browsePage = 1;
-        renderBrowse();
-        return;
-      }
-      const search = $('search');
-      if (search) { search.value = navSearch.value; search.dispatchEvent(new Event('input', { bubbles: true })); }
-      $('biblioteca')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      universalSearch.open(navSearch.value);
     }
   });
   const navLinks = [...document.querySelectorAll('.cinema-nav-link')];
@@ -1215,6 +1203,7 @@ export function createHome({ play } = {}) {
     resumeDetails(){return fullDetails.resume()},
     backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||artworkFor(entry))},
     setItems(next) {
+      universalSearch.invalidate();
       quickGuide.select(null);continuation.cancel();
       // Descarta buscas automáticas pendentes da biblioteca anterior.
       tmdbEpoch++;
