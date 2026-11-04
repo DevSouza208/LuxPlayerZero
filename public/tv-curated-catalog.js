@@ -3,6 +3,8 @@ import {normalizeSearchText} from './media-taxonomy.js';
 import {channelCountry} from './tv-feature-model.js';
 
 const HIDDEN_GROUPS=new Set(['Informações da lista','Outros','Rádios']);
+// Esconde somente pastas informativas do mapa, sem alterar o M3U original.
+const HIDDEN_SUBGROUPS=new Set(['Informações dos jogos']);
 export function visibleTvCategoryGroups(index){
  const categories=index.categories.filter(row=>!HIDDEN_GROUPS.has(row.label)),visible=new Set(categories.flatMap(row=>row.channels));
  return {...index,categories,groups:index.groups.filter(group=>visible.has(group.primary)),channels:index.channels.filter(item=>visible.has(item))};
@@ -43,7 +45,7 @@ export function curatedTvGroups(sourceGroups,catalog){
   for(const item of entries){
    if(channelCountry(item.name,item.group).international)continue;
    const row=catalog.byId.get(providerChannelId(item))||catalog.byName.get(nameKey(item.name));
-   if(row?.visible===false||HIDDEN_GROUPS.has(row?.group))continue;
+   if(row?.visible===false||HIDDEN_GROUPS.has(row?.group)||HIDDEN_SUBGROUPS.has(row?.subgroup))continue;
    // Prefer a mapped visible source; never invent a playable channel from the JSON.
    if(!chosen){chosen=item;metadata=row||null}
    if(row){chosen=item;metadata=row;break}
