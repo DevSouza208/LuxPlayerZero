@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {maintenanceRequest,authorizeMaintenance} from '../src/maintenance-api.js';
 import {dispatchMaintenance} from '../src/maintenance-cron.js';
 
@@ -59,4 +60,10 @@ test('cron nao segue redirecionamentos e falha quando Pages devolve 302',async()
  const response=Response.redirect('https://another.example/',302);
  await assert.rejects(dispatchMaintenance({cron:'* * * * *'},{LUX_MAINTENANCE_TOKEN:token},
   async(_url,options)=>{assert.equal(options.redirect,'manual');return response;},now),/Redirecionamento inesperado/);
+});
+
+test('Cloudflare Pages roteia o POST interno da manutenção para Functions',()=>{
+ const routes=JSON.parse(readFileSync(new URL('../public/_routes.json',import.meta.url),'utf8'));
+ assert.ok(routes.include.includes('/api/maintenance/*'),'Sem a rota Pages devolve HTTP 405 sem executar a funcao');
+ assert.equal(routes.exclude.some(pattern=>pattern.startsWith('/api/maintenance')),false);
 });
