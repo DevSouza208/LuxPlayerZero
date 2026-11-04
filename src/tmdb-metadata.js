@@ -55,11 +55,11 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
 
   let result;
   async function remote(path, parameters = {}) {
-    const quota = await env.DB.prepare(
+    // Telemetria sem bloqueio por total diario; o provedor regula frequencia via 429.
+    await env.DB.prepare(
       'INSERT INTO tmdb_meta_daily (day, used) VALUES (?, 1) ' +
-      'ON CONFLICT(day) DO UPDATE SET used = used + 1 WHERE used < ?'
-    ).bind(day, TMDB_LIMITS.dailyRemoteLookups).run();
-    if (!quota?.meta?.changes) throw Object.assign(new Error(), { name: 'QuotaError' });
+      'ON CONFLICT(day) DO UPDATE SET used = used + 1'
+    ).bind(day).run();
     const url = new URL('https://api.themoviedb.org/3/' + path);
     url.searchParams.set('api_key', env.TMDB_API_KEY.trim());
     for (const [key,value] of Object.entries(parameters)) url.searchParams.set(key,value);
@@ -67,6 +67,7 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
       method:'GET', redirect:'manual', signal:AbortSignal.timeout(7000),
       headers:{accept:'application/json','cache-control':'no-cache'}
     });
+    if (response.status===429) throw Object.assign(new Error(),{name:'ProviderRateLimit'});
     if (!response.ok) throw Object.assign(new Error(),{name:'ProviderError'});
     return response.json();
   }
@@ -110,9 +111,9 @@ export async function lookupTmdb(request, env, fetcher = fetch, clock = Date.now
       }
     }
   } catch(error) {
-    const code = error?.name === 'QuotaError' ? 'TMDB_QUOTA' : error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'TMDB_TIMEOUT' : 'TMDB_UNAVAILABLE';
+    const code = error?.name === 'ProviderRateLimit' ? 'TMDB_RATE_LIMIT' : error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'TMDB_TIMEOUT' : 'TMDB_UNAVAILABLE';
     return new Response(JSON.stringify({error:'Não foi possível concluir a busca TMDB. Tente novamente.',code}),{
-      status:code==='TMDB_QUOTA'?429:503,headers:{'content-type':'application/json','cache-control':'no-store'}
+      status:code==='TMDB_RATE_LIMIT'?429:503,headers:{'content-type':'application/json','cache-control':'no-store'}
     });
   }
 

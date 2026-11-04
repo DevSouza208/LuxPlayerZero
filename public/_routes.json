@@ -11,7 +11,8 @@
     "/guide/*",
     "/api/catalog/search",
     "/api/admin/*",
-    "/api/maintenance/*"
+    "/api/maintenance/*",
+    "/api/artwork/*"
   ],
   "exclude": []
 }

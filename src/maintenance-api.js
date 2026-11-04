@@ -1,5 +1,6 @@
 import {refreshDailyCatalogs} from './catalog-snapshot.js';
 import {runVodMaintenance} from './vod-catalog.js';
+import {processImageQueue} from './vod-images.js';
 import {prepareHighlights,markHighlightsRefresh} from './daily-highlights.js';
 
 const TASKS=new Set(['catalog','highlights','tick']);
@@ -47,9 +48,14 @@ export async function maintenanceRequest(request,env,{now=Date.now(),runCatalog=
     // Recover stuck imports even if a previous daily discovery attempt failed.
     const minute=new Date(now).getUTCMinutes();
     const result=await runVod(env,{discover:minute%15===0,now});
+    // Cada minuto: uma fila independente converte as imagens antigas/novas.
+    // Wall time e bytes sao contabilizados; ao atingir o teto o trabalho pausa sem cobranca de Images.
+    let images;
+    try{images=await processImageQueue(env);}
+    catch(error){images={error:true};console.error('Lux image queue failed: '+String(error?.message||'unknown').slice(0,160));}
     const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',hourCycle:'h23'}).format(new Date(now)));
     if(hour>=6&&minute%15===0)await highlights(env,{scheduled:true});
-    return response(200,{ok:true,task,index:result?.index?.status||'unknown'});
+    return response(200,{ok:true,task,index:result?.index?.status||'unknown',images});
   }catch(error){
     // No provider URL, secret, token or source ciphertext in logs.
     console.error('Lux maintenance '+task+' failed: '+String(error?.message||'unknown').slice(0,180));
