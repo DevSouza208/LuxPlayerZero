@@ -12,7 +12,7 @@ import {createQuickGuide} from './quick-guide.js';
 import { createCatalogSearch } from './catalog-search-client.js';
 import { recommendationIndex, recommend, afterWatchRecommendations } from './recommendations.js';
 import { DEFAULT_SETTINGS, normalizeSettings, buildShowcase, classifyItem, itemKey, safeImage, shouldResume } from './home-model.js';
-import { tmdbQueryForItem, metadataNeeded, catalogArtwork, requestTmdb } from './tmdb-client.js';
+import { tmdbQueryForItem, metadataNeeded, catalogArtwork, requestTmdb, useCachedArtwork } from './tmdb-client.js';
 import { titleForDisplay } from './cinema-title.js';
 import { tagColor } from './lux-tag-palette.js';
 import {createEpisodeContinuation} from './episode-continuation.js';
@@ -374,15 +374,15 @@ export function createHome({ play } = {}) {
     return safeImage(item?.logo) || seriesIndex.byItemId.get(item?.id)?.poster || '';
   }
   function cachedMetadata(item) {
-    if(daily.metadata.has(item))return daily.metadata.get(item);
-    const query = queryFor(item);
-    return query ? tmdbResolved.get(keyForQuery(query)) || null : null;
+    const query=queryFor(item);
+    if(daily.metadata.has(item))return useCachedArtwork(daily.metadata.get(item),query?.type);
+    return query?useCachedArtwork(tmdbResolved.get(keyForQuery(query))||null,query.type):null;
   }
   function artworkFor(item) {
     return item?catalogArtwork(providerArtwork(item),cachedMetadata(item),config.imageEngine,classifyRole(item)):'';
   }
   async function metadataFor(item, {preload=false} = {}) {
-    if(daily.metadata.has(item))return daily.metadata.get(item);
+    if(daily.metadata.has(item))return cachedMetadata(item);
     const query = queryFor(item);
     if (!query || !metadataNeeded(config, 'details')) return null;
     const key = keyForQuery(query);
@@ -393,7 +393,7 @@ export function createHome({ play } = {}) {
     }
     if (tmdbPending.has(key)) return tmdbPending.get(key);
     const local = await artworkMetadataCache.get(key);
-    if(local?.status==='matched'){tmdbResolved.set(key,local);return local;}
+    if(local?.status==='matched'){const data=useCachedArtwork(local,query.type);tmdbResolved.set(key,data);return data;}
     // Não consultar servidor sem chave/D1: evita uma sequência de erros 503.
     if (!tmdbReadiness) tmdbReadiness = tmdbConfigured();
     if (!await tmdbReadiness || config.imageEngine === 'playlist' && config.summaryEngine !== 'tmdb') {tmdbResolved.set(key,{status:'unavailable'});tmdbRetryAfter.set(key,Date.now()+30000);return null;}
