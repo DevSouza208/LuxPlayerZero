@@ -269,7 +269,8 @@ async function refreshCatalogSourceUnlocked(rawSource, env, fetcher = fetch, {re
   let previousManifest;
   try{previousManifest=await readCatalogManifest(env,id);}catch{}
   // A importação manual pode reutilizar bytes iguais; o cron publica um novo snapshot diário.
-  if(!forceReplace&&old&&old.r2_key===previousManifest?.fileKey&&previousManifest?.contentVersion===imported.contentVersion){
+  const unchangedContent=Boolean(old&&old.r2_key===previousManifest?.fileKey&&previousManifest?.contentVersion===imported.contentVersion);
+  if(!forceReplace&&unchangedContent){
     await env.CATALOG_BUCKET.delete(fileKey).catch(()=>{});
     return apiOk({...savedResult(old,true),contentVersion:imported.contentVersion});
   }
@@ -303,6 +304,17 @@ async function refreshCatalogSourceUnlocked(rawSource, env, fetcher = fetch, {re
   } catch {
     await env.CATALOG_BUCKET.delete(fileKey).catch(() => {});
     return apiError(502, 'A playlist foi recebida, mas o D1 não conseguiu registrar a referência.');
+  }
+
+  // Mesmo arquivo, novo objeto: o indice VOD pronto continua valido e nao precisa
+  // processar novamente centenas de milhares de titulos. Se nao houver indice,
+  // a descoberta habitual do cron monta um indice novo.
+  if(forceReplace&&unchangedContent){
+    try{
+      await env.DB.prepare(`UPDATE vod_catalog_jobs SET snapshot_key=?,snapshot_time=?
+        WHERE catalog_id=? AND snapshot_key=? AND snapshot_time=? AND status='ready'`)
+        .bind(fileKey,row.synced_at,id,old.r2_key,old.synced_at).run();
+    }catch{/* Indice VOD opcional. A playlist ja esta integra no R2. */}
   }
 
   // Publish the small version manifest last. Old data survives a failed publication.
