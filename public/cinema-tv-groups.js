@@ -54,9 +54,11 @@ export function groupTvEntries(items){
    }
    if(!byName.has(nameKey))byName.set(nameKey,group);
    if(epgKey&&!byEpg.has(epgKey))byEpg.set(epgKey,group);
-   const quality=mediaQuality(item.name),qualityCount=group.variants.filter(x=>x.quality===quality).length+1;
-   group.variants.push({item,quality:quality||'Automático',score:SCORE[quality]||0,
-     label:quality?(quality+(qualityCount>1?' · fonte '+qualityCount:'')):'Fonte '+qualityCount});
+   const quality=mediaQuality(item.name)||'Automático';
+   const qualityCount=group.variants.filter(x=>x.quality===quality).length+1;
+   group.variants.push({item,quality,score:SCORE[quality]||0,
+     label:quality==='Automático'?'Fonte '+qualityCount:
+       quality+(qualityCount>1?' · fonte '+qualityCount:'')});
    if(!group.aliases.includes(item.name))group.aliases.push(item.name);
    if(item.group)group.categories.add(item.group);
    byItemId.set(item.id,group);
