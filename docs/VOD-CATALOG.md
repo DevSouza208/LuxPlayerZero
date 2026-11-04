@@ -68,7 +68,7 @@ A lista privada completa foi enviada localmente pela API autenticada em lotes de
 
 ## Cache de imagens WebP no R2 e limite de gastos (novembro/2026)
 
-A manutenção continua buscando metadados TMDB sem o teto artificial de 5.000 consultas externas por dia. Quando o provedor retornar HTTP 429, pausa novas consultas por 30 minutos e retoma automaticamente. Metadados e edições manuais são preservados.
+A manutenção consulta até oito títulos TMDB por minuto sem o teto artificial de 5.000 consultas externas por dia. Quando o provedor retornar HTTP 429, pausa novas consultas por 30 minutos e retoma automaticamente. Metadados e edições manuais são preservados.
 
 Cada correspondência TMDB enfileira a capa e o banner. Um backfill também inclui os títulos enriquecidos antes desta atualização, sem refazer a busca TMDB. O trabalho só busca URLs oficiais de image.tmdb.org nos tamanhos w500/w1280. JPEG/PNG é convertido em WebP por jSquash WebAssembly dentro do Pages Functions, sem usar Cloudflare Images pago. Os arquivos ficam no bucket CATALOG_BUCKET sob metadata/tmdb/<tipo>/<tmdb_id>/<poster-ou-backdrop>.webp.
 
