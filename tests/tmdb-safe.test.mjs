@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { chooseExactMatch, chooseIdMatch, validateQuery, TMDB_LIMITS } from '../src/tmdb-safe.js';
 import { lookupTmdb } from '../src/tmdb-metadata.js';
-import { tmdbQueryForItem, metadataNeeded, chooseArtwork, catalogArtwork, requestTmdb } from '../public/tmdb-client.js';
+import { tmdbQueryForItem, metadataNeeded, chooseArtwork, catalogArtwork, requestTmdb, useCachedArtwork } from '../public/tmdb-client.js';
 import { normalizeSettings, DEFAULT_SETTINGS } from '../public/home-model.js';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
@@ -198,18 +198,18 @@ test('Busca no servidor apenas uma vez, usa D1 na repetição e não expõe chav
   assert.equal(db.usage.get('2026-10-15'), 1);
 });
 
-test('Sem D1/secret, com origem inválida ou limite diário: zero chamadas externas', async () => {
-  let calls = 0;
-  const fetcher = async () => { calls++; return Response.json({ results: [] }); };
-  const db = fakeDB();
-  const key = 'fake-key';
-  assert.equal((await lookupTmdb(request({type:'movie',title:'Duna'}), {TMDB_API_KEY:key},fetcher)).status, 503);
-  assert.equal((await lookupTmdb(request({type:'movie',title:'Duna'}), {DB:db},fetcher)).status, 503);
-  const day = new Date().toISOString().slice(0,10);
-  db.usage.set(day, TMDB_LIMITS.dailyRemoteLookups);
-  const quota = await lookupTmdb(request({type:'movie',title:'Duna'}),{TMDB_API_KEY:key,DB:db},fetcher);
-  assert.equal(quota.status, 429);
-  assert.equal(calls,0);
+test('Sem D1/secret nao consulta; sem teto diario artificial e TMDB 429 respeitado', async () => {
+  let calls=0;const fetcher=async()=>{calls++;return Response.json({results:[]})};
+  const db=fakeDB(),key='fake-key';
+  assert.equal((await lookupTmdb(request({type:'movie',title:'Duna'}),{TMDB_API_KEY:key},fetcher)).status,503);
+  assert.equal((await lookupTmdb(request({type:'movie',title:'Duna'}),{DB:db},fetcher)).status,503);
+  db.usage.set(new Date().toISOString().slice(0,10),5000);
+  const ok=await lookupTmdb(request({type:'movie',title:'Duna'}),{TMDB_API_KEY:key,DB:db},fetcher);
+  assert.equal(ok.status,200);
+  assert.equal(calls,3,'Consulta feita mesmo depois de 5.000, mas usando somente os endpoints oficiais');
+  const limited=await lookupTmdb(request({type:'movie',title:'Avatar'}),{TMDB_API_KEY:key,DB:db},
+    async()=>new Response('{}',{status:429,headers:{'content-type':'application/json'}}));
+  assert.equal(limited.status,429);assert.equal((await limited.json()).code,'TMDB_RATE_LIMIT');
 });
 
 test('O cliente só envia nome, ano e tipo; nunca manda URL de vídeo', async () => {
@@ -312,4 +312,13 @@ test('dublado é removido do título antes da identificação sem alterar a font
  assert.equal(catalogArtwork(provider,{status:'unmatched'},'tmdb','movies'),provider);
  assert.equal(catalogArtwork(provider,null,'tmdb','tv'),provider);
  assert.equal(catalogArtwork(provider,null,'playlist','series'),provider);
+});
+
+test('O frontend prioriza capa e banner no R2 com fallback TMDB durante a fila',()=>{
+ const data={status:'matched',tmdbId:438631,poster:'https://image.tmdb.org/t/p/w500/poster.jpg',backdrop:'https://image.tmdb.org/t/p/w1280/backdrop.jpg'};
+ const result=useCachedArtwork(data,'movie');
+ assert.match(result.poster,/^\/api\/artwork\/movie\/438631\/poster\?src=/);
+ assert.match(result.backdrop,/^\/api\/artwork\/movie\/438631\/backdrop\?src=/);
+ assert.equal(useCachedArtwork(result,'movie').poster,result.poster);
+ assert.equal(useCachedArtwork({...data,status:'unmatched'},'movie').poster,data.poster);
 });
