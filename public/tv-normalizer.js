@@ -23,5 +23,8 @@ export function canonicalTvName(raw) {
   if(next===cleaned||!next)break;
   cleaned=next;
  }
+ // Alguns provedores usam "ESPN HD 2" em vez de "ESPN 2 HD".
+ const qualityBeforeNumber=cleaned.match(/^(.+?)\s+(?:4k|uhd|fhd|full\s*hd|hd|sd)\s+([1-9]\d{0,2})$/i);
+ if(qualityBeforeNumber)cleaned=qualityBeforeNumber[1]+' '+qualityBeforeNumber[2];
  return known.get(normalizeKey(cleaned))||cleaned||input;
 }
