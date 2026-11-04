@@ -152,3 +152,37 @@ test('API mostra cota D1 em vez de sugerir migração ou bucket inexistente',asy
  env.DB.prepare=sql=>{if(sql.startsWith('INSERT INTO filmes'))throw new Error("Your account has exceeded D1's free tier daily row write limit.");return prepare(sql)};
  const response=await vodAdminApi(apiRequest(cookie,{action:'seed',rows:uniqueVod(parseM3u(sample)).filmes}),env),data=await response.json();assert.equal(response.status,429);assert.equal(data.code,'D1_DAILY_WRITE_LIMIT');assert.equal(data.stage,'seed_titles');assert.ok(data.reference);assert.ok(!data.error.includes('SQL 0013'));
 });
+
+test('fila TMDB respeita cota por dia UTC, nao perde titulos e retoma no dia seguinte',async()=>{
+ const movie='#EXTM3U\n#EXTINF:-1 group-title="FILMES",Duna (2021)\nhttps://source.test/movie/u/p/101.mp4\n';
+ const {env,db}=setup(movie),now=Date.parse('2026-11-04T16:00:00Z');
+ await startVodJobs(env,now-10);await advanceVodJob(env,{now:now-9});
+ env.TMDB_API_KEY='test-only-key';
+ db.exec('CREATE TABLE IF NOT EXISTS tmdb_meta_daily (day TEXT PRIMARY KEY, used INTEGER NOT NULL DEFAULT 0)');
+ db.prepare('INSERT INTO tmdb_meta_daily(day,used) VALUES (?,?)').run('2026-11-04',5000);
+ let remoteCalls=0;
+ const fetcher=async()=>{remoteCalls++;return Response.json({results:[{id:438631,title:'Duna',original_title:'Dune',release_date:'2021-09-15',adult:false,genre_ids:[28],poster_path:'/poster.jpg'}]})};
+ const first=await enrichVod(env,{now,fetcher});
+ assert.equal(first.paused,true);assert.equal(first.attempts,1);
+ assert.equal(first.resumeAt,Date.parse('2026-11-05T00:00:00Z'));
+ assert.equal(remoteCalls,0,'Nao ultrapassar o limite remoto');
+ assert.equal(db.prepare('SELECT status_metadados FROM filmes').get().status_metadados,'pendente');
+ const waiting=await enrichVod(env,{now:now+60000,fetcher});
+ assert.equal(waiting.attempts,0,'Nao repetir consultas por minuto quando a cota acabou');
+ assert.equal(waiting.resumeAt,first.resumeAt);
+ const resumed=await enrichVod(env,{now:Date.parse('2026-11-05T00:01:00Z'),fetcher});
+ assert.equal(resumed.attempts,1);assert.equal(resumed.matched,1);
+ assert.ok(remoteCalls>=1);
+ assert.equal(db.prepare('SELECT status_metadados FROM filmes').get().status_metadados,'encontrado');
+});
+test('rotina automática processa mais de dois títulos no mesmo lote sem alterar o original',async()=>{
+ const text='#EXTM3U\n'+['Duna (2021)','O Poderoso Chefão (1972)','Avatar (2009)','Titanic (1997)']
+  .map((name,index)=>'#EXTINF:-1 group-title="FILMES",'+name+'\nhttps://source.test/movie/u/p/'+(index+100)+'.mp4\n').join('');
+ const {env,db}=setup(text),now=Date.parse('2026-11-04T16:00:00Z');
+ await startVodJobs(env,now-10);await advanceVodJob(env,{now:now-9});
+ env.TMDB_API_KEY='test-only-key';
+ const fetcher=async()=>Response.json({results:[]});
+ const result=await enrichVod(env,{now,fetcher});
+ assert.equal(result.attempts,4);
+ assert.equal(db.prepare("SELECT count(*) n FROM filmes WHERE status_metadados='sem_correspondencia'").get().n,4);
+});
