@@ -80,7 +80,8 @@ export async function enrichVod(env,{limit=8,now=Date.now(),fetcher=fetch}={}){
  const ratePause=await env.DB.prepare("SELECT value FROM vod_catalog_state WHERE id='metadata_rate_until'").first();
  const resumeAt=Number(ratePause?.value)||0;
  if(resumeAt>now)return {matched:0,attempts:0,paused:true,reason:'TMDB solicitou reducao de ritmo. Retomada automatica.',resumeAt};
- const lease=now+120000;
+ // Oito consultas podem fazer multiplas buscas; a lease cobre latencia sem sobreposicao.
+ const lease=now+300000;
  const locked=await env.DB.prepare("INSERT INTO vod_catalog_state(id,value) VALUES('metadata_lease',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(vod_catalog_state.value AS INTEGER)<=?").bind(String(lease),now).run();
  if(!locked.meta.changes)return {matched:0,attempts:0,busy:true};
  let matched=0,attempts=0;
