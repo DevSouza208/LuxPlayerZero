@@ -15,8 +15,10 @@ export async function dispatchMaintenance(event,env,fetcher=fetch,now=Date.now()
   const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const signature=Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,encoder.encode(timestamp+String.fromCharCode(10)+task))),
     byte=>byte.toString(16).padStart(2,'0')).join('');
-  const response=await fetcher(DESTINATION,{method:'POST',cache:'no-store',redirect:'error',
+  const response=await fetcher(DESTINATION,{method:'POST',cache:'no-store',redirect:'manual',
     headers:{'x-lux-maintenance-task':task,'x-lux-maintenance-time':timestamp,'x-lux-maintenance-signature':signature}});
+  // O runtime Workers nao aceita redirect:error: usamos manual e nunca seguimos 3xx.
+  if(response.status>=300&&response.status<400)throw Error('Redirecionamento inesperado na manutencao (HTTP '+response.status+').');
   if(!response.ok)throw Error('Falha na manutencao do Lux Zero (HTTP '+response.status+').');
   return {task,ok:true};
 }
