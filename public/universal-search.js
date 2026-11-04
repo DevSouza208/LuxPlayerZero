@@ -3,6 +3,9 @@ import {titleForDisplay} from './cinema-title.js';
 
 const MIN_SCORE=.70, PAGE_SIZE=24, MAX_CANDIDATES=250;
 const recentKey='lux-zero-search-recent-v2';
+const trendsKey='lux-zero-search-trends-v2';
+const readTrends=()=>{try{return JSON.parse(localStorage.getItem(trendsKey)||'{}')}catch{return{}}};
+const saveTrend=q=>{try{const key=normalizeSearchText(q);const all=readTrends();all[key]={title:q,count:(all[key]?.count||0)+1,at:Date.now()};const limited=Object.entries(all).sort((a,b)=>b[1].at-a[1].at).slice(0,50);localStorage.setItem(trendsKey,JSON.stringify(Object.fromEntries(limited)))}catch{}};
 const readRecent=()=>{try{return JSON.parse(localStorage.getItem(recentKey)||'[]').slice(0,8)}catch{return[]}};
 const saveRecent=q=>{try{localStorage.setItem(recentKey,JSON.stringify([q,...readRecent().filter(x=>normalizeSearchText(x)!==normalizeSearchText(q))].slice(0,8)))}catch{}};
 const el=(tag,cls='',text='')=>{const node=document.createElement(tag);node.className=cls;node.textContent=text;return node};
@@ -62,7 +65,7 @@ export function createUniversalSearch({getItems,kindFor,onOpen}){
  }
  function run(q){
   q=String(q||'').trim().slice(0,100);if(q.length<2)return;
-  buildIndex();last=q;kind='all';visible=PAGE_SIZE;field.value=q;saveRecent(q);
+  buildIndex();last=q;kind='all';visible=PAGE_SIZE;field.value=q;saveRecent(q);saveTrend(q);
   const norm=normalize(q);
   active=candidates(q).map(row=>({...row,score:searchSimilarity(row.title,norm)})).filter(row=>row.score>=MIN_SCORE).sort((a,b)=>b.score-a.score||a.title.localeCompare(b.title,'pt-BR'));
   render();
@@ -75,14 +78,18 @@ export function createUniversalSearch({getItems,kindFor,onOpen}){
   const chips=el('div','lux-search-chips');
   for(const q of recent()){const b=el('button','',q);b.type='button';b.onclick=()=>run(q);chips.append(b)}
   if(!chips.childElementCount)chips.append(el('p','','Suas buscas aparecerão aqui.'));
-  section.append(chips,el('h3','','Explorar por categoria'));
+  section.append(chips,el('h3','','Mais buscados neste dispositivo'));
+  const trending=el('div','lux-search-chips');
+  for(const row of Object.values(readTrends()).sort((a,b)=>b.count-a.count||b.at-a.at).slice(0,7)){const b=el('button','',row.title);b.type='button';b.onclick=()=>run(row.title);trending.append(b)}
+  if(!trending.childElementCount)trending.append(el('p','','As tendências aparecerão após suas primeiras pesquisas.'));
+  section.append(trending,el('h3','','Explorar por categoria'));
   const categories=el('div','lux-search-chips');
   for(const [value,label] of [['movies','Filmes'],['series','Séries'],['tv','TV']]){
    const b=el('button','',label);b.type='button';b.onclick=()=>{buildIndex();last='';kind=value;active=index.filter(x=>x.role===value).slice(0,48).map(x=>({...x,score:1}));render()};categories.append(b)
   }
   section.append(categories);
   const surprise=el('button','lux-search-surprise','🎲 Surpreenda-me com 50 sugestões');surprise.type='button';
-  surprise.onclick=()=>{buildIndex();last='';kind='all';const safe=index.filter(x=>x.role==='movies'||x.role==='series');active=[];const used=new Set();for(let i=0;i<Math.min(50,safe.length);i++){const n=Math.floor(Math.random()*safe.length);if(used.has(n)){i--;continue}used.add(n);active.push({...safe[n],score:1})}render()};
+  surprise.onclick=()=>{buildIndex();last='';kind='all';const safe=index.filter(x=>(x.role==='movies'||x.role==='series')&&!/adulto|xxx|porn|18\+/i.test([x.item.group,...(x.item.catalogTags||[])].join(' ')));active=[];const used=new Set();for(let i=0;i<Math.min(50,safe.length);i++){const n=Math.floor(Math.random()*safe.length);if(used.has(n)){i--;continue}used.add(n);active.push({...safe[n],score:1})}render()};
   section.append(surprise);results.append(section);more.hidden=true;
  }
  function mount(){
