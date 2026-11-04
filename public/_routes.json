@@ -10,7 +10,8 @@
     "/api/editorial/*",
     "/guide/*",
     "/api/catalog/search",
-    "/api/admin/*"
+    "/api/admin/*",
+    "/api/maintenance/*"
   ],
   "exclude": []
 }
