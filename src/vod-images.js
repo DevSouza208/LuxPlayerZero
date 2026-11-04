@@ -116,6 +116,8 @@ export async function processImageQueue(env,{now=Date.now(),fetcher=fetch,conver
     converted++;
    }catch(error){
     failed++;
+    // Registre somente tipo de falha; nunca registrar URL da playlist nem segredos.
+    console.warn('Lux WebP conversion failed: '+String(error?.name||'Error')+' '+String(error?.message||'').slice(0,110));
     const attempts=row.attempts+1;
     await env.DB.prepare("UPDATE vod_image_jobs SET status='failed',attempts=?,retry_at=?,lease_until=0,updated_at=? WHERE tipo=? AND tmdb_id=? AND kind=? AND lease_until=?").bind(attempts,now+(attempts>=5?86400000:3600000),now,row.tipo,row.tmdb_id,row.kind,lease).run();
    }finally{
