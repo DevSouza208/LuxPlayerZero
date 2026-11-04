@@ -1,6 +1,6 @@
 /**
  * TMDB: títulos normalizados e correspondência aproximada conservadora.
- * Similaridade textual mínima de 96%; ano informado e ambiguidades são verificados.
+ * Similaridade textual mínima de 95%; ano informado e ambiguidades são verificados.
  * tmdb-id explícito da M3U permite consulta direta; nunca confundir tvg-id EPG.
  * Metadados jamais mudam URL de vídeo ou identificação do item.
  */
@@ -115,7 +115,7 @@ export function chooseExactMatch(query, results) {
     const proximity = Math.max(0, ...names.filter(name => numbers(name) === numbers(query.title))
       .map(name => similarity(normalized, canonical(name))));
     const score = exact || canonicalExact ? 1 : proximity;
-    if (score >= .96) scored.push({ row, score });
+    if (score >= .95) scored.push({ row, score });
   }
   const unique = [...new Map(scored.map(entry => [entry.row.id, entry])).values()]
     .sort((a, b) => b.score - a.score);
