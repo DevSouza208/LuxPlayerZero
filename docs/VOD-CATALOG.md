@@ -65,3 +65,20 @@ O botão **Preencher metadados TMDB** chama somente a classificação dos títul
 Reenvios idênticos deixam de atualizar vod_catalog_items quando não há novas referências. A API retorna classes seguras para cota diária de leitura/gravação, armazenamento, esquema incompleto, limite de execução ou falha temporária, além da etapa e referência para correlação. Não devolve SQL, parâmetros, URLs ou mensagens brutas do banco. A mensagem genérica anterior não provava falta de migração ou R2.
 
 A lista privada completa foi enviada localmente pela API autenticada em lotes de 60: 24.556 filmes e 6.668 séries, maior corpo de requisição com 30.803 bytes. O erro de produção não foi reproduzido nesse teste. Cota/timeout na Cloudflare são hipóteses até observar o diagnóstico ou os logs reais. A cota diária do D1 Free, quando atingida, não pode ser ampliada por código e renova às 00h UTC (21h São Paulo).
+
+## Cache de imagens WebP no R2 e limite de gastos (novembro/2026)
+
+A manutenção continua buscando metadados TMDB sem o teto artificial de 5.000 consultas externas por dia. Quando o provedor retornar HTTP 429, pausa novas consultas por 30 minutos e retoma automaticamente. Metadados e edições manuais são preservados.
+
+Cada correspondência TMDB enfileira a capa e o banner. Um backfill também inclui os títulos enriquecidos antes desta atualização, sem refazer a busca TMDB. O trabalho só busca URLs oficiais de image.tmdb.org nos tamanhos w500/w1280. JPEG/PNG é convertido em WebP por jSquash WebAssembly dentro do Pages Functions, sem usar Cloudflare Images pago. Os arquivos ficam no bucket CATALOG_BUCKET sob metadata/tmdb/<tipo>/<tmdb_id>/<poster-ou-backdrop>.webp.
+
+O front pede a imagem pela rota /api/artwork/<tipo>/<tmdb_id>/<kind>. Ela devolve WebP armazenado no R2 ou, enquanto estiver pendente, redireciona ao CDN oficial validado do TMDB. URLs originais de streams, listas e usuários não são alteradas. Jobs deduplicados têm lease, retries e reprocessam quando a imagem de origem mudar.
+
+Teto conservador da fila de imagens, definido em src/vod-image-policy.js:
+- 1.500 conversões por dia
+- 12.000 conversões por mês
+- 2 GiB de novos WebP no mês
+- 6.000.000 ms de tempo observado no mês
+- máximo de duas imagens por execução da tarefa de manutenção
+
+A API de admin VOD reporta images.counts, images.month, images.day e images.limits. Esses tetos controlam apenas o novo processo de imagens; não garantem uma fatura total de US$5 porque os demais serviços da conta podem gerar gastos. Não prometa que todos os metadados serão encontrados em uma noite: resultados ambíguos exigem revisão e a fila pausa quando orçamento ou fornecedor requerem.
