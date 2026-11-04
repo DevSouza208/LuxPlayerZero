@@ -52,3 +52,18 @@ test('Informações da lista Outros e Rádios ficam fora de pastas contagens e T
  assert.deepEqual(index.channels,[values[3]]);assert.deepEqual(index.categories.map(x=>x.label),['Esportes']);assert.equal(index.groups.length,1);assert.deepEqual(values,before);
  const fallback=visibleTvCategoryGroups({groups:groupTvEntries(values).groups,channels:values,categories:[{label:'Outros',channels:values.slice(0,3)},{label:'Esportes',channels:[values[3]]}]});assert.deepEqual(fallback.channels,[values[3]]);
 });
+
+test('pasta Informações dos jogos some de Esportes sem apagar dados da playlist',()=>{
+ const hidden=asset.canais.find(x=>x.grupo==='Esportes'&&x.subgrupo==='Informações dos jogos');
+ const sport=asset.canais.find(x=>x.grupo==='Esportes'&&x.subgrupo==='Premiere'&&x.visivel===true);
+ assert.ok(hidden&&sport,'O mapa editorial deve conter o canal informativo e outros canais esportivos');
+ const values=[source(hidden.id,hidden.nome),source(sport.id,sport.nome)];
+ const original=structuredClone(values),catalog=parseTvCuratedCatalog(asset);
+ const index=curatedTvGroups(groupTvEntries(values).groups,catalog);
+ const sports=index.categories.find(category=>category.label==='Esportes');
+ assert.ok(sports,'A categoria Esportes deve continuar visível');
+ assert.equal(sports.subgroups.some(group=>group.label==='Informações dos jogos'),false);
+ assert.equal(index.channels.some(channel=>channel.id===values[0].id),false);
+ assert.equal(index.channels.some(channel=>channel.id===values[1].id),true);
+ assert.deepEqual(values,original,'A origem não deve ser alterada');
+});
