@@ -19,6 +19,8 @@ test('sufixos de qualidade codec e duplicatas nao alteram a identidade do canal'
  assert.equal(canonicalTvName('SporTV FHD H265'),'SporTV');
  assert.equal(canonicalTvName('Discovery HD Theater'),'Discovery HD Theater');
  assert.equal(canonicalTvName('ESPN 4K'),'ESPN');
+ assert.equal(canonicalTvName('ESPN HD 2'),'ESPN 2');
+ assert.equal(tvLogicalIdentity('ESPN HD 2').identity,tvLogicalIdentity('ESPN 2 FHD').identity);
  assert.equal(canonicalTvName('ESPN 4 4K'),'ESPN 4');
 });
 
