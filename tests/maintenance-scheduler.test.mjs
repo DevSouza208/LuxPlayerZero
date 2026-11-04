@@ -23,7 +23,7 @@ test('rota de manutencao exige assinatura valida, sem sessao do usuario',async()
 test('cron renova o catalogo no Pages, descobre o indice e solicita destaques',async()=>{
  const calls=[],result=await maintenanceRequest(await signed('catalog'),env,{now,
    runCatalog:async()=>{calls.push('catalog');return {updated:1,failed:0}},
-   runVod:async(_,options)=>{assert.equal(options.discover,true);calls.push('index');return {index:{status:'building'}}},
+   runVod:async(_,options)=>{assert.equal(options.discover,true);assert.equal('now' in options,false,'A indexacao usa o relogio depois do download');calls.push('index');return {index:{status:'building'}}},
    markHighlights:async()=>calls.push('highlight-mark')});
  assert.equal(result.status,200);assert.equal((await result.json()).updated,1);
  assert.deepEqual(calls,['catalog','index','highlight-mark']);
