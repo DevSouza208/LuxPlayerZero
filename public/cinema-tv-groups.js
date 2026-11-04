@@ -1,5 +1,5 @@
-/* Logical channel grouping from Lux 2.0: EPG first, normalized name fallback.
- * All sources are retained as independent quality/source variants.
+/* Logical TV channels: normalized family + channel number first, compatible EPG fallback.
+ * All original sources remain independent variants; no media URL is modified.
  */
 import {canonicalTvName} from './tv-normalizer.js';
 import {normalizeSearchText,mediaQuality} from './media-taxonomy.js';
@@ -25,20 +25,40 @@ export const TV_CATEGORY_LABELS={
  music:'Música',movies:'Filmes',series:'Séries',open:'TV aberta',international:'Internacional',
  always_on:'24 horas',adult:'Adulto',other:'Outros'
 };
+// A fonte sem número é a primeira da mesma família (ESPN == ESPN 1).
+// Qualidade e codec já foram removidos do nome canônico pelo normalizador.
+export function tvLogicalIdentity(raw){
+ const name=canonicalTvName(raw);
+ const match=/^(.+?)\s+([1-9][0-9]{0,2})$/.exec(name);
+ const number=match?Number(match[2]):1;
+ const family=normalizeSearchText(match?match[1]:name);
+ return {name,number,identity:family+' '+number};
+}
 export function groupTvEntries(items){
- const groups=new Map(),byItemId=new Map();
+ const groups=new Map(),byName=new Map(),byEpg=new Map(),byItemId=new Map();
  for(const item of items||[]){
-   const name=canonicalTvName(item.displayName||item.name);
+   const normalized=tvLogicalIdentity(item.displayName||item.name);
+   const {name,number,identity}=normalized;
    const epg=String(item.epgId||item.tvgId||'').trim().toLowerCase();
-   const identity=normalizeSearchText(name);
-   const key=epg&&!/^(0|none|null|undefined|unknown|n\/a|-)$/.test(epg)?'epg:'+epg:'name:'+(identity||String(item.id));
-   let group=groups.get(key);
-   if(!group){group={key,title:name,primary:item,variants:[],aliases:[],categories:new Set(),category:tvCategory(name,item.group)};groups.set(key,group)}
-   {
-     const quality=mediaQuality(item.name);
-     group.variants.push({item,quality:quality||'Automático',score:SCORE[quality]||0,
-       label:quality||'Fonte '+(group.variants.length+1)});
+   const validEpg=epg&&!/^(0|none|null|undefined|unknown|n\/a|-)$/.test(epg);
+   const nameKey='name:'+identity,epgKey=validEpg?'epg:'+epg:'';
+   // Mesmo canal/número deve unir inclusive fontes sem tvg-id ou com EPG diferente.
+   // Só reutilizamos EPG como alias se a numeração não entrar em conflito.
+   let group=byName.get(nameKey)||(epgKey&&byEpg.get(epgKey)?.number===number?byEpg.get(epgKey):null);
+   if(!group){
+     // Um EPG incorreto não pode fazer o canal 2 sobrescrever o canal 1.
+     const key=epgKey&&!groups.has(epgKey)?epgKey:nameKey;
+     group={key,title:name,number,primary:item,variants:[],aliases:[],
+       categories:new Set(),category:tvCategory(name,item.group)};
+     groups.set(key,group);
    }
+   if(!byName.has(nameKey))byName.set(nameKey,group);
+   if(epgKey&&!byEpg.has(epgKey))byEpg.set(epgKey,group);
+   const quality=mediaQuality(item.name)||'Automático';
+   const qualityCount=group.variants.filter(x=>x.quality===quality).length+1;
+   group.variants.push({item,quality,score:SCORE[quality]||0,
+     label:quality==='Automático'?'Fonte '+qualityCount:
+       quality+(qualityCount>1?' · fonte '+qualityCount:'')});
    if(!group.aliases.includes(item.name))group.aliases.push(item.name);
    if(item.group)group.categories.add(item.group);
    byItemId.set(item.id,group);

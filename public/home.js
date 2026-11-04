@@ -725,7 +725,9 @@ export function createHome({ play } = {}) {
   function createCard(item, category, saved = null) {
     const cardTitle=(category==='series'||category==='destaques-series')
       ?seriesIndex.byItemId.get(item.id)?.title||titleForDisplay(item)
-      :titleForDisplay(item);
+      :classifyRole(item)==='tv'
+        ?tvIndex.byItemId.get(item.id)?.title||titleForDisplay(item)
+        :titleForDisplay(item);
     const card = document.createElement('article');
     card.className = 'media-card';
     const visual = document.createElement('button');
@@ -979,7 +981,7 @@ export function createHome({ play } = {}) {
       }
       select.value=item.id;
     }
-    $('details-title').textContent = titleForDisplay(item);
+    $('details-title').textContent = tvIndex.byItemId.get(item.id)?.title||titleForDisplay(item);
     $('details-group').textContent = [item.normalizedGroup || item.group || 'Disponível na sua biblioteca',
       item.catalogYear].filter(Boolean).join(' · ');
     const tagRoot=$('details-tags');
@@ -1208,7 +1210,7 @@ export function createHome({ play } = {}) {
       const group=seriesIndex.byItemId.get(entry?.id);
       const row=group?.episodes.find(value=>value.item===entry);
       return row?group.title+' · T'+row.season+':E'+row.number:
-        (entry?.displayName||entry?.name||'');
+        (tvIndex.byItemId.get(entry?.id)?.title||entry?.displayName||entry?.name||'');
     },
     resumeDetails(){return fullDetails.resume()},
     backdropFor(entry){const value=cachedMetadata(entry);return safeImage(value?.backdrop||value?.poster||artworkFor(entry))},
