@@ -51,7 +51,7 @@ export async function maintenanceRequest(request,env,{now=Date.now(),runCatalog=
     // Cada minuto: uma fila independente converte as imagens antigas/novas.
     // Wall time e bytes sao contabilizados; ao atingir o teto o trabalho pausa sem cobranca de Images.
     let images;
-    try{images=await processImageQueue(env);}
+    try{images=await processImageQueue(env,{limit:4});}
     catch(error){images={error:true};console.error('Lux image queue failed: '+String(error?.message||'unknown').slice(0,160));}
     const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'America/Sao_Paulo',hour:'2-digit',hourCycle:'h23'}).format(new Date(now)));
     if(hour>=6&&minute%15===0)await highlights(env,{scheduled:true});

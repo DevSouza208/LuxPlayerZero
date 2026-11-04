@@ -79,6 +79,6 @@ Teto conservador da fila de imagens, definido em src/vod-image-policy.js:
 - 12.000 conversões por mês
 - 2 GiB de novos WebP no mês
 - 6.000.000 ms de tempo observado no mês
-- máximo de duas imagens por execução da tarefa de manutenção
+- máximo de quatro imagens por execução da tarefa de manutenção, respeitando os tetos mensais e diários
 
 A API de admin VOD reporta images.counts, images.month, images.day e images.limits. Esses tetos controlam apenas o novo processo de imagens; não garantem uma fatura total de US$5 porque os demais serviços da conta podem gerar gastos. Não prometa que todos os metadados serão encontrados em uma noite: resultados ambíguos exigem revisão e a fila pausa quando orçamento ou fornecedor requerem.
