@@ -35,8 +35,9 @@ export async function maintenanceRequest(request,env,{now=Date.now(),runCatalog=
       const result=await runCatalog(env);
       if(result.failed)throw Error(result.failed+' fonte(s) indisponíveis.');
       // Index discovery starts after a complete R2 publication, not before.
-      await runVod(env,{discover:true,now});
-      if(result.updated)await markHighlights(env,now);
+      // A M3U pode levar minutos para baixar. Use o relogio atual nas leases do VOD.
+      await runVod(env,{discover:true});
+      if(result.updated)await markHighlights(env);
       return response(200,{ok:true,updated:result.updated,failed:0});
     }
     if(task==='highlights'){
@@ -52,6 +53,6 @@ export async function maintenanceRequest(request,env,{now=Date.now(),runCatalog=
   }catch(error){
     // No provider URL, secret, token or source ciphertext in logs.
     console.error('Lux maintenance '+task+' failed: '+String(error?.message||'unknown').slice(0,180));
-    return response(503,{ok:false,error:'A atualização não foi concluída. A última versão publicada foi mantida.'});
+    return response(503,{ok:false,error:'A manutenção não terminou por completo; a versão já publicada permanece preservada.'});
   }
 }
