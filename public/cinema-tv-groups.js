@@ -1,5 +1,5 @@
-/* Logical channel grouping from Lux 2.0: EPG first, normalized name fallback.
- * All sources are retained as independent quality/source variants.
+/* Logical TV channels: normalized family + channel number first, compatible EPG fallback.
+ * All original sources remain independent variants; no media URL is modified.
  */
 import {canonicalTvName} from './tv-normalizer.js';
 import {normalizeSearchText,mediaQuality} from './media-taxonomy.js';
