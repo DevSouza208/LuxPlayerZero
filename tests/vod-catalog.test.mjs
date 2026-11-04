@@ -154,7 +154,7 @@ test('API mostra cota D1 em vez de sugerir migração ou bucket inexistente',asy
 });
 
 test('fila TMDB respeita cota por dia UTC, nao perde titulos e retoma no dia seguinte',async()=>{
- const movie='#EXTM3U\\n#EXTINF:-1 group-title="FILMES",Duna (2021)\\nhttps://source.test/movie/u/p/101.mp4\\n';
+ const movie='#EXTM3U\n#EXTINF:-1 group-title="FILMES",Duna (2021)\nhttps://source.test/movie/u/p/101.mp4\n';
  const {env,db}=setup(movie),now=Date.parse('2026-11-04T16:00:00Z');
  await startVodJobs(env,now-10);await advanceVodJob(env,{now:now-9});
  env.TMDB_API_KEY='test-only-key';
@@ -176,8 +176,8 @@ test('fila TMDB respeita cota por dia UTC, nao perde titulos e retoma no dia seg
  assert.equal(db.prepare('SELECT status_metadados FROM filmes').get().status_metadados,'encontrado');
 });
 test('rotina automática processa mais de dois títulos no mesmo lote sem alterar o original',async()=>{
- const text='#EXTM3U\\n'+['Duna (2021)','O Poderoso Chefão (1972)','Avatar (2009)','Titanic (1997)']
-  .map((name,index)=>'#EXTINF:-1 group-title="FILMES",'+name+'\\nhttps://source.test/movie/u/p/'+(index+100)+'.mp4\\n').join('');
+ const text='#EXTM3U\n'+['Duna (2021)','O Poderoso Chefão (1972)','Avatar (2009)','Titanic (1997)']
+  .map((name,index)=>'#EXTINF:-1 group-title="FILMES",'+name+'\nhttps://source.test/movie/u/p/'+(index+100)+'.mp4\n').join('');
  const {env,db}=setup(text),now=Date.parse('2026-11-04T16:00:00Z');
  await startVodJobs(env,now-10);await advanceVodJob(env,{now:now-9});
  env.TMDB_API_KEY='test-only-key';
