@@ -59,6 +59,9 @@ export async function imageQueueStatus(env,now=Date.now()){
 export async function processImageQueue(env,{now=Date.now(),fetcher=fetch,convert=null,limit=2}={}){
  if(!env.DB?.prepare||!env.CATALOG_BUCKET?.put||!env.CATALOG_BUCKET?.head)return {paused:true,reason:'R2 ou D1 indisponivel'};
  await ensureImageSchema(env.DB);
+ // Pausa operacional persistente: mantém TMDB, catálogo e fallback de imagens ativos.
+ const pause=await env.DB.prepare("SELECT value FROM vod_catalog_state WHERE id='image_conversion_paused'").first();
+ if(pause?.value==='1')return {converted:0,paused:true,reason:'Conversão WebP pausada pelo administrador'};
  const lease=now+120000;
  const acquired=await env.DB.prepare(
   "INSERT INTO vod_catalog_state(id,value) VALUES('image_lease',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(vod_catalog_state.value AS INTEGER)<=?"
