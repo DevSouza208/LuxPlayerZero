@@ -25,20 +25,37 @@ export const TV_CATEGORY_LABELS={
  music:'Música',movies:'Filmes',series:'Séries',open:'TV aberta',international:'Internacional',
  always_on:'24 horas',adult:'Adulto',other:'Outros'
 };
+// A fonte sem número é a primeira da mesma família (ESPN == ESPN 1).
+// Qualidade e codec já foram removidos do nome canônico pelo normalizador.
+export function tvLogicalIdentity(raw){
+ const name=canonicalTvName(raw);
+ const match=/^(.+?)\s+([1-9][0-9]{0,2})$/.exec(name);
+ const number=match?Number(match[2]):1;
+ const family=normalizeSearchText(match?match[1]:name);
+ return {name,number,identity:family+' '+number};
+}
 export function groupTvEntries(items){
- const groups=new Map(),byItemId=new Map();
+ const groups=new Map(),byName=new Map(),byEpg=new Map(),byItemId=new Map();
  for(const item of items||[]){
-   const name=canonicalTvName(item.displayName||item.name);
+   const normalized=tvLogicalIdentity(item.displayName||item.name);
+   const {name,number,identity}=normalized;
    const epg=String(item.epgId||item.tvgId||'').trim().toLowerCase();
-   const identity=normalizeSearchText(name);
-   const key=epg&&!/^(0|none|null|undefined|unknown|n\/a|-)$/.test(epg)?'epg:'+epg:'name:'+(identity||String(item.id));
-   let group=groups.get(key);
-   if(!group){group={key,title:name,primary:item,variants:[],aliases:[],categories:new Set(),category:tvCategory(name,item.group)};groups.set(key,group)}
-   {
-     const quality=mediaQuality(item.name);
-     group.variants.push({item,quality:quality||'Automático',score:SCORE[quality]||0,
-       label:quality||'Fonte '+(group.variants.length+1)});
+   const validEpg=epg&&!/^(0|none|null|undefined|unknown|n\/a|-)$/.test(epg);
+   const nameKey='name:'+identity,epgKey=validEpg?'epg:'+epg:'';
+   // Mesmo canal/número deve unir inclusive fontes sem tvg-id ou com EPG diferente.
+   // Só reutilizamos EPG como alias se a numeração não entrar em conflito.
+   let group=byName.get(nameKey)||(epgKey&&byEpg.get(epgKey)?.number===number?byEpg.get(epgKey):null);
+   if(!group){
+     const key=epgKey||nameKey;
+     group={key,title:name,number,primary:item,variants:[],aliases:[],
+       categories:new Set(),category:tvCategory(name,item.group)};
+     groups.set(key,group);
    }
+   if(!byName.has(nameKey))byName.set(nameKey,group);
+   if(epgKey&&!byEpg.has(epgKey))byEpg.set(epgKey,group);
+   const quality=mediaQuality(item.name),qualityCount=group.variants.filter(x=>x.quality===quality).length+1;
+   group.variants.push({item,quality:quality||'Automático',score:SCORE[quality]||0,
+     label:quality?(quality+(qualityCount>1?' · fonte '+qualityCount:'')):'Fonte '+qualityCount});
    if(!group.aliases.includes(item.name))group.aliases.push(item.name);
    if(item.group)group.categories.add(item.group);
    byItemId.set(item.id,group);
