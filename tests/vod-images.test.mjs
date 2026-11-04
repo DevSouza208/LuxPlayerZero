@@ -18,7 +18,7 @@ async function setup(){
  const files=new Map(),uploads=[],db={prepare};
  await ensureVodSchema(db);
  const env={DB:db,CATALOG_BUCKET:{
-   async head(key){return files.has(key)?{size:files.get(key).byteLength}:null},
+   async head(key){const saved=uploads.findLast(row=>row.key===key);return files.has(key)?{size:files.get(key).byteLength,customMetadata:saved?.options.customMetadata}:null},
    async put(key,data,options){files.set(key,new Uint8Array(data));uploads.push({key,options})},
    async get(key){return files.has(key)?{body:new Blob([files.get(key)]).stream(),httpEtag:'"test"'}:null}
  }};
@@ -57,6 +57,10 @@ test('Filmes e series fazem fila, convertem sem Cloudflare Images e reutilizam R
  const again=await processImageQueue(env,{...opts,now:now+60000});
  assert.equal(again.converted,0);
  assert.equal(requests,2,'Imagem pronta nao deve ser baixada novamente');
+ // Se TMDB trocar o poster, nao servir a mesma imagem antiga para sempre.
+ assert.equal(await queueImageMatch(env,{...input,poster:'https://image.tmdb.org/t/p/w500/new-poster.jpg',backdrop:null,now:now+120000}),1);
+ const changed=await processImageQueue(env,{...opts,now:now+120000});
+ assert.equal(changed.converted,1);assert.equal(uploads.length,3);
  const route=await serveCachedArtwork(new Request('https://lux.example/api/artwork/movie/438631/poster'),env,{type:'movie',id:'438631',kind:'poster'});
  assert.equal(route.status,200);assert.equal(route.headers.get('content-type'),'image/webp');
  assert.equal((await route.arrayBuffer()).byteLength,fakeWebp.byteLength);
