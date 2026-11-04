@@ -72,8 +72,14 @@ export async function advanceVodJob(env,{chunks=1,now=Date.now()}={}){
   await env.DB.prepare('UPDATE vod_catalog_jobs SET lease_until=0 WHERE catalog_id=? AND generation=? AND lease_until=?').bind(job.catalog_id,job.generation,lease).run();
  }
 }
-export async function enrichVod(env,{limit=2,now=Date.now(),fetcher=fetch}={}){
+export async function enrichVod(env,{limit=4,now=Date.now(),fetcher=fetch}={}){
  if(!env.TMDB_API_KEY?.trim())return {matched:0,pending:true,reason:'TMDB não configurado neste servidor: falta TMDB_API_KEY. O front e o Worker precisam da mesma configuração.'};
+ // O limite TMDB e por dia UTC. Ao esgotar, suspende a fila inteira em vez
+ // de adiar milhares de titulos individualmente; a fila volta sozinha no dia seguinte.
+ const quotaPause=await env.DB.prepare("SELECT value FROM vod_catalog_state WHERE id='metadata_quota_until'").first();
+ const resumeAt=Number(quotaPause?.value)||0;
+ if(resumeAt>now)return {matched:0,attempts:0,paused:true,reason:'Cota diaria de consultas TMDB atingida. Retomada automatica no proximo dia UTC.',resumeAt};
+ const nextUtcDay=Date.parse(new Date(now).toISOString().slice(0,10)+'T00:00:00.000Z')+86400000;
  const lease=now+120000;
  const locked=await env.DB.prepare("INSERT INTO vod_catalog_state(id,value) VALUES('metadata_lease',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value WHERE CAST(vod_catalog_state.value AS INTEGER)<=?").bind(String(lease),now).run();
  if(!locked.meta.changes)return {matched:0,attempts:0,busy:true};
@@ -89,7 +95,14 @@ export async function enrichVod(env,{limit=2,now=Date.now(),fetcher=fetch}={}){
    if(!query){await env.DB.prepare(`UPDATE ${table} SET status_metadados='sem_correspondencia',consultar_apos=? WHERE id=?`).bind(now+30*86400000,row.id).run();continue;}
    const origin='https://lux.internal';
    const response=await lookupTmdb(new Request(origin+'/api/metadata/tmdb',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({type:query.type,title:query.title,year:query.year})}),env,fetcher,()=>now);
-   if(!response.ok){await env.DB.prepare(`UPDATE ${table} SET consultar_apos=? WHERE id=?`).bind(now+(response.status===429?86400000:3600000),row.id).run();return {matched,attempts,paused:true,reason:response.status===429?'Limite de consultas do TMDB atingido. A classificação será retomada automaticamente.':`Consulta TMDB indisponível (HTTP ${response.status}). Nova tentativa automática agendada.`};}
+   if(!response.ok){
+    if(response.status===429){
+     await env.DB.prepare("INSERT INTO vod_catalog_state(id,value) VALUES('metadata_quota_until',?) ON CONFLICT(id) DO UPDATE SET value=excluded.value").bind(String(nextUtcDay)).run();
+     return {matched,attempts,paused:true,reason:'Cota diaria TMDB esgotada. Retomada automatica no proximo dia UTC.',resumeAt:nextUtcDay};
+    }
+    await env.DB.prepare(`UPDATE ${table} SET consultar_apos=? WHERE id=?`).bind(now+3600000,row.id).run();
+    return {matched,attempts,paused:true,reason:`Consulta TMDB indisponivel (HTTP ${response.status}). Nova tentativa automatica agendada.`};
+   }
    const data=await response.json();
    if(data.status==='matched'){
     const updated=await env.DB.prepare(`UPDATE ${table} SET tmdb_id=?,capa=?,fundo=?,generos=?,status_metadados='encontrado',metadados_em=? WHERE id=? AND status_metadados<>'manual' AND tags='[]' AND generos='[]'`)
