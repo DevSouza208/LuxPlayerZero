@@ -63,10 +63,10 @@ test('Normaliza nomes M3U com prefixo +, artigos e pequenos erros sem perder o a
 });
 
 test('95% de similaridade aceita pequenos erros mas nunca troca o ano ou sequencia',()=>{
- const near=actor('A Grande A Fantastica Grande Odisseia Espacial',2026,911);
+ const near=actor('A Fantastica Grande Odisseia Espacial',2026,911);
  assert.equal(chooseExactMatch(movie('A Fantastica Grande Odisseia Espacia',2026),[near])?.tmdbId,911);
  assert.equal(chooseExactMatch(movie('A Fantastica Grande Odisseia Espacia',2025),[near]),null);
- assert.equal(chooseExactMatch(movie('A Grande A Fantastica Grande Odisseia Espacial 2',2026),[near]),null);
+ assert.equal(chooseExactMatch(movie('A Fantastica Grande Odisseia Espacial 2',2026),[near]),null);
  const translated={...actor('The Odyssey',2026,912),aliases:['A Odisseia']};
  assert.equal(chooseExactMatch(movie('A Odisseia',2026),[translated])?.tmdbId,912);
 });
