@@ -54,3 +54,9 @@ test('cron minuto e destaques acionam os trabalhos permitidos',async()=>{
  },highlights:async()=>{}});
  assert.equal(t.status,200);assert.equal(ticks,1);
 });
+
+test('cron nao segue redirecionamentos e falha quando Pages devolve 302',async()=>{
+ const response=Response.redirect('https://another.example/',302);
+ await assert.rejects(dispatchMaintenance({cron:'* * * * *'},{LUX_MAINTENANCE_TOKEN:token},
+  async(_url,options)=>{assert.equal(options.redirect,'manual');return response;},now),/Redirecionamento inesperado/);
+});
