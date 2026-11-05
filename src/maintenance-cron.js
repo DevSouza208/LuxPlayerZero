@@ -2,7 +2,7 @@
 const DESTINATION='https://luxplayerzero.pages.dev/api/maintenance/refresh';
 const encoder=new TextEncoder();
 const TASK_BY_CRON={
-  '0 8 * * *':'catalog', // 05h Sao Paulo / 08:00 UTC
+  // Listas privadas são atualizadas por usuário no primeiro acesso, não em lote.
   '0 9 * * *':'highlights', // 06h Sao Paulo / 09:00 UTC
   '* * * * *':'tick'
 };
