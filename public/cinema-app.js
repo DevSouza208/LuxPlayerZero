@@ -743,19 +743,42 @@ async function loadAccountSource(prefetchedResponse=null) {
 }
 updateForm();
 function finishLibraryLoading(){document.querySelector('.cinema-shell')?.classList.remove('is-library-loading');document.querySelector('main')?.removeAttribute('aria-busy');}
+async function refreshMyLibraryOnOpen(){
+  if(isGuestMode())return;
+  try{
+    const account=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null);
+    if(account?.backend!=='usuarios')return;
+    const status=await fetch('/api/account/daily-refresh',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null);
+    if(!status?.hasList||!status.needsRefresh)return;
+    bootProgress('Procurando atualizações da sua lista…');
+    const response=await fetch('/api/account/daily-refresh',{
+      method:'POST',credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer',
+      headers:{'content-type':'application/json'},body:'{}',signal:AbortSignal.timeout(190000)
+    });
+    if(!response.ok){
+      bootProgress('Atualização indisponível. Recuperando a última biblioteca salva…');
+      note('O fornecedor não respondeu. Sua lista anterior foi preservada.','info');
+    }
+  }catch{
+    bootProgress('Buscando sua última biblioteca salva…');
+    note('A atualização diária não foi concluída. A última lista válida será utilizada.','info');
+  }
+}
 async function initializeCinema(){
   try {
     showBootPhrase();
-    const sourceResponse=isGuestMode()?Promise.resolve(null):fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'}).catch(()=>new Response('',{status:503}));
-    const [,,accountResponse]=await Promise.all([refreshBridgeStatus(),prepareHomeProfile(),sourceResponse]);
+    await Promise.all([refreshBridgeStatus(),prepareHomeProfile()]);
     try { home = createHome({ play: item => playItem(item) }); }
     catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
+    await refreshMyLibraryOnOpen();
+    const accountResponse=isGuestMode()?null:await fetch('/api/account/source',{
+      credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'
+    }).catch(()=>new Response('',{status:503}));
     if(!await loadAccountSource(accountResponse))await restoreSavedLibrary();
   } catch {
-    // Erros de boot não impedem abrir o formulário manual de conexão.
+    // Erros de boot não impedem abrir o player ou restaurar a última biblioteca.
     bootProgress('Não foi possível restaurar automaticamente.');
   } finally {
-    // Os títulos aparecem após a restauração; o splash já pode ter terminado.
     finishLibraryLoading();
     finishBoot();
   }
