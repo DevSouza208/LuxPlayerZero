@@ -37,6 +37,12 @@ export default {
         return result;
       });ctx.waitUntil(work);return work;
     }
+    // Retentativas às 07h e 09h de São Paulo somente se a atualização do dia falhou.
+    if(event.cron==='0 10 * * *'||event.cron==='0 12 * * *'){
+      const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      const latest=await env.DB.prepare('SELECT MAX(synced_at) AS last_sync FROM catalog_sources').first();
+      if(latest?.last_sync&&new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(latest.last_sync))===today)return {skipped:true,reason:'Catálogo já atualizado hoje'};
+    }
     const work=refreshDailyCatalogs(env).then(async result=>{
       if(result.failed)throw new Error(result.failed+' catálogo(s) não puderam ser atualizados. As cópias anteriores foram preservadas.');
       // 05h de São Paulo: snapshot primeiro, índice depois.
