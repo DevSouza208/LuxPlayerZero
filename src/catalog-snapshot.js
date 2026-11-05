@@ -385,7 +385,10 @@ export async function refreshDailyCatalogs(env, fetcher = fetch, {catalogId=null
       const response=await refreshCatalogSource(source.url,env,fetcher,{forceReplace:true});
       if(!response.ok)throw new Error('Download indisponível.');
       result.updated++;
-    } catch { result.failed++; }
+    } catch (error) {
+      result.failed++;
+      console.error('Falha na atualização diária do catálogo:',String(error?.message||error));
+    }
   }
   return result;
 }
