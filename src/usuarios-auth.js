@@ -1,10 +1,14 @@
 import {checkRequestBudget} from './request-budget.js';
 import {HttpError,reply,bodyJson,cookie,randomToken,digest,equal} from './account-security.js';
 const encoder=new TextEncoder(),ready=new WeakMap(),DAYS=7*86400000;
+import {permittedUrl} from './bridge-core.js';
+import {refreshCatalogSource} from './catalog-snapshot.js';
 const SQL=[
  `CREATE TABLE IF NOT EXISTS usuarios_sessoes(token_hash TEXT PRIMARY KEY,id TEXT NOT NULL UNIQUE,usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,senha_marca TEXT NOT NULL,device TEXT NOT NULL,expires_at INTEGER NOT NULL)`,
  `CREATE TABLE IF NOT EXISTS usuarios_limites(chave TEXT PRIMARY KEY,tentativas INTEGER NOT NULL,expira_em INTEGER NOT NULL)`,
- `CREATE TABLE IF NOT EXISTS usuarios_estado(usuario_id INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,valor TEXT NOT NULL DEFAULT '{}',versao INTEGER NOT NULL DEFAULT 0)`
+ `CREATE TABLE IF NOT EXISTS usuarios_estado(usuario_id INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,valor TEXT NOT NULL DEFAULT '{}',versao INTEGER NOT NULL DEFAULT 0)`,
+ `CREATE TABLE IF NOT EXISTS usuarios_convites(token_hash TEXT PRIMARY KEY,source_url TEXT NOT NULL,created_by INTEGER NOT NULL,expires_at INTEGER NOT NULL,claimed_by INTEGER UNIQUE)`,
+ `CREATE TABLE IF NOT EXISTS usuarios_atualizacoes(usuario_id INTEGER PRIMARY KEY,day TEXT NOT NULL,catalog_id TEXT,updated_at TEXT)`
 ];
 export async function hasUsuarios(env){
  if(!env?.DB?.prepare)return false;
@@ -76,12 +80,57 @@ export async function usuariosApi(request,env,validateState){
    await env.DB.prepare('DELETE FROM usuarios_limites WHERE chave=?').bind(await digest('user:'+identity.toLowerCase())).run();
    return cookie(reply({authenticated:true,backend:'usuarios',username:row.usuario,role:role(current),profileId:'usuario:'+row.id}),token);
   }
+  if(path==='/api/account/register'&&request.method==='POST'){
+    const body=await bodyJson(request,8192);
+    const username=typeof body.identity==='string'?body.identity.trim():'';
+    const name=typeof body.name==='string'?body.name.trim():'';
+    if(!/^[a-zA-Z0-9_.-]{3,40}$/.test(username)||!name||name.length>80||typeof body.password!=='string'||body.password.length<12||body.password.length>256||!/^[a-f0-9]{64}$/.test(body.invite||''))throw new HttpError(400,'Confira nome, usuário, senha de pelo menos 12 caracteres e convite.');
+    const inviteHash=await digest(body.invite);
+    const row=await env.DB.prepare('SELECT source_url FROM usuarios_convites WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?').bind(inviteHash,Date.now()).first();
+    if(!row)throw new HttpError(400,'Convite inválido ou utilizado.');
+    const encoded=await hashUsuarioPassword(body.password,env);
+    const result=await env.DB.prepare(`INSERT INTO usuarios(usuario,senha,nome,lista_http,lista_https,nivel_acesso)
+      SELECT ?,?,?,?,?,'usuario' WHERE EXISTS(SELECT 1 FROM usuarios_convites WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?)`)
+      .bind(username,encoded,name,row.source_url.startsWith('http:')?row.source_url:null,row.source_url.startsWith('https:')?row.source_url:null,inviteHash,Date.now()).run();
+    if(!result.meta.changes)throw new HttpError(409,'Convite indisponível.');
+    const claimed=await env.DB.prepare('UPDATE usuarios_convites SET claimed_by=(SELECT id FROM usuarios WHERE usuario=? COLLATE NOCASE) WHERE token_hash=? AND claimed_by IS NULL').bind(username,inviteHash).run();
+    if(!claimed.meta.changes)throw new HttpError(409,'Convite já utilizado. Contate o administrador.');
+    return reply({ok:true,registered:true});
+  }
   const user=await usuarioSession(request,env);
   if(path==='/api/account/session'&&request.method==='GET')return reply(user?{authenticated:true,backend:'usuarios',username:user.username,role:user.role,profileId:user.profile_id}:{authenticated:false});
   if(!user)throw new HttpError(401,'Entre na sua conta para continuar.');
   if(path!=='/api/account/logout'){
    const blocked=await checkRequestBudget(env,user.user_id,path==='/api/account/state'&&request.method==='POST'?'sync':'account');
    if(blocked)return blocked;
+  }
+  if(path==='/api/account/invite'&&request.method==='POST'){
+    if(user.role!=='admin')throw new HttpError(403,'Somente administrador.');
+    const body=await bodyJson(request,8192);
+    let source;try{source=permittedUrl(body.url,env).href}catch{throw new HttpError(400,'URL de lista não permitida.')}
+    const token=randomToken();
+    await env.DB.prepare('INSERT INTO usuarios_convites(token_hash,source_url,created_by,expires_at) VALUES (?,?,?,?)')
+      .bind(await digest(token),source,user.usuario_id,Date.now()+86400000).run();
+    return reply({token,expiresIn:86400,inviteUrl:new URL('/?invite='+token,request.url).href});
+  }
+  if(path==='/api/account/daily-refresh'&&request.method==='POST'){
+    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const previous=await env.DB.prepare('SELECT day,catalog_id FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
+    if(previous?.day===today)return reply({ok:true,alreadyUpdated:true,catalogId:previous.catalog_id});
+    const row=await env.DB.prepare('SELECT lista_https,lista_http FROM usuarios WHERE id=?').bind(user.usuario_id).first();
+    const source=row?.lista_https||row?.lista_http;
+    if(!source)throw new HttpError(404,'Nenhuma lista vinculada à conta.');
+    const response=await refreshCatalogSource(source,env,fetch,{requireFresh:true});
+    const result=await response.json();
+    if(!response.ok)return reply({error:result.error||'Falha ao atualizar lista.'},response.status);
+    await env.DB.prepare('INSERT INTO usuarios_atualizacoes(usuario_id,day,catalog_id,updated_at) VALUES (?,?,?,?) ON CONFLICT(usuario_id) DO UPDATE SET day=excluded.day,catalog_id=excluded.catalog_id,updated_at=excluded.updated_at')
+      .bind(user.usuario_id,today,result.catalogId,new Date().toISOString()).run();
+    return reply({ok:true,catalogId:result.catalogId,url:result.url,updatedAt:result.syncedAt});
+  }
+  if(path==='/api/account/daily-refresh'&&request.method==='GET'){
+    const row=await env.DB.prepare('SELECT day,catalog_id,updated_at FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
+    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    return reply({needsRefresh:row?.day!==today,catalogId:row?.catalog_id||null,updatedAt:row?.updated_at||null});
   }
   if(path==='/api/account/source'){
    if(request.method==='GET'){
