@@ -37,13 +37,14 @@ test('falha de download nao remove a versao anterior nem inicia o indice',async(
 });
 test('worker dedicado autentica o pedido de cron e nao recebe segredo da lista antiga',async()=>{
  const captures=[];
- const result=await dispatchMaintenance({cron:'0 8 * * *'},{LUX_MAINTENANCE_TOKEN:token},async(url,opts)=>{
+ const result=await dispatchMaintenance({cron:'0 9 * * *'},{LUX_MAINTENANCE_TOKEN:token},async(url,opts)=>{
   const req=new Request(url,opts);captures.push({url,task:req.headers.get('x-lux-maintenance-task')});
   assert.equal(await authorizeMaintenance(req,env,now),true);
   return new Response('ok');
  },now);
- assert.equal(result.task,'catalog');
- assert.deepEqual(captures,[{url:'https://luxplayerzero.pages.dev/api/maintenance/refresh',task:'catalog'}]);
+ assert.equal(result.task,'highlights');
+ assert.deepEqual(captures,[{url:'https://luxplayerzero.pages.dev/api/maintenance/refresh',task:'highlights'}]);
+ await assert.rejects(dispatchMaintenance({cron:'0 8 * * *'},{LUX_MAINTENANCE_TOKEN:token},async()=>new Response('ok'),now),/Agendamento desconhecido/);
  await assert.rejects(dispatchMaintenance({cron:'* * * * *'},{},async()=>new Response('ok'),now),/TOKEN/);
 });
 test('cron minuto e destaques acionam os trabalhos permitidos',async()=>{
