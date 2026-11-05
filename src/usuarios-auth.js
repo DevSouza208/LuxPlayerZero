@@ -147,7 +147,7 @@ export async function usuariosApi(request,env,validateState){
     // A atualização busca sempre a URL real do fornecedor, nunca o próprio endpoint HTTPS.
     const source=sourceRow?.lista_https&&!isOwnSnapshot(sourceRow.lista_https)
       ?sourceRow.lista_https : sourceRow?.lista_http;
-    const stableUrl=previous?.catalog_id?'/api/bridge/playlist?id='+previous.catalog_id:null;
+    const stableUrl=previous?.catalog_id?new URL('/api/bridge/playlist?id='+previous.catalog_id,request.url).href:null;
     if(request.method==='GET')return reply({
       needsRefresh:!!source&&previous?.day!==today,hasList:!!source,
       catalogId:previous?.catalog_id||null,url:stableUrl,updatedAt:previous?.updated_at||null
@@ -162,7 +162,7 @@ export async function usuariosApi(request,env,validateState){
     await env.DB.prepare(`INSERT INTO usuarios_atualizacoes(usuario_id,day,catalog_id,updated_at) VALUES (?,?,?,?)
       ON CONFLICT(usuario_id) DO UPDATE SET day=excluded.day,catalog_id=excluded.catalog_id,updated_at=excluded.updated_at`)
       .bind(user.usuario_id,today,result.catalogId,new Date().toISOString()).run();
-    return reply({ok:true,catalogId:result.catalogId,url:'/api/bridge/playlist?id='+result.catalogId,updatedAt:result.syncedAt});
+    return reply({ok:true,catalogId:result.catalogId,url:new URL('/api/bridge/playlist?id='+result.catalogId,request.url).href,updatedAt:result.syncedAt});
   }
   if(path==='/api/account/source'){
     if(request.method!=='GET')throw new HttpError(403,'A fonte da lista só pode ser definida pelo administrador através de um convite.');
@@ -175,7 +175,7 @@ export async function usuariosApi(request,env,validateState){
       try{const u=new URL(source.lista_https);if(u.origin===new URL(request.url).origin&&u.pathname==='/api/bridge/playlist')id=u.searchParams.get('id')}
       catch{}
     }
-    return reply({lista_http:null,lista_https:id?'/api/bridge/playlist?id='+id:null});
+    return reply({lista_http:null,lista_https:id?new URL('/api/bridge/playlist?id='+id,request.url).href:null});
   }
   if(path==='/api/account/logout'&&request.method==='POST'){
    await bodyJson(request);await env.DB.prepare('DELETE FROM usuarios_sessoes WHERE token_hash=?').bind(user.token_hash).run();return cookie(reply({ok:true}));
