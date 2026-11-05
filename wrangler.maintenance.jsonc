@@ -3,6 +3,6 @@
   "name": "lux-zero-maintenance",
   "main": "src/maintenance-cron.js",
   "compatibility_date": "2026-10-13",
-  "triggers": { "crons": ["0 8 * * *", "0 9 * * *", "* * * * *"] },
+  "triggers": { "crons": ["0 9 * * *", "* * * * *"] },
   "observability": { "enabled": true }
 }

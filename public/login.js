@@ -16,6 +16,53 @@ const recoveryForm = $('recovery-form');
 const recoveryEmail = $('recovery-email');
 const recoveryFeedback = $('recovery-feedback');
 
+const inviteInput = $('login-invite');
+const registerName = $('register-name');
+const registerNameField = $('register-name-field');
+const loginSubmit = form.querySelector('[type="submit"]');
+const suppliedInvite = new URLSearchParams(location.search).get('invite') || '';
+if (/^[a-f0-9]{64}$/i.test(suppliedInvite)) inviteInput.value = suppliedInvite;
+function updateRegisterMode() {
+  const isRegistration = Boolean(inviteInput.value.trim());
+  registerNameField.hidden = !isRegistration;
+  registerName.required = isRegistration;
+  password.autocomplete = isRegistration ? 'new-password' : 'current-password';
+  loginSubmit.firstChild.textContent = isRegistration ? 'Criar minha conta ' : 'Entrar com Lux ID ';
+  if (isRegistration) $('registration-details').open = true;
+}
+inviteInput.addEventListener('input', updateRegisterMode);
+updateRegisterMode();
+
+async function postAccount(action, payload, timeout = null) {
+  const response = await fetch('/api/account/' + action, {
+    method:'POST', credentials:'same-origin', cache:'no-store',
+    headers:{'content-type':'application/json'},
+    body:JSON.stringify(payload),
+    ...(timeout ? {signal:AbortSignal.timeout(timeout)} : {})
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw Error(data.error || 'O serviço não concluiu a solicitação.');
+  return data;
+}
+async function checkDailyUpdates(auth) {
+  if (auth.backend !== 'usuarios') return;
+  announce(feedback, 'Procurando atualizações da sua lista…');
+  try {
+    const response = await fetch('/api/account/daily-refresh', {
+      credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'
+    });
+    if (!response.ok) throw Error('Não foi possível consultar a biblioteca.');
+    const status = await response.json();
+    if (!status.hasList || !status.needsRefresh) return;
+    announce(feedback, 'Atualizando sua lista. Seus conteúdos anteriores continuam protegidos…');
+    await postAccount('daily-refresh', {}, 190000);
+  } catch {
+    // A atualização falha de modo seguro: o catálogo anterior permanece acessível.
+    announce(feedback, 'Não foi possível atualizar agora. Abrindo a última biblioteca disponível…', 'info');
+  }
+}
+
+
 const announce = (element, text, kind = 'info') => {
   element.textContent = text;
   element.dataset.kind = kind;
@@ -42,32 +89,41 @@ function updateMode(mode) {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  const result = validateLogin({ identity: username.value, password: password.value });
-  setFieldError(username, 'identity-error', result.errors.identity);
-  setFieldError(password, 'password-error', result.errors.password);
-
-  if (!result.valid) {
-    announce(feedback, 'Confira os campos destacados para continuar.', 'error');
-    (result.errors.identity ? username : password).focus();
+  const result=validateLogin({identity:username.value,password:password.value});
+  const registering=Boolean(inviteInput.value.trim());
+  if(registering){
+    if(!registerName.value.trim()||registerName.value.trim().length>80){
+      announce(feedback,'Informe seu nome para concluir o cadastro.','error');
+      registerName.focus();
+      return;
+    }
+    if(password.value.length<12){
+      announce(feedback,'Crie uma senha com pelo menos 12 caracteres.','error');
+      password.focus();
+      return;
+    }
+  }
+  setFieldError(username,'identity-error',result.errors.identity);
+  setFieldError(password,'password-error',result.errors.password);
+  if(!result.valid){
+    announce(feedback,'Confira os campos destacados para continuar.','error');
+    (result.errors.identity?username:password).focus();
     return;
   }
-
-  const submit = form.querySelector('[type="submit"]');
-  submit.disabled = true;
-  announce(feedback, 'Verificando seu acesso…');
+  loginSubmit.disabled=true;
+  announce(feedback,registering?'Criando sua conta e vinculando sua lista…':'Verificando seu acesso…');
   try {
-    const invite = document.getElementById('login-invite')?.value.trim();
-    const response = await fetch('/api/account/' + (invite ? 'register' : 'login'), {
-      method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ identity: username.value.trim(), password: password.value, invite, code: document.getElementById('login-code')?.value.trim() })
-    });
-    const data = await response.json();
-    if (!response.ok) throw Error(data.error || 'Não foi possível entrar.');
-    password.value = '';
+    const identity=username.value.trim(),secret=password.value;
+    if(registering){
+      await postAccount('register',{identity,password:secret,name:registerName.value.trim(),invite:inviteInput.value.trim()});
+      // A conta criada usa o mesmo login normal: nenhum segundo mecanismo de sessão.
+    }
+    const data=await postAccount('login',{identity,password:secret,code:$('login-code')?.value.trim()});
+    password.value='';
+    await checkDailyUpdates(data);
     location.assign(data.profileId?'/cinema/':'/account/');
-  } catch (error) { announce(feedback, error.message || 'Não foi possível conectar.', 'error'); }
-  finally { submit.disabled = false; }
-
+  }catch(error){announce(feedback,error.message||'Não foi possível conectar.','error');}
+  finally{loginSubmit.disabled=false;}
 });
 
 for (const [input, errorId] of [[username, 'identity-error'], [password, 'password-error']]) {
@@ -126,7 +182,7 @@ const year = $('current-year');
 if (year) year.textContent = String(new Date().getFullYear());
 
 // Check the real server session; no browser token storage.
-void fetch('/api/account/session', { credentials: 'same-origin', cache: 'no-store' })
+if (!suppliedInvite) void fetch('/api/account/session', { credentials: 'same-origin', cache: 'no-store' })
   .then(response => response.ok ? response.json() : null)
   .then(data => { if (data?.authenticated) location.replace(data.profileId?'/cinema/':'/account/'); })
   .catch(() => {});

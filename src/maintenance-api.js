@@ -33,13 +33,9 @@ export async function maintenanceRequest(request,env,{now=Date.now(),runCatalog=
   const task=request.headers.get('x-lux-maintenance-task');
   try{
     if(task==='catalog'){
-      const result=await runCatalog(env);
-      if(result.failed)throw Error(result.failed+' fonte(s) indisponíveis.');
-      // Index discovery starts after a complete R2 publication, not before.
-      // A M3U pode levar minutos para baixar. Use o relogio atual nas leases do VOD.
-      await runVod(env,{discover:true});
-      if(result.updated)await markHighlights(env);
-      return response(200,{ok:true,updated:result.updated,failed:0});
+      // Compatibilidade com Workers agendados antigos: não baixar todas as
+      // M3U privadas. Cada usuário sincroniza somente a própria no acesso.
+      return response(200,{ok:true,task:'catalog',updated:0,skipped:true});
     }
     if(task==='highlights'){
       await highlights(env,{scheduled:true});

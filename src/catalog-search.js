@@ -4,6 +4,7 @@ import {classifyItem} from '../public/home-model.js';
 import {normalizeSearchText} from '../public/media-taxonomy.js';
 import {requiredSession,bodyJson,HttpError,reply} from './account-security.js';
 import {session as bridgeSession} from './bridge-core.js';
+import {hasUsuarios,usuarioSession} from './usuarios-auth.js';
 const CHUNK=512*1024,MAX_ROWS=40;
 /** A bounded chunk ends at the last consumed URL; incomplete EXTINF is read again. */
 export function indexChunk(bytes,{group='',final=false}={}) {
@@ -34,6 +35,11 @@ export async function catalogSearchApi(request,env) {
   const url=new URL(request.url);
   if(request.method==='GET'){
    const catalogId=url.searchParams.get('catalogId')||'',kind=url.searchParams.get('kind')||'movies';
+   if(await hasUsuarios(env)){
+     const owner=await usuarioSession(request,env);
+     const saved=owner?await env.DB.prepare('SELECT catalog_id FROM usuarios_atualizacoes WHERE usuario_id=?').bind(owner.usuario_id).first():null;
+     if(!saved||saved.catalog_id!==catalogId)throw new HttpError(403,'Este catálogo não pertence à sua conta.');
+   }
    const page=Math.max(1,Math.min(100000,Math.trunc(Number(url.searchParams.get('page'))||1))),query=normalizeSearchText((url.searchParams.get('q')||'').slice(0,100));
    const head=await env.DB.prepare(`SELECT g.* FROM search_heads h JOIN search_generations g ON g.id=h.generation_id
     JOIN catalog_sources c ON c.catalog_id=h.catalog_id WHERE h.catalog_id=? AND g.snapshot_time=c.synced_at AND g.snapshot_key=c.r2_key`).bind(catalogId).first();

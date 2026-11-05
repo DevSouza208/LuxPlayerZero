@@ -76,7 +76,7 @@
             <button class="primary-btn" type="submit">Entrar com Lux ID
               <svg aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
             </button>
-          <details><summary>Autenticação em duas etapas</summary><label for="login-code">Código do aplicativo ou de recuperação</label><input id="login-code" autocomplete="one-time-code" maxlength="32"></details><details><summary>Recebi um convite</summary><label for="login-invite">Código do convite</label><input id="login-invite" type="text" maxlength="64" autocomplete="off" placeholder="Cole o código para criar sua conta"><p>Para cadastro, use uma senha com pelo menos 12 caracteres.</p></details></form>
+          <details><summary>Autenticação em duas etapas</summary><label for="login-code">Código do aplicativo ou de recuperação</label><input id="login-code" autocomplete="one-time-code" maxlength="32"></details><details id="registration-details"><summary>Recebi um convite para criar conta</summary><label for="login-invite">Código do convite</label><input id="login-invite" type="text" maxlength="64" autocomplete="off" placeholder="Código do convite"><div id="register-name-field" hidden><label for="register-name">Como quer ser chamado?</label><input id="register-name" type="text" maxlength="80" autocomplete="name" placeholder="Seu nome" spellcheck="false"></div><p>Crie um usuário e uma senha de pelo menos 12 caracteres. Sua lista já estará vinculada.</p></details></form>
           <div id="login-feedback" class="feedback" role="status" aria-live="polite" hidden></div>
 
           <div class="splitter"><span>ou entre com</span></div>

@@ -48,7 +48,40 @@ $('logout').onclick=()=>run($('logout'),async()=>{await api('logout',{});locatio
 $('revoke-all').onclick=()=>run($('revoke-all'),async()=>{await api('revoke',{all:true});location.replace('/')});
 $('password-form').onsubmit=e=>{e.preventDefault();run(e.submitter,async()=>{await api('password',Object.fromEntries(new FormData(e.target)));location.replace('/')})};
 $('invite').onclick=()=>run($('invite'),async()=>{const data=await api('invite',{});$('invite-result').hidden=false;$('invite-token').value=data.token;status('Convite criado. Compartilhe-o somente com a pessoa convidada.');await admin()});
-try{const data=await api('session');if(!data.authenticated)location.replace('/');else{simpleAccount=data.backend==='usuarios';if(simpleAccount)$('profile-form').closest('details').hidden=true;$('identity').textContent='Olá, '+data.username;$('account-lux-id').textContent=simpleAccount?'Usuário: '+data.username:'Seu Lux ID: '+data.luxId;await Promise.all([profiles(),devices()]);if(data.role==='admin'&&!simpleAccount){$('admin').hidden=false;await admin()}}}catch(e){status(e.message,true)}
+
+$('playlist-invite-form').onsubmit=event=>{
+  event.preventDefault();
+  const submit=event.submitter;
+  void run(submit,async()=>{
+    const url=$('invite-playlist-url').value.trim();
+    const data=await api('invite',{url});
+    $('invite-playlist-link').value=data.inviteUrl;
+    $('playlist-invite-result').hidden=false;
+    $('invite-playlist-url').value='';
+    status('Convite de uso único gerado. Compartilhe este link com o novo usuário.');
+  });
+};
+$('invite-copy').onclick=()=>run($('invite-copy'),async()=>{
+  const link=$('invite-playlist-link').value;
+  if(!link)return;
+  if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(link);
+  else{$('invite-playlist-link').select();document.execCommand('copy');}
+  status('Link copiado.');
+});
+async function listStatus(){
+  const data=await api('daily-refresh');
+  $('my-list-status').textContent=!data.hasList?'Esta conta ainda não possui uma M3U vinculada.':
+    data.needsRefresh?'Há uma atualização pendente para sua lista.':
+      'Biblioteca atualizada hoje'+(data.updatedAt?' · '+new Date(data.updatedAt).toLocaleString('pt-BR'):'')+'.';
+}
+$('refresh-my-list').onclick=()=>run($('refresh-my-list'),async()=>{
+  $('my-list-status').textContent='Procurando atualizações da sua lista…';
+  const data=await api('daily-refresh',{});
+  $('my-list-status').textContent=data.alreadyUpdated?'Sua lista já foi verificada hoje.':'Sua lista foi atualizada com sucesso.';
+  status('Seu endereço HTTPS continua o mesmo.');
+});
+
+try{const data=await api('session');if(!data.authenticated)location.replace('/');else{simpleAccount=data.backend==='usuarios';if(simpleAccount)$('profile-form').closest('details').hidden=true;$('identity').textContent='Olá, '+data.username;$('account-lux-id').textContent=simpleAccount?'Usuário: '+data.username:'Seu Lux ID: '+data.luxId;await Promise.all([profiles(),devices()]);if(simpleAccount){$('my-list-panel').hidden=false;await listStatus();if(data.role==='admin')$('playlist-invites').hidden=false;}else if(data.role==='admin'){$('admin').hidden=false;await admin()}}}catch(e){status(e.message,true)}
 
 $('mfa-form').onsubmit=e=>{e.preventDefault();const action=e.submitter.value;run(e.submitter,async()=>{const data=await api('mfa',{...Object.fromEntries(new FormData(e.target)),action});$('mfa-result').textContent=data.secret?'Adicione esta chave ao seu autenticador e confirme o código: '+data.secret:'2FA ativado. Guarde estes códigos de recuperação em local seguro (cada um funciona uma vez): '+data.recovery.join(' · ');if(data.enabled)e.target.reset()})};
 

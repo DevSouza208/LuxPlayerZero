@@ -701,12 +701,19 @@ async function saveAccountSource(source,id) {
 }
 async function loadAccountSource(prefetchedResponse=null) {
   if(isGuestMode())return false;
+  // Resolve a atualização diária antes de escolher o snapshot. Uma resposta
+  // pré-buscada pode apontar para a lista de ontem no primeiro login.
+  const account=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+  if(account?.backend==='usuarios'){
+    await refreshMyLibraryOnOpen();
+    prefetchedResponse=null;
+  }
   const response=prefetchedResponse||await fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'});
   if(response.status===404)return false;
   if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
   const source=await response.json(),generation=sourceLoad;
   const local=await loadLibraryCache.restore(homeProfileId());
-  if(local?.localOnly){applyPreparedLibrary(local.items,'cache deste dispositivo',local.catalogId,generation);return true;}
+  if(local?.localOnly&&!source.lista_http&&!source.lista_https){applyPreparedLibrary(local.items,'cache deste dispositivo',local.catalogId,generation);return true;}
   if(!source.lista_https&&!source.lista_http){await restoreSavedLibrary();if(!channels.length)note('Sua conta está pronta. Conecte uma lista para começar.','info');return true;}
   els.url.value=source.lista_http||source.lista_https;
   try {
@@ -743,6 +750,30 @@ async function loadAccountSource(prefetchedResponse=null) {
 }
 updateForm();
 function finishLibraryLoading(){document.querySelector('.cinema-shell')?.classList.remove('is-library-loading');document.querySelector('main')?.removeAttribute('aria-busy');}
+async function refreshMyLibraryOnOpen(){
+  if(isGuestMode())return;
+  try{
+    const account=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null);
+    if(account?.backend!=='usuarios')return;
+    // A fonte é atribuída pelo administrador: ninguém precisa informar outra M3U.
+    $('source-form')?.setAttribute('hidden','');
+    for(const node of document.querySelectorAll('#open-source,#hero-connect,#empty-connect,.source-shortcut'))node.hidden=true;
+    const status=await fetch('/api/account/daily-refresh',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null);
+    if(!status?.hasList||!status.needsRefresh)return;
+    bootProgress('Procurando atualizações da sua lista…');
+    const response=await fetch('/api/account/daily-refresh',{
+      method:'POST',credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer',
+      headers:{'content-type':'application/json'},body:'{}',signal:AbortSignal.timeout(190000)
+    });
+    if(!response.ok){
+      bootProgress('Atualização indisponível. Recuperando a última biblioteca salva…');
+      note('O fornecedor não respondeu. Sua lista anterior foi preservada.','info');
+    }
+  }catch{
+    bootProgress('Buscando sua última biblioteca salva…');
+    note('A atualização diária não foi concluída. A última lista válida será utilizada.','info');
+  }
+}
 async function initializeCinema(){
   try {
     showBootPhrase();
@@ -752,10 +783,8 @@ async function initializeCinema(){
     catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
     if(!await loadAccountSource(accountResponse))await restoreSavedLibrary();
   } catch {
-    // Erros de boot não impedem abrir o formulário manual de conexão.
     bootProgress('Não foi possível restaurar automaticamente.');
   } finally {
-    // Os títulos aparecem após a restauração; o splash já pode ter terminado.
     finishLibraryLoading();
     finishBoot();
   }

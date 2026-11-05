@@ -42,8 +42,8 @@ test('edições no D1 revogam sessões e atualizam nível sem recadastrar usuár
 test('cada conta só recebe sua própria lista e seu próprio estado',async()=>{
  const {env}=setup(),a=await login(env),b=await login(env,'outra','test-only-other-password');
  const source={lista_http:'http://source.example/get.php?username=test&password=test',lista_https:'https://lux.test/api/bridge/playlist?id=test'};
- assert.equal((await accountApi(req('source',source,a.token),env)).status,200);
- assert.deepEqual(await(await accountApi(req('source',undefined,a.token),env)).json(),source);
+ assert.equal((await accountApi(req('source',source,a.token),env)).status,403);
+ assert.deepEqual(await(await accountApi(req('source',undefined,a.token),env)).json(),{lista_http:null,lista_https:null});
  assert.deepEqual(await(await accountApi(req('source',undefined,b.token),env)).json(),{lista_http:null,lista_https:null});
  const initial=await(await accountApi(req('state',undefined,a.token),env)).json();
  const saved=await accountApi(req('state',{profileId:initial.profileId,version:0,value:{favorites:[],recent:[],settings:{heroTitle:'Minha conta'}}},a.token),env);assert.equal(saved.status,200);
