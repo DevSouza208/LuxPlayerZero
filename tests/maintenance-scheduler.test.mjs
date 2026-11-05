@@ -40,7 +40,7 @@ test('worker dedicado autentica o pedido de cron e nao recebe segredo da lista a
  },now);
  assert.equal(result.task,'highlights');
  assert.deepEqual(captures,[{url:'https://luxplayerzero.pages.dev/api/maintenance/refresh',task:'highlights'}]);
- await assert.rejects(dispatchMaintenance({cron:'0 8 * * *'},{LUX_MAINTENANCE_TOKEN:token},async()=>new Response('ok'),now),/Agendamento desconhecido/);
+ await assert.rejects(dispatchMaintenance({cron:'0 7 * * *'},{LUX_MAINTENANCE_TOKEN:token},async()=>new Response('ok'),now),/Agendamento desconhecido/);
  await assert.rejects(dispatchMaintenance({cron:'* * * * *'},{},async()=>new Response('ok'),now),/TOKEN/);
 });
 test('cron minuto e destaques acionam os trabalhos permitidos',async()=>{
