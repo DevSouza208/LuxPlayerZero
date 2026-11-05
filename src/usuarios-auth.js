@@ -1,14 +1,14 @@
 import {checkRequestBudget} from './request-budget.js';
 import {HttpError,reply,bodyJson,cookie,randomToken,digest,equal} from './account-security.js';
 const encoder=new TextEncoder(),ready=new WeakMap(),DAYS=7*86400000;
-import {permittedUrl} from './bridge-core.js';
+import {permittedUrl,seal,unseal} from './bridge-core.js';
 import {refreshCatalogSource} from './catalog-snapshot.js';
 const SQL=[
  `CREATE TABLE IF NOT EXISTS usuarios_sessoes(token_hash TEXT PRIMARY KEY,id TEXT NOT NULL UNIQUE,usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,senha_marca TEXT NOT NULL,device TEXT NOT NULL,expires_at INTEGER NOT NULL)`,
  `CREATE TABLE IF NOT EXISTS usuarios_limites(chave TEXT PRIMARY KEY,tentativas INTEGER NOT NULL,expira_em INTEGER NOT NULL)`,
  `CREATE TABLE IF NOT EXISTS usuarios_estado(usuario_id INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,valor TEXT NOT NULL DEFAULT '{}',versao INTEGER NOT NULL DEFAULT 0)`,
- `CREATE TABLE IF NOT EXISTS usuarios_convites(token_hash TEXT PRIMARY KEY,source_url TEXT NOT NULL,created_by INTEGER NOT NULL,expires_at INTEGER NOT NULL,claimed_by INTEGER UNIQUE)`,
- `CREATE TABLE IF NOT EXISTS usuarios_atualizacoes(usuario_id INTEGER PRIMARY KEY,day TEXT NOT NULL,catalog_id TEXT,updated_at TEXT)`
+ `CREATE TABLE IF NOT EXISTS usuarios_convites(token_hash TEXT PRIMARY KEY,source_cipher TEXT NOT NULL,created_by INTEGER NOT NULL,expires_at INTEGER NOT NULL,claimed_by INTEGER UNIQUE)`,
+ `CREATE TABLE IF NOT EXISTS usuarios_atualizacoes(usuario_id INTEGER PRIMARY KEY REFERENCES usuarios(id) ON DELETE CASCADE,day TEXT NOT NULL,catalog_id TEXT,updated_at TEXT)`
 ];
 export async function hasUsuarios(env){
  if(!env?.DB?.prepare)return false;
@@ -82,19 +82,38 @@ export async function usuariosApi(request,env,validateState){
   }
   if(path==='/api/account/register'&&request.method==='POST'){
     const body=await bodyJson(request,8192);
+    await rate(env,await digest('register-ip:'+(request.headers.get('cf-connecting-ip')||'unknown')),15);
     const username=typeof body.identity==='string'?body.identity.trim():'';
     const name=typeof body.name==='string'?body.name.trim():'';
-    if(!/^[a-zA-Z0-9_.-]{3,40}$/.test(username)||!name||name.length>80||typeof body.password!=='string'||body.password.length<12||body.password.length>256||!/^[a-f0-9]{64}$/.test(body.invite||''))throw new HttpError(400,'Confira nome, usuário, senha de pelo menos 12 caracteres e convite.');
+    if(!/^[a-zA-Z0-9_.-]{3,40}$/.test(username)||!name||name.length>80||
+       typeof body.password!=='string'||body.password.length<12||body.password.length>256||
+       !/^[a-f0-9]{64}$/.test(body.invite||''))
+      throw new HttpError(400,'Informe nome, usuário, senha de 12 caracteres ou mais e convite válido.');
     const inviteHash=await digest(body.invite);
-    const row=await env.DB.prepare('SELECT source_url FROM usuarios_convites WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?').bind(inviteHash,Date.now()).first();
-    if(!row)throw new HttpError(400,'Convite inválido ou utilizado.');
+    const invite=await env.DB.prepare('SELECT source_cipher FROM usuarios_convites WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?')
+      .bind(inviteHash,Date.now()).first();
+    if(!invite)throw new HttpError(400,'Convite inválido, vencido ou já utilizado.');
+    let source;
+    try {
+      const payload=await unseal(invite.source_cipher,env);
+      if(payload.scope!=='playlist-invite')throw Error('Escopo incorreto');
+      source=permittedUrl(payload.url,env).href;
+    }catch{throw new HttpError(400,'Este convite não está mais disponível. Peça um novo ao administrador.');}
+    const existing=await env.DB.prepare('SELECT id FROM usuarios WHERE usuario=? COLLATE NOCASE').bind(username).first();
+    if(existing)throw new HttpError(409,'Este nome de usuário já existe.');
     const encoded=await hashUsuarioPassword(body.password,env);
-    const result=await env.DB.prepare(`INSERT INTO usuarios(usuario,senha,nome,lista_http,lista_https,nivel_acesso)
-      SELECT ?,?,?,?,?,'usuario' WHERE EXISTS(SELECT 1 FROM usuarios_convites WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?)`)
-      .bind(username,encoded,name,row.source_url.startsWith('http:')?row.source_url:null,row.source_url.startsWith('https:')?row.source_url:null,inviteHash,Date.now()).run();
-    if(!result.meta.changes)throw new HttpError(409,'Convite indisponível.');
-    const claimed=await env.DB.prepare('UPDATE usuarios_convites SET claimed_by=(SELECT id FROM usuarios WHERE usuario=? COLLATE NOCASE) WHERE token_hash=? AND claimed_by IS NULL').bind(username,inviteHash).run();
-    if(!claimed.meta.changes)throw new HttpError(409,'Convite já utilizado. Contate o administrador.');
+    // D1 batch é transacional: o mesmo token não pode criar duas contas.
+    const changes=await env.DB.batch([
+      env.DB.prepare(`INSERT INTO usuarios(usuario,senha,nome,lista_http,lista_https,nivel_acesso)
+        SELECT ?,?,?,?,?,'usuario'
+        WHERE EXISTS(SELECT 1 FROM usuarios_convites WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?)`)
+        .bind(username,encoded,name,source.startsWith('http:')?source:null,source.startsWith('https:')?source:null,inviteHash,Date.now()),
+      env.DB.prepare(`UPDATE usuarios_convites SET claimed_by=(SELECT id FROM usuarios WHERE usuario=? COLLATE NOCASE)
+        WHERE token_hash=? AND claimed_by IS NULL AND expires_at>?`)
+        .bind(username,inviteHash,Date.now())
+    ]);
+    if(!changes[0]?.meta?.changes||!changes[1]?.meta?.changes)
+      throw new HttpError(409,'Convite já utilizado. Solicite outro.');
     return reply({ok:true,registered:true});
   }
   const user=await usuarioSession(request,env);
@@ -105,42 +124,58 @@ export async function usuariosApi(request,env,validateState){
    if(blocked)return blocked;
   }
   if(path==='/api/account/invite'&&request.method==='POST'){
-    if(user.role!=='admin')throw new HttpError(403,'Somente administrador.');
+    if(user.role!=='admin')throw new HttpError(403,'Somente o administrador pode gerar convites.');
     const body=await bodyJson(request,8192);
-    let source;try{source=permittedUrl(body.url,env).href}catch{throw new HttpError(400,'URL de lista não permitida.')}
-    const token=randomToken();
-    await env.DB.prepare('INSERT INTO usuarios_convites(token_hash,source_url,created_by,expires_at) VALUES (?,?,?,?)')
-      .bind(await digest(token),source,user.usuario_id,Date.now()+86400000).run();
+    let source;
+    try{source=permittedUrl(body.url,env).href}
+    catch{throw new HttpError(400,'A URL precisa ser HTTP(S) e o host deve estar autorizado no gateway.');}
+    const token=randomToken(),expires=Date.now()+86400000;
+    const cipher=await seal({scope:'playlist-invite',url:source,exp:expires},env);
+    await env.DB.prepare('INSERT INTO usuarios_convites(token_hash,source_cipher,created_by,expires_at) VALUES (?,?,?,?)')
+      .bind(await digest(token),cipher,user.usuario_id,expires).run();
     return reply({token,expiresIn:86400,inviteUrl:new URL('/?invite='+token,request.url).href});
   }
-  if(path==='/api/account/daily-refresh'&&request.method==='POST'){
+  if(path==='/api/account/daily-refresh'&&['GET','POST'].includes(request.method)){
     const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-    const previous=await env.DB.prepare('SELECT day,catalog_id FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
-    if(previous?.day===today)return reply({ok:true,alreadyUpdated:true,catalogId:previous.catalog_id});
-    const row=await env.DB.prepare('SELECT lista_https,lista_http FROM usuarios WHERE id=?').bind(user.usuario_id).first();
-    const source=row?.lista_https||row?.lista_http;
-    if(!source)throw new HttpError(404,'Nenhuma lista vinculada à conta.');
+    const previous=await env.DB.prepare('SELECT day,catalog_id,updated_at FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
+    const sourceRow=await env.DB.prepare('SELECT lista_https,lista_http FROM usuarios WHERE id=?').bind(user.usuario_id).first();
+    const isOwnSnapshot=value=>{
+      try{const url=new URL(value);return url.origin===new URL(request.url).origin&&url.pathname==='/api/bridge/playlist'}
+      catch{return false;}
+    };
+    // Instalações antigas podem guardar o link do R2 em lista_https.
+    // A atualização busca sempre a URL real do fornecedor, nunca o próprio endpoint HTTPS.
+    const source=sourceRow?.lista_https&&!isOwnSnapshot(sourceRow.lista_https)
+      ?sourceRow.lista_https : sourceRow?.lista_http;
+    const stableUrl=previous?.catalog_id?'/api/bridge/playlist?id='+previous.catalog_id:null;
+    if(request.method==='GET')return reply({
+      needsRefresh:!!source&&previous?.day!==today,hasList:!!source,
+      catalogId:previous?.catalog_id||null,url:stableUrl,updatedAt:previous?.updated_at||null
+    });
+    await bodyJson(request,4096);
+    if(!source)throw new HttpError(404,'Nenhuma lista vinculada à sua conta.');
+    if(previous?.day===today)return reply({ok:true,alreadyUpdated:true,catalogId:previous.catalog_id,url:stableUrl});
     const response=await refreshCatalogSource(source,env,fetch,{requireFresh:true});
-    const result=await response.json();
-    if(!response.ok)return reply({error:result.error||'Falha ao atualizar lista.'},response.status);
-    await env.DB.prepare('INSERT INTO usuarios_atualizacoes(usuario_id,day,catalog_id,updated_at) VALUES (?,?,?,?) ON CONFLICT(usuario_id) DO UPDATE SET day=excluded.day,catalog_id=excluded.catalog_id,updated_at=excluded.updated_at')
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)return reply({error:result.error||'Não foi possível atualizar a lista. A versão anterior foi preservada.',url:stableUrl},response.status);
+    if(!result.catalogId||!/^[a-f0-9-]{36}$/i.test(result.catalogId))throw new HttpError(502,'A atualização não retornou um catálogo válido.');
+    await env.DB.prepare(`INSERT INTO usuarios_atualizacoes(usuario_id,day,catalog_id,updated_at) VALUES (?,?,?,?)
+      ON CONFLICT(usuario_id) DO UPDATE SET day=excluded.day,catalog_id=excluded.catalog_id,updated_at=excluded.updated_at`)
       .bind(user.usuario_id,today,result.catalogId,new Date().toISOString()).run();
-    return reply({ok:true,catalogId:result.catalogId,url:result.url,updatedAt:result.syncedAt});
-  }
-  if(path==='/api/account/daily-refresh'&&request.method==='GET'){
-    const row=await env.DB.prepare('SELECT day,catalog_id,updated_at FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
-    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-    return reply({needsRefresh:row?.day!==today,catalogId:row?.catalog_id||null,updatedAt:row?.updated_at||null});
+    return reply({ok:true,catalogId:result.catalogId,url:'/api/bridge/playlist?id='+result.catalogId,updatedAt:result.syncedAt});
   }
   if(path==='/api/account/source'){
-   if(request.method==='GET'){
-    const row=await env.DB.prepare('SELECT lista_http,lista_https FROM usuarios WHERE id=?').bind(user.usuario_id).first();return reply(row);
-   }
-   if(request.method==='POST'){
-    const body=await bodyJson(request,20000);
-    const http=safeSource(body.lista_http,'http:'),https=safeSource(body.lista_https,'https:');
-    await env.DB.prepare('UPDATE usuarios SET lista_http=?,lista_https=? WHERE id=?').bind(http,https,user.usuario_id).run();return reply({ok:true});
-   }
+    if(request.method!=='GET')throw new HttpError(403,'A fonte da lista só pode ser definida pelo administrador através de um convite.');
+    const row=await env.DB.prepare('SELECT catalog_id FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
+    const source=await env.DB.prepare('SELECT lista_http,lista_https FROM usuarios WHERE id=?').bind(user.usuario_id).first();
+    let id=row?.catalog_id||null;
+    // Migração suave de usuários antigos: o URL HTTPS próprio permanece válido
+    // até a primeira atualização pela conta.
+    if(!id&&source?.lista_https){
+      try{const u=new URL(source.lista_https);if(u.origin===new URL(request.url).origin&&u.pathname==='/api/bridge/playlist')id=u.searchParams.get('id')}
+      catch{}
+    }
+    return reply({lista_http:null,lista_https:id?'/api/bridge/playlist?id='+id:null});
   }
   if(path==='/api/account/logout'&&request.method==='POST'){
    await bodyJson(request);await env.DB.prepare('DELETE FROM usuarios_sessoes WHERE token_hash=?').bind(user.token_hash).run();return cookie(reply({ok:true}));
