@@ -2,7 +2,8 @@
 const DESTINATION='https://luxplayerzero.pages.dev/api/maintenance/refresh';
 const encoder=new TextEncoder();
 const TASK_BY_CRON={
-  // Listas privadas são atualizadas por usuário no primeiro acesso, não em lote.
+  // Compatibilidade com cron antigo: Pages confirma a chamada, sem baixar listas.
+  '0 8 * * *':'catalog',
   '0 9 * * *':'highlights', // 06h Sao Paulo / 09:00 UTC
   '* * * * *':'tick'
 };
