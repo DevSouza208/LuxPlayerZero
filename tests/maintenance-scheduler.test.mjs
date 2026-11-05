@@ -21,19 +21,15 @@ test('rota de manutencao exige assinatura valida, sem sessao do usuario',async()
  assert.equal(await authorizeMaintenance(await signed('tick'),{...env,LUX_MAINTENANCE_TOKEN:'other-secret-'+'z'.repeat(48)},now),false);
  assert.equal((await maintenanceRequest(new Request('https://luxplayerzero.pages.dev/api/maintenance/refresh'),env,{now})).status,405);
 });
-test('cron renova o catalogo no Pages, descobre o indice e solicita destaques',async()=>{
- const calls=[],result=await maintenanceRequest(await signed('catalog'),env,{now,
-   runCatalog:async()=>{calls.push('catalog');return {updated:1,failed:0}},
-   runVod:async(_,options)=>{assert.equal(options.discover,true);assert.equal('now' in options,false,'A indexacao usa o relogio depois do download');calls.push('index');return {index:{status:'building'}}},
-   markHighlights:async()=>calls.push('highlight-mark')});
- assert.equal(result.status,200);assert.equal((await result.json()).updated,1);
- assert.deepEqual(calls,['catalog','index','highlight-mark']);
-});
-test('falha de download nao remove a versao anterior nem inicia o indice',async()=>{
- let indexCalled=false;
+test('pedido legado do cron não baixa todas as listas individuais',async()=>{
+ let calls=0;
  const result=await maintenanceRequest(await signed('catalog'),env,{now,
-  runCatalog:async()=>({updated:0,failed:1}),runVod:async()=>{indexCalled=true}});
- assert.equal(result.status,503);assert.equal(indexCalled,false);
+   runCatalog:async()=>{calls++;return {updated:1,failed:0}},
+   runVod:async()=>{calls++},
+   markHighlights:async()=>{calls++}});
+ assert.equal(result.status,200);
+ assert.deepEqual(await result.json(),{ok:true,task:'catalog',updated:0,skipped:true});
+ assert.equal(calls,0,'uma chamada antiga do cron não deve importar listas privadas');
 });
 test('worker dedicado autentica o pedido de cron e nao recebe segredo da lista antiga',async()=>{
  const captures=[];
