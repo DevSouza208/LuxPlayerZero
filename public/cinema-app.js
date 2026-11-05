@@ -701,6 +701,13 @@ async function saveAccountSource(source,id) {
 }
 async function loadAccountSource(prefetchedResponse=null) {
   if(isGuestMode())return false;
+  // Resolve a atualização diária antes de escolher o snapshot. Uma resposta
+  // pré-buscada pode apontar para a lista de ontem no primeiro login.
+  const account=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+  if(account?.backend==='usuarios'){
+    await refreshMyLibraryOnOpen();
+    prefetchedResponse=null;
+  }
   const response=prefetchedResponse||await fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'});
   if(response.status===404)return false;
   if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
@@ -770,16 +777,12 @@ async function refreshMyLibraryOnOpen(){
 async function initializeCinema(){
   try {
     showBootPhrase();
-    await Promise.all([refreshBridgeStatus(),prepareHomeProfile()]);
+    const sourceResponse=isGuestMode()?Promise.resolve(null):fetch('/api/account/source',{credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'}).catch(()=>new Response('',{status:503}));
+    const [,,accountResponse]=await Promise.all([refreshBridgeStatus(),prepareHomeProfile(),sourceResponse]);
     try { home = createHome({ play: item => playItem(item) }); }
     catch (error) { console.warn('Vitrine Lux indisponível; player original preservado.', error); }
-    await refreshMyLibraryOnOpen();
-    const accountResponse=isGuestMode()?null:await fetch('/api/account/source',{
-      credentials:'same-origin',cache:'no-store',referrerPolicy:'no-referrer'
-    }).catch(()=>new Response('',{status:503}));
     if(!await loadAccountSource(accountResponse))await restoreSavedLibrary();
   } catch {
-    // Erros de boot não impedem abrir o player ou restaurar a última biblioteca.
     bootProgress('Não foi possível restaurar automaticamente.');
   } finally {
     finishLibraryLoading();
