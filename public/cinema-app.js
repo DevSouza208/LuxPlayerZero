@@ -706,7 +706,7 @@ async function loadAccountSource(prefetchedResponse=null) {
   if(!response.ok)throw new Error('Não foi possível carregar a lista da sua conta.');
   const source=await response.json(),generation=sourceLoad;
   const local=await loadLibraryCache.restore(homeProfileId());
-  if(local?.localOnly){applyPreparedLibrary(local.items,'cache deste dispositivo',local.catalogId,generation);return true;}
+  if(local?.localOnly&&!source.lista_http&&!source.lista_https){applyPreparedLibrary(local.items,'cache deste dispositivo',local.catalogId,generation);return true;}
   if(!source.lista_https&&!source.lista_http){await restoreSavedLibrary();if(!channels.length)note('Sua conta está pronta. Conecte uma lista para começar.','info');return true;}
   els.url.value=source.lista_http||source.lista_https;
   try {
@@ -748,6 +748,9 @@ async function refreshMyLibraryOnOpen(){
   try{
     const account=await fetch('/api/account/session',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null);
     if(account?.backend!=='usuarios')return;
+    // A fonte é atribuída pelo administrador: ninguém precisa informar outra M3U.
+    $('source-form')?.setAttribute('hidden','');
+    for(const node of document.querySelectorAll('#open-source,#hero-connect,#empty-connect,.source-shortcut'))node.hidden=true;
     const status=await fetch('/api/account/daily-refresh',{credentials:'same-origin',cache:'no-store'}).then(r=>r.ok?r.json():null);
     if(!status?.hasList||!status.needsRefresh)return;
     bootProgress('Procurando atualizações da sua lista…');
