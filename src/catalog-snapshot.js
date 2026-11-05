@@ -1,4 +1,5 @@
 import {versionKey,readCatalogManifest} from './catalog-version.js';
+import {usuarioSession,hasUsuarios} from './usuarios-auth.js';
 /**
  * Lux Player Zero — sincronização simples de catálogos:
  * origem HTTP → R2 privado → referência D1 → entrega HTTPS autenticada.
@@ -336,6 +337,23 @@ export async function serveCatalog(request, env) {
     return apiError(400, 'Identificador da playlist inválido.');
   }
 
+  // Usuários individuais só podem ler o catálogo vinculado à própria fonte.
+  // A referência do administrador não autoriza acesso a catálogos de terceiros.
+  if (await hasUsuarios(env)) {
+    const user=await usuarioSession(request,env);
+    if(!user)return apiError(401,'Sessão necessária.');
+    const source=await env.DB.prepare('SELECT lista_http,lista_https FROM usuarios WHERE id=?').bind(user.usuario_id).first();
+    const permitted=[source?.lista_https,source?.lista_http].filter(Boolean);
+    let owns=false;
+    for(const url of permitted){
+      try{
+        const hash=await sourceHash(permittedUrl(url,env).href,env);
+        const match=await env.DB.prepare('SELECT 1 AS ok FROM catalog_sources WHERE source_hash=? AND catalog_id=?').bind(hash,id).first();
+        if(match){owns=true;break;}
+      }catch{}
+    }
+    if(!owns)return apiError(403,'Esta lista não pertence à sua conta.');
+  }
   let row;
   try {
     const manifest=await readCatalogManifest(env,id);
