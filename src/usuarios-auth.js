@@ -140,7 +140,7 @@ export async function usuariosApi(request,env,validateState){
     const previous=await env.DB.prepare('SELECT day,catalog_id,updated_at FROM usuarios_atualizacoes WHERE usuario_id=?').bind(user.usuario_id).first();
     const sourceRow=await env.DB.prepare('SELECT lista_https,lista_http FROM usuarios WHERE id=?').bind(user.usuario_id).first();
     const isOwnSnapshot=value=>{
-      try{const url=new URL(value);return url.origin===new URL(request.url).origin&&url.pathname==='/api/bridge/playlist'}
+      try{const url=new URL(value);return (url.origin===new URL(request.url).origin||url.hostname==='luxplayerzero.pages.dev')&&url.pathname==='/api/bridge/playlist'}
       catch{return false;}
     };
     // Instalações antigas podem guardar o link do R2 em lista_https.
@@ -172,7 +172,7 @@ export async function usuariosApi(request,env,validateState){
     // Migração suave de usuários antigos: o URL HTTPS próprio permanece válido
     // até a primeira atualização pela conta.
     if(!id&&source?.lista_https){
-      try{const u=new URL(source.lista_https);if(u.origin===new URL(request.url).origin&&u.pathname==='/api/bridge/playlist')id=u.searchParams.get('id')}
+      try{const u=new URL(source.lista_https);if((u.origin===new URL(request.url).origin||u.hostname==='luxplayerzero.pages.dev')&&u.pathname==='/api/bridge/playlist')id=u.searchParams.get('id')}
       catch{}
     }
     return reply({lista_http:null,lista_https:id?new URL('/api/bridge/playlist?id='+id,request.url).href:null});
