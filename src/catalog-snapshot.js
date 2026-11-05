@@ -195,6 +195,12 @@ export async function syncCatalog(request, env, fetcher = fetch) {
     const body = await request.json();
     source = permittedUrl(body?.url, env).href;
     requireFresh = body?.requireFresh === true;
+    if(await hasUsuarios(env)){
+      const user=await usuarioSession(request,env);
+      const row=await env.DB.prepare('SELECT lista_http,lista_https FROM usuarios WHERE id=?').bind(user.usuario_id).first();
+      const allowed=[row?.lista_http,row?.lista_https].filter(Boolean).map(url=>{try{return permittedUrl(url,env).href}catch{return null}});
+      if(!allowed.includes(source))return apiError(403,'Esta lista não pertence à sua conta.');
+    }
   } catch {
     return apiError(400, 'Endereço inválido ou servidor não autorizado.');
   }
