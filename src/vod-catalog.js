@@ -88,7 +88,7 @@ export async function enrichVod(env,{limit=8,now=Date.now(),fetcher=fetch}={}){
  try{
  for(const table of (Math.floor(now/60000)%2?[...TABLES].reverse():TABLES)){
   if(attempts>=limit)break;
-  const rows=await env.DB.prepare(`SELECT id,titulo,ano FROM ${table} WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND generos='[]' AND consultar_apos<=?
+  const rows=await env.DB.prepare(`SELECT id,titulo,ano FROM ${table} WHERE status_metadados NOT IN ('encontrado','manual') AND tags='[]' AND (generos='[]' OR status_metadados='pendente') AND consultar_apos<=?
    AND EXISTS(SELECT 1 FROM vod_catalog_items i WHERE i.tipo=? AND i.item_id=${table}.id)
    ORDER BY consultar_apos,id LIMIT ?`).bind(now,table,limit-attempts).all();
   for(const row of rows.results||[]){
@@ -107,7 +107,7 @@ export async function enrichVod(env,{limit=8,now=Date.now(),fetcher=fetch}={}){
    }
    const data=await response.json();
    if(data.status==='matched'){
-    const updated=await env.DB.prepare(`UPDATE ${table} SET tmdb_id=?,capa=?,fundo=?,generos=?,status_metadados='encontrado',metadados_em=? WHERE id=? AND status_metadados<>'manual' AND tags='[]' AND generos='[]'`)
+    const updated=await env.DB.prepare(`UPDATE ${table} SET tmdb_id=?,capa=?,fundo=?,generos=CASE WHEN generos='[]' THEN ? ELSE generos END,status_metadados='encontrado',metadados_em=? WHERE id=? AND status_metadados<>'manual' AND tags='[]' AND (generos='[]' OR status_metadados='pendente')`)
      .bind(data.tmdbId||null,data.poster||null,data.backdrop||null,JSON.stringify(data.genres||[]),now,row.id).run();
     if(updated.meta.changes){
       matched++;
